@@ -3,6 +3,7 @@ from antlr4 import *
 from LambdaLexer import LambdaLexer
 from LambdaParser import LambdaParser
 from CustomLambdaListener import CustomListener
+from CustomLambdaVisitor import CustomVisitor
 
 def main(argv):
     input = FileStream(argv[1])
@@ -13,6 +14,7 @@ def main(argv):
     stream = CommonTokenStream(lexer) 
     # Initialize the parser.
     parser = LambdaParser(stream)
+    parser.addParseListener(CustomListener()) 
 
     # --- End of Initialization ---
    
@@ -34,12 +36,13 @@ def main(argv):
     # termContext.init() will set the exprContext as its parent
     # termContext.enterRule() will set it as child of exprContext
     # .match(ttype)/.matchwildcard() for terminals will call consume() 
-    # consume() will add tokenNodes (terminalNodes) to the context.
+    # consume() will add terminalNodes and set localctx as its parent.
 
     # Inner nodes via tree.addChild(parseTree) 
     # Terminal nodes via tree.addTokenNode(token)
 
     # CONTEXT ACCESSOR METHODS
+    # tree.getText() at ruleExit returns the aggregated text of all predecessor leaves.
     # tree.getChild()
     # tree.getChildren() 
     # tree.getToken() returns terminalNode if direct child
@@ -50,6 +53,12 @@ def main(argv):
 
     # --- End of parse tree Construction ---
 
+    print("")
+    visitor = CustomVisitor()
+    visitor.visit(tree)
+    print("")
+    
+    #A way to listen to the parse tree after creation.
     #printer = CustomListener()
     #walker = ParseTreeWalker()
     #walker.walk(printer, tree)
