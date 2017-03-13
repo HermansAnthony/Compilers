@@ -7,9 +7,9 @@ from LambdaListener import LambdaListener
 
 class CustomListener(LambdaListener):     
     def enterLamb(self, ctx):
-        print("Lambda ")
+        print("Lambda", end=' ')
 
-    def enterVar(self, ctx):
-        print(ctx.getText())
+    def exitVar(self, ctx):
+        print(ctx.getText(), end=', ')
 
 
