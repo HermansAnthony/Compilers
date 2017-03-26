@@ -1,7 +1,7 @@
 /**
  * Grammar for our Compiler project
  */
-grammar Smallc;
+grammar SmallC;
 
 // Start rule
 program
@@ -23,6 +23,11 @@ identifier
     : NonDigit
     | identifier NonDigit
     | identifier Digit
+;
+
+identifierList
+    : identifier
+    | identifierList identifier
 ;
 
 // Constant part of the grammar
@@ -65,6 +70,11 @@ exponentPart
     | 'E' Sign? digitSequence
 ;
 
+Sign
+    : '+'
+    | '-'
+;
+
 characterConstant
     : '\'' cCharSequence '\''
 ;
@@ -86,7 +96,7 @@ escapeSequence
 ;
 
 simpleEscapeSequence
-    : '\'' | '\"' | '\?' | '\\' | '\a' | '\b' | '\f' | '\n' | '\r' | '\t' | '\v'
+    : '\'' | '\"' | '\\' | '\b' | '\f' | '\n' | '\r' | '\t'
 ;
 
 // End of the constant part of the grammar
@@ -122,13 +132,13 @@ inclusiveORexpression
 ;
 
 exclusiveORexpression
-    : ANDexpression
-    | exclusiveORexpression '^' ANDexpression
+    : andExpression
+    | exclusiveORexpression '^' andExpression
 ;
 
-ANDexpression
+andExpression
     : equalityExpression
-    | ANDexpression '&' equalityExpression
+    | andExpression '&' equalityExpression
 ;
 
 equalityExpression
@@ -146,7 +156,7 @@ relationalExpression
 ;
 
 shiftExpression
-    :   additiveExpression
+    : additiveExpression
 ;
 
 additiveExpression
@@ -177,10 +187,118 @@ argumentExpressionList
     | argumentExpressionList ',' assignmentExpression
 ;
 
+constantExpression
+    : conditionalExpression
+;
+
 // End of the expression part of the grammar
 
 // Declaration part of the grammar
-// TODO
+declaration
+    : declarationSpecifiers
+    | initDeclaratorList?
+;
+
+declarationSpecifiers
+    : typeSpecifier declarationSpecifiers?
+    | typeQualifier declarationSpecifiers?
+;
+
+typeSpecifier
+    : Char | Int | Float | Void
+;
+
+typeQualifier
+    : Const
+;
+
+initDeclaratorList
+    : initDeclarator
+    | initDeclaratorList ',' initDeclarator
+;
+
+initDeclarator
+    : declarator
+    | declarator '=' initializer
+;
+
+declarator
+    : pointer? directDeclarator
+;
+
+pointer
+    : '*' typeQualifierList?
+    | '*' typeQualifierList? pointer
+;
+
+typeQualifierList
+    : typeQualifier
+    | typeQualifierList typeQualifier
+;
+
+directDeclarator
+    : identifier
+    | '(' declarator ')'
+    | directDeclarator '[' typeQualifierList? assignmentExpression? ']'
+    | directDeclarator '[' typeQualifierList? '*' ']'
+    | directDeclarator '(' parameterTypeList ')'
+    | directDeclarator '(' identifierList? ')'
+;
+
+parameterTypeList
+    : parameterList
+    | parameterList ',' '...'
+;
+
+parameterList
+    : parameterDeclaration
+    | parameterList ',' parameterDeclaration
+;
+
+parameterDeclaration
+    : declarationSpecifiers declarator
+    | declarationSpecifiers abstractDeclarator?
+;
+
+abstractDeclarator
+    : pointer
+    | pointer? directAbstractDeclarator
+;
+
+directAbstractDeclarator
+    : '(' abstractDeclarator ')'
+    | directAbstractDeclarator? '[' assignmentExpression? ']'
+    | directAbstractDeclarator? '[' '*' ']'
+    | directAbstractDeclarator? '(' parameterTypeList? ')'
+    | '[' typeQualifierList? assignmentExpression? ']'
+;
+
+initializer
+    : assignmentExpression
+    | '{' initializerList '}'
+    | '{' initializerList ',' '}'
+;
+
+initializerList
+    : designation? initializer
+    | initializerList ',' designation? initializer
+;
+
+designation
+    : designatorList '='
+;
+
+designatorList
+    : designator
+    | designatorList designator
+;
+
+designator
+    : '[' constantExpression ']'
+    | '.' identifier
+;
+
+
 // End of the declaration part of the grammar
 
 // Statement part of the grammar
@@ -229,7 +347,31 @@ jumpStatement
 // End of the statement part of the grammar
 
 // External definition part of the grammar
-// TODO
+externalDefinitions
+    : translationUnit
+    | externalDeclaration
+    | functionDefinition
+    | declarationList
+;
+
+translationUnit
+    : externalDeclaration
+    | translationUnit externalDeclaration
+;
+
+externalDeclaration
+    : functionDefinition
+    | declaration
+;
+
+functionDefinition
+    : declarationSpecifiers declarator declarationList? compoundStatement
+;
+
+declarationList
+    : declaration
+    | declarationList declaration
+;
 // End of the external definition part of the grammar
 
 
@@ -237,10 +379,19 @@ jumpStatement
 NonDigit : [a-zA-Z_];
 Digit : [0-9];
 NonZeroDigit : [1-9];
-Sign : '+' | '-';
+
+
 AssignmentOperator : '=';
 UnaryOperator : '&' | '*' | '+' | '-' | '!';
+
+// Necessary types
 Char : 'char';
 Int : 'int';
 Float : 'float';
+Void : 'void';
+Const : 'const';
+
+
 WS : [ \t\n\r]+ -> skip ;
+
+
