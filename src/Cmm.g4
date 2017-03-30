@@ -5,10 +5,7 @@ grammar Cmm;
 
 // Start rule
 program
-    : primaryExpression
-    | declaration
-    | statement
-    | externalDefinitions
+    : translationUnit? EOF
 ;
 
 // Primary expression part of the grammar
@@ -23,11 +20,6 @@ identifier
     : NonDigit
     | identifier NonDigit
     | identifier Digit
-;
-
-identifierList
-    : identifier
-    | identifierList identifier
 ;
 
 // Constant part of the grammar
@@ -47,10 +39,6 @@ decimalConstant
 ;
 
 floatingConstant
-    : decimalFloatingConstant
-;
-
-decimalFloatingConstant
     : fractionalConstant exponentPart?
     | digitSequence exponentPart
 ;
@@ -61,8 +49,7 @@ fractionalConstant
 ;
 
 digitSequence
-    : Digit
-    | digitSequence Digit
+    : Digit+
 ;
 
 exponentPart
@@ -76,26 +63,15 @@ Sign
 ;
 
 characterConstant
-    : '\'' cCharSequence '\''
-;
-
-cCharSequence
-    : cChar
-    | cCharSequence cChar
+    : '\'' cChar+ '\''
 ;
 
 cChar
     : escapeSequence
-    | '\''
-    | '\n'
-    | '\\'
+    : ~['\\\r\n]
 ;
 
 escapeSequence
-    : simpleEscapeSequence
-;
-
-simpleEscapeSequence
     : '\'' | '\"' | '\\' | '\b' | '\f' | '\n' | '\r' | '\t'
 ;
 
@@ -108,12 +84,8 @@ expression
 ;
 
 assignmentExpression
-    : conditionalExpression
-    | unaryExpression AssignmentOperator assignmentExpression
-;
-
-conditionalExpression
     : logicalORexpression
+    | unaryExpression AssignmentOperator assignmentExpression
 ;
 
 logicalORexpression
@@ -149,14 +121,10 @@ equalityExpression
 
 relationalExpression
     : additiveExpression
-    | relationalExpression '<' shiftExpression
-    | relationalExpression '>' shiftExpression
-    | relationalExpression '<=' shiftExpression
-    | relationalExpression '>=' shiftExpression
-;
-
-shiftExpression
-    : additiveExpression
+    | relationalExpression '<' additiveExpression
+    | relationalExpression '>' additiveExpression
+    | relationalExpression '<=' additiveExpression
+    | relationalExpression '>=' additiveExpression
 ;
 
 additiveExpression
@@ -185,10 +153,6 @@ postfixExpression
 argumentExpressionList
     : assignmentExpression
     | argumentExpressionList ',' assignmentExpression
-;
-
-constantExpression
-    : conditionalExpression
 ;
 
 // End of the expression part of the grammar
@@ -227,22 +191,15 @@ declarator
 ;
 
 pointer
-    : '*' typeQualifierList?
-    | '*' typeQualifierList? pointer
-;
-
-typeQualifierList
-    : typeQualifier
-    | typeQualifierList typeQualifier
+    : '*' typeQualifier
+    | '*' typeQualifier pointer
 ;
 
 directDeclarator
     : identifier
     | '(' declarator ')'
-    | directDeclarator '[' typeQualifierList? assignmentExpression? ']'
-    | directDeclarator '[' typeQualifierList? '*' ']'
-    | directDeclarator '(' parameterTypeList ')'
-    | directDeclarator '(' identifierList? ')'
+    | directDeclarator '[' assignmentExpression? ']'
+    | directDeclarator '(' parameterTypeList? ')'
 ;
 
 parameterTypeList
@@ -257,47 +214,11 @@ parameterList
 
 parameterDeclaration
     : declarationSpecifiers declarator
-    | declarationSpecifiers abstractDeclarator?
-;
-
-abstractDeclarator
-    : pointer
-    | pointer? directAbstractDeclarator
-;
-
-directAbstractDeclarator
-    : '(' abstractDeclarator ')'
-    | directAbstractDeclarator? '[' assignmentExpression? ']'
-    | directAbstractDeclarator? '[' '*' ']'
-    | directAbstractDeclarator? '(' parameterTypeList? ')'
-    | '[' typeQualifierList? assignmentExpression? ']'
 ;
 
 initializer
     : assignmentExpression
-    | '{' initializerList '}'
-    | '{' initializerList ',' '}'
 ;
-
-initializerList
-    : designation? initializer
-    | initializerList ',' designation? initializer
-;
-
-designation
-    : designatorList '='
-;
-
-designatorList
-    : designator
-    | designatorList designator
-;
-
-designator
-    : '[' constantExpression ']'
-    | '.' identifier
-;
-
 
 // End of the declaration part of the grammar
 
@@ -347,16 +268,9 @@ jumpStatement
 // End of the statement part of the grammar
 
 // External definition part of the grammar
-externalDefinitions
-    : translationUnit
-    | externalDeclaration
-    | functionDefinition
-    | declarationList
-;
-
 translationUnit
-    : externalDeclaration
-    | translationUnit externalDeclaration
+    :   externalDeclaration
+    |   translationUnit externalDeclaration
 ;
 
 externalDeclaration
@@ -365,12 +279,7 @@ externalDeclaration
 ;
 
 functionDefinition
-    : declarationSpecifiers declarator declarationList? compoundStatement
-;
-
-declarationList
-    : declaration
-    | declarationList declaration
+    : declarationSpecifiers declarator declaration* compoundStatement
 ;
 // End of the external definition part of the grammar
 
