@@ -137,6 +137,7 @@ If: [cond*, iftrue*, iffalse*]
 InitList: [exprs**]
 
 Label: [name, stmt*]
+# https://github.com/eliben/pycparser/blob/master/pycparser/_c_ast.cfg
 
 # A named initializer for C99.
 # The name of a NamedInitializer is a sequence of Nodes, because
