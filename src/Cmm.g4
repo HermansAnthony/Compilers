@@ -3,75 +3,200 @@
  */
 grammar Cmm;
 
+// Tokens
+Auto : 'auto';
+Break : 'break';
+Case : 'case';
+Char : 'char';
+Const : 'const';
+Continue : 'continue';
+Default : 'default';
+Do : 'do';
+Double : 'double';
+Else : 'else';
+Enum : 'enum';
+Extern : 'extern';
+Float : 'float';
+For : 'for';
+Goto : 'goto';
+If : 'if';
+Inline : 'inline';
+Int : 'int';
+Long : 'long';
+Register : 'register';
+Restrict : 'restrict';
+Return : 'return';
+Short : 'short';
+Signed : 'signed';
+Sizeof : 'sizeof';
+Static : 'static';
+Struct : 'struct';
+Switch : 'switch';
+Typedef : 'typedef';
+Union : 'union';
+Unsigned : 'unsigned';
+Void : 'void';
+Volatile : 'volatile';
+While : 'while';
+
+Alignas : '_Alignas';
+Alignof : '_Alignof';
+Atomic : '_Atomic';
+Bool : '_Bool';
+Complex : '_Complex';
+Generic : '_Generic';
+Imaginary : '_Imaginary';
+Noreturn : '_Noreturn';
+StaticAssert : '_Static_assert';
+ThreadLocal : '_Thread_local';
+
+LeftParen : '(';
+RightParen : ')';
+LeftBracket : '[';
+RightBracket : ']';
+LeftBrace : '{';
+RightBrace : '}';
+
+Less : '<';
+LessEqual : '<=';
+Greater : '>';
+GreaterEqual : '>=';
+LeftShift : '<<';
+RightShift : '>>';
+
+Plus : '+';
+PlusPlus : '++';
+Minus : '-';
+MinusMinus : '--';
+Star : '*';
+Div : '/';
+Mod : '%';
+
+And : '&';
+Or : '|';
+AndAnd : '&&';
+OrOr : '||';
+Caret : '^';
+Not : '!';
+Tilde : '~';
+
+Question : '?';
+Colon : ':';
+Semi : ';';
+Comma : ',';
+
+Assign : '=';
+StarAssign : '*=';
+DivAssign : '/=';
+ModAssign : '%=';
+PlusAssign : '+=';
+MinusAssign : '-=';
+LeftShiftAssign : '<<=';
+RightShiftAssign : '>>=';
+AndAssign : '&=';
+XorAssign : '^=';
+OrAssign : '|=';
+
+Equal : '==';
+NotEqual : '!=';
+
+Arrow : '->';
+Dot : '.';
+Ellipsis : '...';
+
 // Start rule
 program
-    : translationUnit? EOF
+    : externalDeclaration* EOF
+;
+
+externalDeclaration
+    : functionDefinition
+    | declaration
+    | ';'
+;
+
+functionDefinition
+    : declarationSpecifiers? declarator declaration* compoundStatement
 ;
 
 // Primary expression part of the grammar
 primaryExpression
-    : identifier
-    | constant
+    : Identifier
+    | Constant
     | '(' expression ')'
 ;
 
+fragment
+Nondigit : [a-zA-Z_];
+fragment
+Digit : [0-9];
+fragment
+NonzeroDigit : [1-9];
+
 // Identifier part of the grammar
-identifier
-    : NonDigit
-    | identifier NonDigit
-    | identifier Digit
+Identifier
+    :   Nondigit (Nondigit | Digit)*
 ;
 
 // Constant part of the grammar
-constant
-    : integerConstant
-    | floatingConstant
-    | characterConstant
+Constant
+    : IntegerConstant
+    | FloatingConstant
+    | CharacterConstant
 ;
 
-integerConstant
-    : decimalConstant
+fragment
+IntegerConstant
+    : DecimalConstant
 ;
 
-decimalConstant
-    : NonZeroDigit
-    | decimalConstant Digit
+fragment
+DecimalConstant
+    :   NonzeroDigit Digit* | '0'
 ;
 
-floatingConstant
-    : fractionalConstant exponentPart?
-    | digitSequence exponentPart
+fragment
+FloatingConstant
+    : FractionalConstant ExponentPart?
+    | DigitSequence ExponentPart
 ;
 
-fractionalConstant
-    : digitSequence? '.' digitSequence
-    | digitSequence '.'
+fragment
+FractionalConstant
+    : DigitSequence? '.' DigitSequence
+    | DigitSequence '.'
 ;
 
-digitSequence
+fragment
+DigitSequence
     : Digit+
 ;
 
-exponentPart
-    : 'e' Sign? digitSequence
-    | 'E' Sign? digitSequence
+fragment
+ExponentPart
+    : 'e' Sign? DigitSequence
+    | 'E' Sign? DigitSequence
 ;
 
+fragment
 Sign
     : '+'
     | '-'
 ;
 
-characterConstant
-    : '\'' cChar+ '\''
+fragment
+CharacterConstant
+    : '\'' CChar+ '\''
 ;
 
-cChar
-    : escapeSequence
-    : ~['\\\r\n]
+fragment
+CChar
+    :   ~['\\\r\n]
+    |   EscapeSequence
 ;
 
-escapeSequence
+fragment
+EscapeSequence
     : '\'' | '\"' | '\\' | '\b' | '\f' | '\n' | '\r' | '\t'
 ;
 
@@ -85,7 +210,11 @@ expression
 
 assignmentExpression
     : logicalORexpression
-    | unaryExpression AssignmentOperator assignmentExpression
+    | unaryExpression assignmentOperator assignmentExpression
+;
+
+assignmentOperator
+    :   '='
 ;
 
 logicalORexpression
@@ -141,8 +270,10 @@ multiplicativeExpression
 
 unaryExpression
     : postfixExpression
-    | UnaryOperator unaryExpression
+    | unaryOperator unaryExpression
 ;
+
+unaryOperator : '&' | '*' | '+' | '-' | '!';
 
 postfixExpression
     : primaryExpression
@@ -159,26 +290,27 @@ argumentExpressionList
 
 // Declaration part of the grammar
 declaration
-    : declarationSpecifiers
-    | initDeclaratorList?
+    : declarationSpecifiers initDeclarator? ';'
 ;
 
 declarationSpecifiers
-    : typeSpecifier declarationSpecifiers?
-    | typeQualifier declarationSpecifiers?
+    :   declarationSpecifier+
+    ;
+
+declarationSpecifier
+    :   typeSpecifier
+    |   typeQualifier
 ;
 
 typeSpecifier
-    : Char | Int | Float | Void
+    :   ('void'
+    |   'char'
+    |   'int'
+    |   'float')
 ;
 
 typeQualifier
-    : Const
-;
-
-initDeclaratorList
-    : initDeclarator
-    | initDeclaratorList ',' initDeclarator
+    :   'const'
 ;
 
 initDeclarator
@@ -196,7 +328,7 @@ pointer
 ;
 
 directDeclarator
-    : identifier
+    : Identifier
     | '(' declarator ')'
     | directDeclarator '[' assignmentExpression? ']'
     | directDeclarator '(' parameterTypeList? ')'
@@ -232,18 +364,8 @@ statement
 ;
 
 compoundStatement
-    : '{' blockItemList? '}'
-;
-
-blockItemList
-    : blockItem
-    | blockItemList blockItem
-;
-
-blockItem
-    : declaration
-    | statement
-;
+    :   '{' (declaration | statement)* '}'
+    ;
 
 expressionStatement
     : expression? ';'
@@ -267,38 +389,25 @@ jumpStatement
 ;
 // End of the statement part of the grammar
 
-// External definition part of the grammar
-translationUnit
-    :   externalDeclaration
-    |   translationUnit externalDeclaration
+WS
+    :   [ \t]+
+        -> skip
 ;
 
-externalDeclaration
-    : functionDefinition
-    | declaration
+Newline
+    :   (   '\r' '\n'?
+        |   '\n'
+        )
+        -> skip
 ;
 
-functionDefinition
-    : declarationSpecifiers declarator declaration* compoundStatement
-;
-// End of the external definition part of the grammar
+BlockComment
+    :   '/*' .*? '*/'
+        -> skip
+    ;
 
+LineComment
+    :   '//' ~[\r\n]*
+        -> skip
+    ;
 
-// Terminals
-NonDigit : [a-zA-Z_];
-Digit : [0-9];
-NonZeroDigit : [1-9];
-
-
-AssignmentOperator : '=';
-UnaryOperator : '&' | '*' | '+' | '-' | '!';
-
-// Necessary types
-Char : 'char';
-Int : 'int';
-Float : 'float';
-Void : 'void';
-Const : 'const';
-
-
-WS : [ \t\n\r]+ -> skip ;
