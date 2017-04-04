@@ -116,7 +116,7 @@ externalDeclaration
 ;
 
 functionDefinition
-    : declarationSpecifiers? declarator declaration* compoundStatement
+    : declarationSpecifier? declarator declaration* compoundStatement
 ;
 
 // Primary expression part of the grammar
@@ -290,16 +290,11 @@ argumentExpressionList
 
 // Declaration part of the grammar
 declaration
-    : declarationSpecifiers initDeclarator? ';'
+    : declarationSpecifier initDeclarator? ';'
 ;
 
-declarationSpecifiers
-    :   declarationSpecifier+
-    ;
-
 declarationSpecifier
-    :   typeSpecifier
-    |   typeQualifier
+    :   typeQualifier? typeSpecifier
 ;
 
 typeSpecifier
@@ -345,7 +340,7 @@ parameterList
 ;
 
 parameterDeclaration
-    : declarationSpecifiers declarator
+    : declarationSpecifier declarator
 ;
 
 initializer
