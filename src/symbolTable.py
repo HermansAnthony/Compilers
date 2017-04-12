@@ -50,7 +50,8 @@ class generalSymbolTable:
 
     def lookupSymbol(self, key):
         temporaryScope = len(self.localScope)-1
-        while temporaryScope >= 0:
+        while temporaryScope != 0:
             if self.localScope[temporaryScope].lookupSymbol(key) != None:
                 return self.localScope[temporaryScope].lookupSymbol(key)
+            temporaryScope -= 1
         return self.globalScope[key]
