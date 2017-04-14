@@ -1,54 +1,188 @@
 /**
- * Grammar for our Compilers project
+ * Grammar for our Compiler project
  */
 grammar Cmm;
 
-// Tokens
-Auto : 'auto';
-Break : 'break';
-Case : 'case';
-Char : 'char';
-Const : 'const';
-Continue : 'continue';
-Default : 'default';
-Do : 'do';
-Double : 'double';
-Else : 'else';
-Enum : 'enum';
-Extern : 'extern';
-Float : 'float';
-For : 'for';
-Goto : 'goto';
-If : 'if';
-Inline : 'inline';
-Int : 'int';
-Long : 'long';
-Register : 'register';
-Restrict : 'restrict';
-Return : 'return';
-Short : 'short';
-Signed : 'signed';
-Sizeof : 'sizeof';
-Static : 'static';
-Struct : 'struct';
-Switch : 'switch';
-Typedef : 'typedef';
-Union : 'union';
-Unsigned : 'unsigned';
-Void : 'void';
-Volatile : 'volatile';
-While : 'while';
+// Start rule
+program
+    : externalDeclaration* EOF
+;
 
-Alignas : '_Alignas';
-Alignof : '_Alignof';
-Atomic : '_Atomic';
-Bool : '_Bool';
-Complex : '_Complex';
-Generic : '_Generic';
-Imaginary : '_Imaginary';
-Noreturn : '_Noreturn';
-StaticAssert : '_Static_assert';
-ThreadLocal : '_Thread_local';
+externalDeclaration
+    : functionDefinition
+    | declaration
+    | Semicolon
+;
+
+functionDefinition
+    : declarationSpecifier? pointer? Identifier LeftParen parameterList? RightParen compoundStatement
+;
+
+parameterList
+    : parameterDeclaration
+    | parameterList Comma parameterDeclaration
+;
+
+parameterDeclaration
+    : declarationSpecifier declarator
+;
+
+// Declaration part of the grammar
+declaration
+    : declarationSpecifier initDeclarator? Semicolon
+;
+
+declarationSpecifier
+    :   Const? typeSpecifier
+;
+
+typeSpecifier
+    :   Void
+    |   Char
+    |   Int
+    |   Float
+;
+
+initDeclarator
+    : declarator
+    | declarator Assign assignmentExpression
+;
+
+declarator
+    : pointer? directDeclarator
+;
+
+directDeclarator
+    : Identifier
+    | directDeclarator LeftBracket assignmentExpression? RightBracket
+;
+
+pointer
+    : Star
+;
+
+// Primary expression part of the grammar
+primaryExpression
+    : identifier
+    | constant
+    | LeftParen expression RightParen
+;
+
+// Identifier part of the grammar
+identifier
+    :   Nondigit (Nondigit | Digit)*
+;
+
+// Constant part of the grammar
+constant
+    : integerConstant
+    | floatingConstant
+    | characterConstant
+;
+
+integerConstant
+    : NonzeroDigit Digit* | Zero
+;
+
+floatingConstant
+    : NonzeroDigit+ Dot Digit+
+;
+
+characterConstant
+    : Apostrophe Character+ Apostrophe
+;
+
+// Expression part of the grammar
+expression
+    : assignmentExpression
+    | expression Comma assignmentExpression
+;
+
+assignmentExpression
+    : binaryExpression
+    | postfixExpression Assign assignmentExpression
+;
+
+binaryExpression 
+    : postfixExpression binaryOperator expression
+;
+
+binaryOperator
+    : OrOr | AndAnd | Or | Caret | And | Equal | NotEqual | Less | Greater | LessEqual | GreaterEqual | Plus | Minus | Star | Div
+;
+
+postfixExpression
+    : primaryExpression
+    | postfixExpression LeftBracket expression RightBracket
+    | postfixExpression LeftParen argumentExpressionList? RightParen
+;
+
+argumentExpressionList
+    : assignmentExpression
+    | argumentExpressionList Comma assignmentExpression
+;
+
+// Statement part of the grammar
+statement
+    : compoundStatement
+    | ifStatement
+    | iterationStatement
+    | jumpStatement
+    | expression? Semicolon
+;
+
+compoundStatement
+    :   LeftBrace (declaration | statement)* RightBrace
+;
+
+ifStatement
+    : If LeftParen expression RightParen statement
+    | If LeftParen expression RightParen statement Else statement
+;
+
+iterationStatement
+    : While LeftParen expression RightParen statement
+    | For LeftParen expression? Semicolon expression? Semicolon expression? RightParen statement
+    | For LeftParen declaration expression? Semicolon expression? RightParen statement
+;
+
+jumpStatement
+    : Continue Semicolon
+    | Break Semicolon
+    | Return expression? Semicolon
+;
+
+// Skip Part of the grammar
+WS
+    :   [ \t]+
+        -> skip
+;
+
+Newline
+    : ('\r' '\n'? | '\n') -> skip
+;
+
+BlockComment
+    : '/*' .*? '*/' -> skip
+;
+
+LineComment
+    : '//' ~[\r\n]* -> skip
+;
+
+// Tokens
+Const : 'const';
+Void : 'void';
+Int : 'int';
+Float : 'float';
+Char : 'char';
+For : 'for';
+If : 'if';
+Else : 'else';
+While : 'while';
+Break : 'break';
+Continue : 'continue';
+Return : 'return';
 
 LeftParen : '(';
 RightParen : ')';
@@ -82,327 +216,20 @@ Tilde : '~';
 
 Question : '?';
 Colon : ':';
-Semi : ';';
+Semicolon : ';';
 Comma : ',';
 
 Assign : '=';
-StarAssign : '*=';
-DivAssign : '/=';
-ModAssign : '%=';
-PlusAssign : '+=';
-MinusAssign : '-=';
-LeftShiftAssign : '<<=';
-RightShiftAssign : '>>=';
-AndAssign : '&=';
-XorAssign : '^=';
-OrAssign : '|=';
 
 Equal : '==';
 NotEqual : '!=';
 
 Arrow : '->';
 Dot : '.';
-Ellipsis : '...';
 
-// Start rule
-program
-    : externalDeclaration* EOF
-;
-
-externalDeclaration
-    : functionDefinition
-    | declaration
-    | ';'
-;
-
-functionDefinition
-    : declarationSpecifier? declarator declaration* compoundStatement
-;
-
-// Primary expression part of the grammar
-primaryExpression
-    : Identifier
-    | Constant
-    | '(' expression ')'
-;
-
-fragment
 Nondigit : [a-zA-Z_];
-fragment
 Digit : [0-9];
-fragment
 NonzeroDigit : [1-9];
-
-// Identifier part of the grammar
-Identifier
-    :   Nondigit (Nondigit | Digit)*
-;
-
-// Constant part of the grammar
-Constant
-    : IntegerConstant
-    | FloatingConstant
-    | CharacterConstant
-;
-
-fragment
-IntegerConstant
-    : DecimalConstant
-;
-
-fragment
-DecimalConstant
-    :   NonzeroDigit Digit* | '0'
-;
-
-fragment
-FloatingConstant
-    : FractionalConstant ExponentPart?
-    | DigitSequence ExponentPart
-;
-
-fragment
-FractionalConstant
-    : DigitSequence? '.' DigitSequence
-    | DigitSequence '.'
-;
-
-fragment
-DigitSequence
-    : Digit+
-;
-
-fragment
-ExponentPart
-    : 'e' Sign? DigitSequence
-    | 'E' Sign? DigitSequence
-;
-
-fragment
-Sign
-    : '+'
-    | '-'
-;
-
-fragment
-CharacterConstant
-    : '\'' CChar+ '\''
-;
-
-fragment
-CChar
-    :   ~['\\\r\n]
-    |   EscapeSequence
-;
-
-fragment
-EscapeSequence
-    : '\'' | '\"' | '\\' | '\b' | '\f' | '\n' | '\r' | '\t'
-;
-
-// End of the constant part of the grammar
-// Expression part of the grammar
-
-expression
-    : assignmentExpression
-    | expression ',' assignmentExpression
-;
-
-assignmentExpression
-    : logicalORexpression
-    | unaryExpression assignmentOperator assignmentExpression
-;
-
-assignmentOperator
-    :   '='
-;
-
-logicalORexpression
-    : logicalANDexpression
-    | logicalORexpression '||' logicalANDexpression
-;
-
-logicalANDexpression
-    : inclusiveORexpression
-    | logicalANDexpression '&&' inclusiveORexpression
-;
-
-inclusiveORexpression
-    : exclusiveORexpression
-    | inclusiveORexpression '|' exclusiveORexpression
-;
-
-exclusiveORexpression
-    : andExpression
-    | exclusiveORexpression '^' andExpression
-;
-
-andExpression
-    : equalityExpression
-    | andExpression '&' equalityExpression
-;
-
-equalityExpression
-    : relationalExpression
-    | equalityExpression '==' relationalExpression
-    | equalityExpression '!=' relationalExpression
-;
-
-relationalExpression
-    : additiveExpression
-    | relationalExpression '<' additiveExpression
-    | relationalExpression '>' additiveExpression
-    | relationalExpression '<=' additiveExpression
-    | relationalExpression '>=' additiveExpression
-;
-
-additiveExpression
-    : multiplicativeExpression
-    | additiveExpression '+' multiplicativeExpression
-    | additiveExpression '-' multiplicativeExpression
-;
-
-multiplicativeExpression
-    : unaryExpression
-    | multiplicativeExpression '*' unaryExpression
-    | multiplicativeExpression '/' unaryExpression
-;
-
-unaryExpression
-    : postfixExpression
-    | unaryOperator unaryExpression
-;
-
-unaryOperator : '&' | '*' | '+' | '-' | '!';
-
-postfixExpression
-    : primaryExpression
-    | postfixExpression '[' expression ']'
-    | postfixExpression '(' argumentExpressionList? ')'
-;
-
-argumentExpressionList
-    : assignmentExpression
-    | argumentExpressionList ',' assignmentExpression
-;
-
-// End of the expression part of the grammar
-
-// Declaration part of the grammar
-declaration
-    : declarationSpecifier initDeclarator? ';'
-;
-
-declarationSpecifier
-    :   typeQualifier? typeSpecifier
-;
-
-typeSpecifier
-    :   ('void'
-    |   'char'
-    |   'int'
-    |   'float')
-;
-
-typeQualifier
-    :   'const'
-;
-
-initDeclarator
-    : declarator
-    | declarator '=' initializer
-;
-
-declarator
-    : pointer? directDeclarator
-;
-
-pointer
-    : '*' typeQualifier
-    | '*' typeQualifier pointer
-;
-
-directDeclarator
-    : Identifier
-    | '(' declarator ')'
-    | directDeclarator '[' assignmentExpression? ']'
-    | directDeclarator '(' parameterTypeList? ')'
-;
-
-parameterTypeList
-    : parameterList
-    | parameterList ',' '...'
-;
-
-parameterList
-    : parameterDeclaration
-    | parameterList ',' parameterDeclaration
-;
-
-parameterDeclaration
-    : declarationSpecifier declarator
-;
-
-initializer
-    : assignmentExpression
-;
-
-// End of the declaration part of the grammar
-
-// Statement part of the grammar
-statement
-    : compoundStatement
-    | expressionStatement
-    | selectionStatement
-    | iterationStatement
-    | jumpStatement
-;
-
-compoundStatement
-    :   '{' (declaration | statement)* '}'
-    ;
-
-expressionStatement
-    : expression? ';'
-;
-
-selectionStatement
-    : 'if' '(' expression ')' statement
-    | 'if' '(' expression ')' statement 'else' statement
-;
-
-iterationStatement
-    : 'while' '(' expression ')' statement
-    | 'for' '(' expression? ';' expression? ';' expression? ')' statement
-    | 'for' '(' declaration expression? ';' expression? ')' statement
-;
-
-jumpStatement
-    : 'continue' ';'
-    | 'break' ';'
-    | 'return' expression? ';'
-;
-// End of the statement part of the grammar
-
-WS
-    :   [ \t]+
-        -> skip
-;
-
-Newline
-    :   (   '\r' '\n'?
-        |   '\n'
-        )
-        -> skip
-;
-
-BlockComment
-    :   '/*' .*? '*/'
-        -> skip
-    ;
-
-LineComment
-    :   '//' ~[\r\n]*
-        -> skip
-    ;
-
+Zero : '0';
+Character : ~['\\\r\n];
+Apostrophe : '\'';
