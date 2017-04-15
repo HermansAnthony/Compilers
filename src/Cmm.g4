@@ -15,7 +15,7 @@ externalDeclaration
 ;
 
 functionDefinition
-    : declarationSpecifier? pointer? Identifier LeftParen parameterList? RightParen compoundStatement
+    : declarationSpecifier? pointer? identifier LeftParen parameterList? RightParen compoundStatement
 ;
 
 parameterList
@@ -45,7 +45,7 @@ typeSpecifier
 
 initDeclarator
     : declarator
-    | declarator Assign assignmentExpression
+    | declarator Assign binaryExpression
 ;
 
 declarator
@@ -53,8 +53,8 @@ declarator
 ;
 
 directDeclarator
-    : Identifier
-    | directDeclarator LeftBracket assignmentExpression? RightBracket
+    : identifier
+    | directDeclarator LeftBracket binaryExpression? RightBracket
 ;
 
 pointer
@@ -94,13 +94,8 @@ characterConstant
 
 // Expression part of the grammar
 expression
-    : assignmentExpression
-    | expression Comma assignmentExpression
-;
-
-assignmentExpression
     : binaryExpression
-    | postfixExpression Assign assignmentExpression
+    | expression Comma binaryExpression
 ;
 
 binaryExpression 
@@ -108,7 +103,7 @@ binaryExpression
 ;
 
 binaryOperator
-    : OrOr | AndAnd | Or | Caret | And | Equal | NotEqual | Less | Greater | LessEqual | GreaterEqual | Plus | Minus | Star | Div
+    : Assign | OrOr | AndAnd | Or | Caret | And | Equal | NotEqual | Less | Greater | LessEqual | GreaterEqual | Plus | Minus | Star | Div
 ;
 
 postfixExpression
@@ -118,8 +113,8 @@ postfixExpression
 ;
 
 argumentExpressionList
-    : assignmentExpression
-    | argumentExpressionList Comma assignmentExpression
+    : binaryExpression
+    | argumentExpressionList Comma binaryExpression
 ;
 
 // Statement part of the grammar
@@ -132,7 +127,7 @@ statement
 ;
 
 compoundStatement
-    :   LeftBrace (declaration | statement)* RightBrace
+    : LeftBrace (declaration | statement)* RightBrace
 ;
 
 ifStatement
@@ -176,10 +171,10 @@ Void : 'void';
 Int : 'int';
 Float : 'float';
 Char : 'char';
-For : 'for';
 If : 'if';
 Else : 'else';
 While : 'while';
+For : 'for';
 Break : 'break';
 Continue : 'continue';
 Return : 'return';
@@ -195,8 +190,6 @@ Less : '<';
 LessEqual : '<=';
 Greater : '>';
 GreaterEqual : '>=';
-LeftShift : '<<';
-RightShift : '>>';
 
 Plus : '+';
 PlusPlus : '++';
