@@ -11,7 +11,6 @@ program
 externalDeclaration
     : functionDefinition
     | declaration
-    | Semicolon
 ;
 
 functionDefinition
@@ -45,16 +44,12 @@ typeSpecifier
 
 initDeclarator
     : declarator
-    | declarator Assign binaryExpression
+    | declarator Assign expression
 ;
 
 declarator
-    : pointer? directDeclarator
-;
-
-directDeclarator
-    : identifier
-    | directDeclarator LeftBracket binaryExpression? RightBracket
+    : pointer? identifier
+    | declarator LeftBracket expression? RightBracket
 ;
 
 pointer
@@ -81,7 +76,7 @@ constant
 ;
 
 integerConstant
-    : NonzeroDigit Digit* | Zero
+    : NonzeroDigit Digit+ | Digit
 ;
 
 floatingConstant
@@ -94,12 +89,8 @@ characterConstant
 
 // Expression part of the grammar
 expression
-    : binaryExpression
-    | expression Comma binaryExpression
-;
-
-binaryExpression 
-    : postfixExpression binaryOperator expression
+    : postfixExpression
+    | postfixExpression binaryOperator expression
 ;
 
 binaryOperator
@@ -113,8 +104,8 @@ postfixExpression
 ;
 
 argumentExpressionList
-    : binaryExpression
-    | argumentExpressionList Comma binaryExpression
+    : expression
+    | argumentExpressionList Comma expression
 ;
 
 // Statement part of the grammar
@@ -149,8 +140,7 @@ jumpStatement
 
 // Skip Part of the grammar
 WS
-    :   [ \t]+
-        -> skip
+    :   [ \t]+ -> skip
 ;
 
 Newline
@@ -223,6 +213,5 @@ Dot : '.';
 Nondigit : [a-zA-Z_];
 Digit : [0-9];
 NonzeroDigit : [1-9];
-Zero : '0';
 Character : ~['\\\r\n];
 Apostrophe : '\'';
