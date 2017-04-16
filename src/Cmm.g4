@@ -65,7 +65,7 @@ primaryExpression
 
 // Identifier part of the grammar
 identifier
-    :   Nondigit (Nondigit | Digit)*
+    :   Nondigit (Nondigit | NonzeroDigit | ZeroDigit)*
 ;
 
 // Constant part of the grammar
@@ -76,11 +76,12 @@ constant
 ;
 
 integerConstant
-    : (Plus | Minus)? NonzeroDigit Digit+ | (Plus | Minus)? Digit
+    : (Plus | Minus)? (NonZeroDigit | ZeroDigit)
+    | (Plus | Minus)? NonzeroDigit (NonZeroDigit | ZeroDigit)+
 ;
 
 floatingConstant
-    : (Plus | Minus)? Digit* Dot Digit*
+    : (Plus | Minus)? (NonzeroDigit | ZeroDigit)* Dot (NonzeroDigit | ZeroDigit)*
 ;
 
 characterConstant
@@ -101,6 +102,8 @@ postfixExpression
     : primaryExpression
     | postfixExpression LeftBracket expression RightBracket
     | postfixExpression LeftParen argumentExpressionList? RightParen
+    | postfixExpression PlusPlus
+    | postfixExpression MinusMinus
 ;
 
 argumentExpressionList
@@ -210,8 +213,8 @@ NotEqual : '!=';
 Arrow : '->';
 Dot : '.';
 
-Nondigit : [a-zA-Z_];
-Digit : [0-9];
 NonzeroDigit : [1-9];
+ZeroDigit : [0];
+Nondigit : [a-zA-Z_];
 Apostrophe : '\'';
 Character : ~['\\\r\n];
