@@ -76,11 +76,11 @@ constant
 ;
 
 integerConstant
-    : NonzeroDigit Digit+ | Digit
+    : '-'? Digit Digit*
 ;
 
 floatingConstant
-    : NonzeroDigit+ Dot Digit+
+    : '-'? Digit+? Dot Digit+
 ;
 
 characterConstant
