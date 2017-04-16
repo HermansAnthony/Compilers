@@ -84,7 +84,7 @@ floatingConstant
 ;
 
 characterConstant
-    : Apostrophe Character+ Apostrophe
+    : Apostrophe (Character | Nondigit)+ Apostrophe
 ;
 
 // Expression part of the grammar
@@ -213,5 +213,5 @@ Dot : '.';
 Nondigit : [a-zA-Z_];
 Digit : [0-9];
 NonzeroDigit : [1-9];
-Character : ~['\\\r\n];
 Apostrophe : '\'';
+Character : ~['\\\r\n];
