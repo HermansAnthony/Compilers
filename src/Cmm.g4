@@ -76,7 +76,7 @@ constant
 ;
 
 integerConstant
-    : '-'? Digit Digit*
+    : '-'? NonzeroDigit Digit*
 ;
 
 floatingConstant
