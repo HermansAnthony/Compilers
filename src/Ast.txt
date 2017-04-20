@@ -1,9 +1,9 @@
-// Start rule
 program
-c1: declarationStatementList
+c1: declaration/statement
+c2: declarationStatementList
 
 declarationStatementList
-c1: declaratie/statement
+c1: declaration/statement
 c2: declarationStatementList
 
 // Statements
@@ -16,7 +16,6 @@ iteration
 while
 c1: Condition
 c2: Body
-
 for
 c1: expression/declaration
 c2: expression
@@ -24,7 +23,7 @@ c3: expression
 c4: Body
 
 // Expression
-c1: identifier/constant // binaryOperation
+= binaryOperation or Identifier/Constant
 
 binary operation
 c1: identifier/constant
@@ -42,13 +41,13 @@ integerConstant
 floatingConstant
 characterConstant
 
-typeSpecifier
+declarationSpecifier
 identifier
 
 Continue
 Break
 Return
-c1: identifier/constant
+c1: expression
 
 
 

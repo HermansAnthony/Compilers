@@ -1,53 +1,72 @@
-class programNode:
+class ASTNode:
 
-class initializerNode(programNode): 
-    typeSpecifier = None
-    typeQualifier = None
-    initializer
+class ProgramNode(ASTNode):
+    def __init__(self, left, right):
+        self.left
+        self.right
 
-class 
+class DeclarationStatementList(ASTNode):
+    def __init__(self, left, right):
+        self.left
+        self.right
 
+class DeclarationNode(ASTNode):
+    def __init__(self, declarationSpecifier, identifier, expression):
+        self.declarationSpecifier = declarationSpecifier
+        self.identifier = identfier
+        self.expression = expression
+        
+class IfStatementNode(ASTNode):
+    def __init__(self, condition, ifBody, elseBody):
+        self.condition = condition
+        self.ifBody = ifBody
+        self.elseBody = elseBody    
 
+class IterationStatementNode(ASTNode):
+    def __init__(self, left, middle1, middle2, right):
+        # condition, body
+        # expression1, expression2, expression3, body
+        # declaration, expression1, expression2, body
+        self.left = left
+        self.middle1 = middle1
+        self.middle2 = middle2
+        self.right = right    
+        
+class ReturnNode(ASTNode):
+    def __init__(self, expressionNode):
+        self.expressionNode = expressionNode
 
+class ContinueNode(ASTNode):
+class BreakNode(ASTNode):
 
-internal abstract class ExpressionNode
-{
-}
+class BinaryOperationNode(ASTNode):
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
 
-internal abstract class InfixExpressionNode : ExpressionNode
-{
-    public ExpressionNode Left { get; set; }
-    public ExpressionNode Right { get; set; }
-}
+class PostfixExpressionNode(ASTNode):
+    def __init__(self, postfix, child):
+        self.postfix = postfix
+        self.child = child
 
-internal class AdditionNode : InfixExpressionNode
-{
-}
+class IntegerConstantNode(ASTNode):
+    def __init__(self, value):
+        self.value = value
 
-internal class SubtractionNode : InfixExpressionNode
-{
-}
+class FloatingConstantNode(ASTNode):
+    def __init__(self, value):
+        self.value = value
 
-internal class MultiplicationNode : InfixExpressionNode
-{
-}
+class CharacterConstantNode(ASTNode):
+    def __init__(self, value):
+        self.value = value
 
-internal class DivisionNode : InfixExpressionNode
-{
-}
+class DeclarationSpecifierNode(ASTNode):
+    def __init__(self, isConstant, idType, hasPointer):
+        self.isConstant = isConstant
+        self.idType = idType
+        self.hasPointer = hasPointer
 
-internal class NegateNode : ExpressionNode
-{
-    public ExpressionNode InnerNode { get; set; }
-}
-
-internal class FunctionNode : ExpressionNode
-{
-    public Func<double, double> Function { get; set; }
-    public ExpressionNode Argument { get; set; }
-}
-
-internal class NumberNode : ExpressionNode
-{
-    public double Value { get; set; }
-}
+class IdentifierNode(ASTNode):
+    def __init__(self, identifier):
+        self.identifier = identifier
