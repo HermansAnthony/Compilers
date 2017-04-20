@@ -11,6 +11,7 @@ program
 externalDeclaration
     : functionDefinition
     | declaration
+    | statement
 ;
 
 functionDefinition

@@ -1,7 +1,10 @@
 // Start rule
 program
-    : externalDeclaration* EOF
-;
+c1: declarationStatementList
+
+declarationStatementList
+c1: declaratie/statement
+c2: declarationStatementList
 
 // Statements
 if 
@@ -21,9 +24,11 @@ c3: expression
 c4: Body
 
 // Expression
+c1: identifier/constant // binaryOperation
+
 binary operation
-c1: postfixExpression
-c2: expression
+c1: identifier/constant
+c2: binaryOperation // identifier/constant
 
 postfixExpression
 c1: expression
@@ -33,18 +38,12 @@ c1: declarationSpecifier
 c2: identifier
 c3: expression
 
-// Expression
-c1: identifier
-c2: constant
-
-
 integerConstant
 floatingConstant
 characterConstant
 
 typeSpecifier
 identifier
-
 
 Continue
 Break
