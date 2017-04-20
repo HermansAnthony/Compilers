@@ -14,7 +14,7 @@ externalDeclaration
 ;
 
 functionDefinition
-    : declarationSpecifier? pointer? identifier LeftParen parameterList? RightParen compoundStatement
+    : declarationSpecifier? Star? identifier LeftParen parameterList? RightParen compoundStatement
 ;
 
 parameterList
@@ -32,7 +32,7 @@ declaration
 ;
 
 declarationSpecifier
-    :   Const? typeSpecifier
+    :   Const? typeSpecifier Star?
 ;
 
 typeSpecifier
@@ -48,12 +48,8 @@ initDeclarator
 ;
 
 declarator
-    : pointer? identifier
+    : identifier
     | declarator LeftBracket expression? RightBracket
-;
-
-pointer
-    : Star
 ;
 
 // Primary expression part of the grammar

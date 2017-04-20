@@ -1,0 +1,56 @@
+// Start rule
+program
+    : externalDeclaration* EOF
+;
+
+// Statements
+if 
+c1: Condition
+c2: If-Body
+c3: Else-Body
+
+iteration
+while
+c1: Condition
+c2: Body
+
+for
+c1: expression/declaration
+c2: expression
+c3: expression
+c4: Body
+
+// Expression
+binary operation
+c1: postfixExpression
+c2: expression
+
+postfixExpression
+c1: expression
+
+// Declaration
+c1: declarationSpecifier
+c2: identifier
+c3: expression
+
+// Expression
+c1: identifier
+c2: constant
+
+
+integerConstant
+floatingConstant
+characterConstant
+
+typeSpecifier
+identifier
+
+
+Continue
+Break
+Return
+c1: identifier/constant
+
+
+
+
