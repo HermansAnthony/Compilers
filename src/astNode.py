@@ -1,5 +1,7 @@
 class ASTNode:
-
+    def __init__(self):
+        pass
+    
 class ProgramNode(ASTNode):
     def __init__(self, left, right):
         self.left
@@ -15,12 +17,12 @@ class DeclarationNode(ASTNode):
         self.declarationSpecifier = declarationSpecifier
         self.identifier = identfier
         self.expression = expression
-        
+
 class IfStatementNode(ASTNode):
     def __init__(self, condition, ifBody, elseBody):
         self.condition = condition
         self.ifBody = ifBody
-        self.elseBody = elseBody    
+        self.elseBody = elseBody
 
 class IterationStatementNode(ASTNode):
     def __init__(self, left, middle1, middle2, right):
@@ -30,8 +32,8 @@ class IterationStatementNode(ASTNode):
         self.left = left
         self.middle1 = middle1
         self.middle2 = middle2
-        self.right = right    
-        
+        self.right = right
+
 class ReturnNode(ASTNode):
     def __init__(self, expressionNode):
         self.expressionNode = expressionNode
