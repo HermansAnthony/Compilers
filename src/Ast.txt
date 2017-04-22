@@ -1,10 +1,7 @@
 program
 c1: declaration/statement
-c2: declarationStatementList
-
-declarationStatementList
-c1: declaration/statement
-c2: declarationStatementList
+c2: declaration/statement
+...
 
 // Statements
 if 
@@ -30,7 +27,10 @@ c1: identifier/constant
 c2: binaryOperation // identifier/constant
 
 postfixExpression
+postfixSymbol
 c1: expression
+
+
 
 // Declaration
 c1: declarationSpecifier

@@ -98,9 +98,9 @@ binaryOperator
 postfixExpression
     : primaryExpression
     | postfixExpression LeftBracket expression RightBracket
-    | postfixExpression LeftParen argumentExpressionList? RightParen
-    | postfixExpression PlusPlus
-    | postfixExpression MinusMinus
+    | primaryExpression LeftParen argumentExpressionList? RightParen
+    | primaryExpression PlusPlus
+    | primaryExpression MinusMinus
 ;
 
 argumentExpressionList

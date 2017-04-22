@@ -1,21 +1,14 @@
 class ASTNode:
-    def __init__(self):
-        pass
-    
-class ProgramNode(ASTNode):
-    def __init__(self, left, right):
-        self.left
-        self.right
+    pass
 
-class DeclarationStatementList(ASTNode):
-    def __init__(self, left, right):
-        self.left
-        self.right
+class ProgramNode(ASTNode):
+    def __init__(self, *children):
+        self.children = children
 
 class DeclarationNode(ASTNode):
     def __init__(self, declarationSpecifier, identifier, expression):
         self.declarationSpecifier = declarationSpecifier
-        self.identifier = identfier
+        self.identifier = identifier
         self.expression = expression
 
 class IfStatementNode(ASTNode):
@@ -39,10 +32,13 @@ class ReturnNode(ASTNode):
         self.expressionNode = expressionNode
 
 class ContinueNode(ASTNode):
+    pass
 class BreakNode(ASTNode):
+    pass
 
 class BinaryOperationNode(ASTNode):
-    def __init__(self, left, right):
+    def __init__(self, operator, left, right):
+        self.operator = operator
         self.left = left
         self.right = right
 
@@ -70,5 +66,6 @@ class DeclarationSpecifierNode(ASTNode):
         self.hasPointer = hasPointer
 
 class IdentifierNode(ASTNode):
-    def __init__(self, identifier):
+    def __init__(self, identifier, arrayExpressionList):
         self.identifier = identifier
+        self.arrayExpressionList = arrayExpressionList
