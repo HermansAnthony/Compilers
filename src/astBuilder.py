@@ -127,7 +127,7 @@ class astBuilder(CmmVisitor):
             return ReturnNode(self.visit(ctx.expression()))    
         return ReturnNode(None)
 
-    # Overloaded print function for the AST
+
     # Writes AST tree to a dot file
     def toDot(self, ctx:CmmParser.ProgramContext):
         print("A dot file with name ", self.name, " was created.")

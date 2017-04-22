@@ -7,7 +7,7 @@ class ProgramNode(ASTNode):
 
     def __str__(self):
         returnValue = '1 [label="Program"];'
-        print (*self.children)
+        print (len(self.children))
         for child in self.children:
             returnValue += '1 -> '
             returnValue += str(child)
@@ -15,11 +15,13 @@ class ProgramNode(ASTNode):
 
 class DeclarationNode(ASTNode):
     def __init__(self, declarationSpecifier, identifier, expression):
+        print("test3")
         self.declarationSpecifier = declarationSpecifier
         self.identifier = identifier
         self.expression = expression
 
     def __str__(self):
+        print("test2")
         return "Decl"
 
 class IfStatementNode(ASTNode):
