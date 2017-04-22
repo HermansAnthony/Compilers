@@ -49,7 +49,7 @@ class astBuilder(CmmVisitor):
         return self.visitChildren(ctx)
 
     def visitIdentifier(self, ctx:CmmParser.IdentifierContext):
-        return IdentifierNode(self.visit( ctx.identifier() ), [])
+        return IdentifierNode(ctx.getText(), [])
 
     def visitConstant(self, ctx:CmmParser.ConstantContext):
         return self.visitChildren(ctx)
@@ -90,13 +90,23 @@ class astBuilder(CmmVisitor):
         return self.visitChildren(ctx)
 
     def visitIfStatement(self, ctx:CmmParser.IfStatementContext):
-        return self.visitChildren(ctx)
+        ifBody = self.visit(ctx.statement(0))
+        elseBody = None
+        if ctx.Else():
+            elseBody = self.visit(ctx.statement(1))
+        return IfStatementNode(self.visit(ctx.expression()), ifBody, elseBody)
 
     def visitIterationStatement(self, ctx:CmmParser.IterationStatementContext):
-        return self.visitChildren(ctx)
+        
+
+        return IterationStatementNode(left, middle1, middle2, right)
 
     def visitJumpStatement(self, ctx:CmmParser.JumpStatementContext):
-        return self.visitChildren(ctx)
+        if ctx.Continue():
+            return ContinueNode()
+        if ctx.Break():
+            return BreakNode()
+        return ReturnNode(self.visit(ctx.expression()))    
 
     # Overloaded print function for the print function
     # Writes AST tree to a dot file
