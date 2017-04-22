@@ -11,7 +11,6 @@ program
 externalDeclaration
     : functionDefinition
     | declaration
-    | statement
 ;
 
 functionDefinition
@@ -33,7 +32,7 @@ declaration
 ;
 
 declarationSpecifier
-    :   Const? typeSpecifier Star?
+    :   Const? typeSpecifier Star*
 ;
 
 typeSpecifier
@@ -82,25 +81,22 @@ floatingConstant
 ;
 
 characterConstant
-    : Apostrophe (Character | Nondigit)+ Apostrophe
+    : Apostrophe (Character | Nondigit)* Apostrophe
 ;
 
 // Expression part of the grammar
 expression
-    : postfixExpression
-    | postfixExpression binaryOperator expression
+    : primaryExpression
+    | And expression
+    | expression binaryOperator expression
+    | expression LeftBracket expression RightBracket
+    | primaryExpression LeftParen argumentExpressionList? RightParen
+    | primaryExpression PlusPlus
+    | primaryExpression MinusMinus 
 ;
 
 binaryOperator
     : Assign | OrOr | AndAnd | Or | Caret | And | Equal | NotEqual | Less | Greater | LessEqual | GreaterEqual | Plus | Minus | Star | Div
-;
-
-postfixExpression
-    : primaryExpression
-    | postfixExpression LeftBracket expression RightBracket
-    | primaryExpression LeftParen argumentExpressionList? RightParen
-    | primaryExpression PlusPlus
-    | primaryExpression MinusMinus
 ;
 
 argumentExpressionList

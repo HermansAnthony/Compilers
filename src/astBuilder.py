@@ -66,19 +66,20 @@ class astBuilder(CmmVisitor):
     def visitExpression(self, ctx:CmmParser.ExpressionContext):
         if ctx.getChildCount() == 1:
             return self.visitChildren(ctx)
-        return BinaryOperationNode( ctx.binaryOperator().getText(), self.visit( ctx.postfixExpression() ), self.visit( ctx.expression() ) )        
-
-    def visitPostfixExpression(self, ctx:CmmParser.PostfixExpressionContext):
-        if ctx.getChildCount() == 1:
-            return self.visitChildren(ctx)
         if ctx.getChildCount() == 2:
-            return PostfixExpressionNode(ctx.getChild(1).getText(), self.visit( ctx.primaryExpression() ))
-        node = self.visit( ctx.postfixExpression() )
+            if ctx.And() == None:
+                return ExpressionNode(ctx.getChild(1).getText(), True, self.visit( ctx.primaryExpression() ))
+            return ExpressionNode(ctx.getChild(0).getText(), False, self.visit( ctx.expression(0)) )
+        if ctx.getChildCount() == 3:
+            return BinaryOperationNode( ctx.binaryOperator().getText(), self.visit( ctx.expression(0) ), self.visit( ctx.expression(1) ) )  
+        # Function call not implemented.
+        # Rule is array specifier.
+        node = self.visit( ctx.expression(0) )
         if isinstance(node, IdentifierNode):
             node.arrayExpressionList.append( self.visit(ctx.expression()) )
         else:
-            print("Semantic Error: Cannot select array index on a constant expression.")
-        return node
+            print("Semantic Error: Cannot select array index of a constant expression.")
+        return node        
 
     def visitArgumentExpressionList(self, ctx:CmmParser.ArgumentExpressionListContext):
         return self.visitChildren(ctx)
@@ -97,16 +98,35 @@ class astBuilder(CmmVisitor):
         return IfStatementNode(self.visit(ctx.expression()), ifBody, elseBody)
 
     def visitIterationStatement(self, ctx:CmmParser.IterationStatementContext):
-        
-
-        return IterationStatementNode(left, middle1, middle2, right)
+        if ctx.While():
+            return IterationStatementNode("While", self.visit(ctx.expression(0)), None, None, self.visit(ctx.statement()))
+        left = None
+        middle1 = None
+        middle2 = None
+        right = self.visit(ctx.statement())
+        if ctx.declaration():
+            left = self.visit(ctx.declaration())
+            if ctx.expression(0):
+                middle1 = self.visit(ctx.expression(0))
+            if ctx.expression(1):
+                middle2 = self.visit(ctx.expression(1))
+        else:
+            if ctx.expression(0):
+                left = self.visit(ctx.expression(0))
+            if ctx.expression(1):
+                middle1 = self.visit(ctx.expression(1))
+            if ctx.expression(2):
+                middle2 = self.visit(ctx.expression(2))
+        return IterationStatementNode("For", left, middle1, middle2, right)
 
     def visitJumpStatement(self, ctx:CmmParser.JumpStatementContext):
         if ctx.Continue():
             return ContinueNode()
         if ctx.Break():
             return BreakNode()
-        return ReturnNode(self.visit(ctx.expression()))    
+        if ctx.expression():
+            return ReturnNode(self.visit(ctx.expression()))    
+        return ReturnNode(None)
 
     # Overloaded print function for the print function
     # Writes AST tree to a dot file

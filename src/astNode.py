@@ -18,10 +18,11 @@ class IfStatementNode(ASTNode):
         self.elseBody = elseBody
 
 class IterationStatementNode(ASTNode):
-    def __init__(self, left, middle1, middle2, right):
+    def __init__(self, statementName, left, middle1, middle2, right):
         # condition, body
         # expression1, expression2, expression3, body
         # declaration, expression1, expression2, body
+        self.statementName = statementName
         self.left = left
         self.middle1 = middle1
         self.middle2 = middle2
@@ -42,9 +43,10 @@ class BinaryOperationNode(ASTNode):
         self.left = left
         self.right = right
 
-class PostfixExpressionNode(ASTNode):
-    def __init__(self, postfix, child):
-        self.postfix = postfix
+class ExpressionNode(ASTNode):
+    def __init__(self, operator, isPostfix, child):
+        self.operator = operator
+        self.isPostfix = isPostfix
         self.child = child
 
 class IntegerConstantNode(ASTNode):
