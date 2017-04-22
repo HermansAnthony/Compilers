@@ -3,9 +3,8 @@ from CmmVisitor import CmmVisitor
 from CmmParser import CmmParser
 
 class astBuilder(CmmVisitor):
-    #def __init__(self, name):
-    #    self.tree = None
-    #    self.name = name
+    def __init__(self, name):
+        self.name = name
 
     def visitProgram(self, ctx:CmmParser.ProgramContext):
         return ProgramNode(self.visitChildren(ctx))
@@ -128,13 +127,13 @@ class astBuilder(CmmVisitor):
             return ReturnNode(self.visit(ctx.expression()))    
         return ReturnNode(None)
 
-    # Overloaded print function for the print function
+    # Overloaded print function for the AST
     # Writes AST tree to a dot file
-    def __repr__(self):
-        print("A dot file with name ", self.name, " is created for the AST")
-        # TODO insert real ast nodes in string version here
-        astStringFormat = 'digraph G { "Hello" -> "World"}'
-        # astStringFormat = str(self.tree)
+    def toDot(self, ctx:CmmParser.ProgramContext):
+        print("A dot file with name ", self.name, " was created.")
+        astStringFormat = 'digraph G { '
+        astStringFormat += str(self.visitProgram(ctx))
+        astStringFormat += '}'
         output = open(self.name, 'w')
         output.write(astStringFormat)
         output.close()

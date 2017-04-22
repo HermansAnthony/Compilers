@@ -10,13 +10,18 @@ def main(argv):
         print ("Specify a C program input file and a P program output file\n")
         return 0
     input = FileStream(argv[1])
-    # Initiialize Lexer/Recognizer object with the input
+    # Initialize the lexer, tokenstream and the parser with the input
     lexer = CmmLexer(input) 
     stream = CommonTokenStream(lexer) 
     parser = CmmParser(stream)
-    tree = parser.program()
-    visitor = astBuilder()
-    visitor.visit(tree)
+
+    # Build the parse tree
+    parseTree = parser.program()
+
+    # Generate and visit the Abstract Syntax Tree
+    visitor = astBuilder("AST")
+    visitor.visit(parseTree)
+    visitor.toDot(parseTree)
 
 if __name__ == '__main__':
     main(sys.argv)
