@@ -6,5 +6,5 @@
 #  Second argument is the input dot file
 #####################################################################
 
-echo "Generating png image from .dot file"
+echo "Generating PNG image from .dot file"
 dot -Tpng -o $1 $2

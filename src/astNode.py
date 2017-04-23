@@ -1,4 +1,3 @@
-# TODO general make returnvalue statements shorter
 nodeCounter = 0
 def counter():
     global nodeCounter
@@ -179,7 +178,8 @@ class ReturnNode(ASTNode):
         currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + '[label="return"];\n'
-        returnValue +=  currentNode + '->' + str(self.expressionNode)
+        print(self.expressionNode)
+        if str(self.expressionNode) != 'None': returnValue +=  currentNode + '->' + str(self.expressionNode)
         return returnValue
 
 class ContinueNode(ASTNode):
@@ -214,7 +214,8 @@ class BinaryOperationNode(ASTNode):
     def __str__(self):
         currentNode = counter()
         returnValue = currentNode + ';\n'
-        returnValue += currentNode + ' [label = "'+ self.operator + '"];\n'
+        label = 'BinaryOperation:' + self.operator
+        returnValue += currentNode + ' [label = "'+ label + '"];\n'
         returnValue += currentNode + '->' + str(self.left)
         returnValue += currentNode + '->' + str(self.right)
         return returnValue
@@ -231,7 +232,8 @@ class ExpressionNode(ASTNode):
     def __str__(self):
         currentNode = counter()
         returnValue = currentNode + ';\n'
-        returnValue += currentNode + ' [ label = "' + self.operator + '"];\n'
+        label = "Expression:" + self.operator
+        returnValue += currentNode + ' [ label = "' + label + '"];\n'
         returnValue += currentNode + '->' + str(self.child)
         return returnValue
 
