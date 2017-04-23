@@ -36,8 +36,10 @@ class ProgramNode(ASTNode):
 class DeclarationNode(ASTNode):
     def __init__(self, declarationSpecifier, identifier, expression):
         self.declarationSpecifier = declarationSpecifier
+
         self.identifier = identifier
         self.expression = expression
+        print("idType: ", type(self.identifier))
 
     def accept(self, visitor):
         return visitor.visitDeclarationNode(self)
@@ -61,7 +63,27 @@ class IfStatementNode(ASTNode):
         return visitor.visitIfStatementNode(self)
 
     def __str__(self):
-        return "IfElse"
+        currentNode = str(counter())
+        returnValue = currentNode + ';\n'
+        returnValue += currentNode + ' [label = "Branch"];\n'
+        conditionNode = str(counter())
+        ifNode = str(counter())
+        elseNode = str(counter())
+        returnValue += currentNode + '->' + conditionNode + ';\n'
+        returnValue += currentNode + '->' + ifNode + ';\n'
+        returnValue += currentNode + '->' + elseNode + ';\n'
+        returnValue += conditionNode + ' [label = "condition"];\n'
+        returnValue += ifNode + ' [label = "ifBody"];\n'
+        returnValue += elseNode + ' [label = "elseBody"];\n'
+        for stat in self.ifBody:
+            returnValue += ifNode + '->' + str(stat)
+        for stat in self.elseBody:
+            returnValue += elseNode + '->' + str(stat)
+        # returnValue += conditionNode + '->' + str(self.condition)
+
+        # print(self.condition)
+        # print(self.elseBody)
+        return returnValue
 
 class IterationStatementNode(ASTNode):
     def __init__(self, statementName, left, middle1, middle2, right):
@@ -88,21 +110,31 @@ class ReturnNode(ASTNode):
         return visitor.ReturnNode(self)
 
     def __str__(self):
-        return "return"
+        currentNode = str(counter())
+        returnValue = currentNode + ';\n'
+        returnValue += currentNode + '[label="return"];\n'
+        returnValue +=  currentNode + '->' + str(self.expressionNode)
+        return returnValue
 
 class ContinueNode(ASTNode):
     def accept(self, visitor):
         return visitor.ContinueNode(self)
 
     def __str__(self):
-        return "continue"
+        currentNode = str(counter())
+        returnValue = currentNode + ';\n'
+        returnValue += currentNode + '[label="continue"];\n'
+        return returnValue
 
 class BreakNode(ASTNode):
     def accept(self, visitor):
         return visitor.BreakNode(self)
 
     def __str__(self):
-        return "break"
+        currentNode = str(counter())
+        returnValue = currentNode + ';\n'
+        returnValue += currentNode + '[label="break"];\n'
+        return returnValue
 
 class BinaryOperationNode(ASTNode):
     def __init__(self, operator, left, right):
@@ -151,8 +183,9 @@ class FloatingConstantNode(ASTNode):
         return visitor.FloatingConstantNode(self)
 
     def __str__(self):
-        returnValue = 'Float:'
-        returnValue += self.value
+        currentNode = counter()
+        returnValue = str(currentNode) + ';\n';
+        returnValue += str(currentNode) + '[label="Float:\n ' + str(self.value) + '"];\n'
         return returnValue
 
 class CharacterConstantNode(ASTNode):
@@ -163,8 +196,9 @@ class CharacterConstantNode(ASTNode):
         return visitor.CharacterConstantNode(self)
 
     def __str__(self):
-        returnValue = 'Character: '
-        returnValue += self.value
+        currentNode = counter()
+        returnValue = str(currentNode) + ';\n';
+        returnValue += str(currentNode) + '[label="Character:\n ' + self.value + '"];\n'
         return returnValue
 
 class DeclarationSpecifierNode(ASTNode):
@@ -178,9 +212,9 @@ class DeclarationSpecifierNode(ASTNode):
 
     def __str__(self):
         # No need to create empty node
-        if not self.isConstant and not self.hasPointer: return ''
+        # if not self.isConstant and not self.hasPointer: return ''
         currentNode = counter()
-        label = ''
+        label = 'DeclSpec:\n'
         if self.isConstant: label += 'const '
         if self.hasPointer: label += '*'
         returnValue = str(currentNode) + ';\n'
