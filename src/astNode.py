@@ -45,8 +45,21 @@ class FunctionDefinitionNode(ASTNode):
     def accept(self, visitor):
         return visitor.visitFunctionDefinitionNode(self)
 
-    def __str__(self):    
-        return ""
+    def __str__(self):
+        currentNode = counter()
+        label = "Function"
+        if self.hasPointer: label += '*'
+        returnValue = currentNode + ';\n'
+        returnValue += currentNode + ' [label="'+ label + '"];\n '
+        if str(self.declarationSpecifier) != '': returnValue += currentNode + '->' + str(self.declarationSpecifier)
+        returnValue += currentNode + '->' + str(self.identifier)
+        returnValue += currentNode + '->' + str(self.parameterList)
+        body = counter()
+        returnValue += currentNode + '->' + body + ';\n'
+        returnValue += body + '[ label = "body"];\n'
+        for stat in self.functionBody:
+            returnValue += body + '->' + str(stat)
+        return returnValue
 
 class ParameterListNode(ASTNode):
     def __init__(self, paramDecls):
@@ -55,8 +68,12 @@ class ParameterListNode(ASTNode):
     def accept(self, visitor):
         return visitor.visitParameterListNode(self)
 
-    def __str__(self):    
-        return ""
+    def __str__(self):
+        currentNode = counter()
+        returnValue = currentNode + ';\n'
+        returnValue += currentNode + ' [label="ParamList"];\n'
+        returnValue += currentNode + '->' + str(self.paramDecls)
+        return returnValue
 
 class ParameterDeclarationNode(ASTNode):
     def __init__(self, declarationSpecifier, declarator):
@@ -66,8 +83,13 @@ class ParameterDeclarationNode(ASTNode):
     def accept(self, visitor):
         return visitor.visitParameterDeclarationNode(self)
 
-    def __str__(self):    
-        return "" 
+    def __str__(self):
+        currentNode = counter()
+        returnValue = currentNode + ';\n'
+        returnValue += currentNode + ' [label = "ParamDecl"];\n'
+        if str(self.declarationSpecifier) != '': returnValue += currentNode + '->' + str(self.declarationSpecifier)
+        returnValue += currentNode + '->' + str(self.declarator)
+        return returnValue
 
 class DeclarationNode(ASTNode):
     def __init__(self, declarationSpecifier, identifier, expression):
@@ -155,7 +177,7 @@ class ReturnNode(ASTNode):
         currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + '[label="return"];\n'
-        returnValue +=  currentNode + '->' + str(self.expressionNode)
+        if str(self.expressionNode) != 'None': returnValue += currentNode + '->' + str(self.expressionNode)
         return returnValue
 
 class ContinueNode(ASTNode):
