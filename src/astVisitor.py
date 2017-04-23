@@ -59,7 +59,5 @@ class AstVisitor():
     def visitIdentifierNode(self, node:IdentifierNode):
         for expression in node.arrayExpressionList:
             self.visit(expression)     
-    
-    
-
+  
      
