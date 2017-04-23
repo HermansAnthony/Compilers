@@ -28,13 +28,24 @@ class AstBuilder(CmmVisitor):
         return self.visitChildren(ctx)
 
     def visitFunctionDefinition(self, ctx:CmmParser.FunctionDefinitionContext):
-        return self.visitChildren(ctx)
+        declarationSpecifier = None
+        if ctx.declarationSpecifier():
+            declarationSpecifier = self.visit(ctx.declarationSpecifier())
+        hasPointer = ctx.Star() != None
+        identifier = self.visit(ctx.identifier())
+        parameterListNode = None
+        if ctx.parameterList():
+            parameterListNode = self.visit(ctx.parameterList())
+        functionBody = self.visit(ctx.compoundStatement())
+        return FunctionDefinitionNode(declarationSpecifier, hasPointer, identifier, parameterListNode, functionBody)
 
     def visitParameterList(self, ctx:CmmParser.ParameterListContext):
-        return self.visitChildren(ctx)
+        return ParameterListNode(self.visitChildren(ctx))
 
     def visitParameterDeclaration(self, ctx:CmmParser.ParameterDeclarationContext):
-        return self.visitChildren(ctx)
+        declarationSpecifier = self.visit(ctx.declarationSpecifier())
+        declarator = self.visit(ctx.declarator())
+        return ParameterDeclarationNode(declarationSpecifier, declarator)
 
     def visitDeclaration(self, ctx:CmmParser.DeclarationContext):
         declarationSpec = self.visit(ctx.declarationSpecifier())
@@ -45,7 +56,6 @@ class AstBuilder(CmmVisitor):
         isConstant = ctx.Const() != None
         idType = ctx.typeSpecifier().getText()
         hasPointer = ctx.Star(0) != None
-        print("DeclarationSpecifier: ", isConstant)
         return DeclarationSpecifierNode(isConstant, idType, hasPointer)
 
     def visitInitDeclarator(self, ctx:CmmParser.InitDeclaratorContext):

@@ -34,6 +34,41 @@ class ProgramNode(ASTNode):
             returnValue += currentNode + ' -> ' + str(child)
         return returnValue
 
+class FunctionDefinitionNode(ASTNode):
+    def __init__(self, declarationSpecifier, hasPointer, identifier, parameterList, functionBody):
+        self.declarationSpecifier = declarationSpecifier
+        self.hasPointer = hasPointer
+        self.identifier = identifier
+        self.parameterList = parameterList
+        self.functionBody = functionBody
+
+    def accept(self, visitor):
+        return visitor.visitFunctionDefinitionNode(self)
+
+    def __str__(self):    
+        return ""
+
+class ParameterListNode(ASTNode):
+    def __init__(self, paramDecls):
+        self.paramDecls = paramDecls
+
+    def accept(self, visitor):
+        return visitor.visitParameterListNode(self)
+
+    def __str__(self):    
+        return ""
+
+class ParameterDeclarationNode(ASTNode):
+    def __init__(self, declarationSpecifier, declarator):
+        self.declarationSpecifier = declarationSpecifier
+        self.declarator = declarator
+
+    def accept(self, visitor):
+        return visitor.visitParameterDeclarationNode(self)
+
+    def __str__(self):    
+        return "" 
+
 class DeclarationNode(ASTNode):
     def __init__(self, declarationSpecifier, identifier, expression):
         self.declarationSpecifier = declarationSpecifier

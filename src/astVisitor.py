@@ -8,6 +8,22 @@ class AstVisitor():
         for child in node.children:
             self.visit(child)
 
+    def visitFunctionDefinitionNode(self, node:FunctionDefinitionNode):
+        if node.declarationSpecifier:
+            self.visit(node.declarationSpecifier)
+        self.visit(node.identifier)
+        if parameterList:
+            self.visit(node.parameterList)
+        self.visit(node.functionBody)
+
+    def visitParameterList(self, node:ParameterListNode):
+        for paramDecl in node.paramDecls:
+            self.visit(paramDecl)
+
+    def visitParameterDeclarationNode(self, node:ParameterDeclarationNode):
+        self.visit(node.declarationSpecifier)
+        self.visit(node.declarator)
+
     def visitDeclarationNode(self, node:DeclarationNode):
         self.visit(node.declarationSpecifier)
         self.visit(node.identifier)
