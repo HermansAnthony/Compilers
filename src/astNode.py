@@ -225,7 +225,6 @@ class DeclarationSpecifierNode(ASTNode):
         return visitor.DeclarationSpecifierNode(self)
 
     def __str__(self):
-        # TODO fix thisNo need to create empty node
         if not self.isConstant and not self.hasPointer: return ''
         currentNode = counter()
         label = 'DeclSpec:\n'
