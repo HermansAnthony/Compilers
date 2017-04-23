@@ -1,4 +1,13 @@
-from astVisitor import astVisitor
+# from astVisitor import *
+class astVisitor:
+    pass
+
+nodeCounter = 0
+def counter():
+    global nodeCounter
+    returnValue = nodeCounter
+    nodeCounter += 1
+    return returnValue
 
 class ASTNode:
     def accept(self, visitor:astVisitor):
@@ -22,11 +31,10 @@ class ProgramNode(ASTNode):
         output.close()
 
     def __str__(self):
-        returnValue = '1 [label="Program"];\n'
+        currentNode = counter()
+        returnValue = str(currentNode) + ' [label="Program"];\n'
         for child in self.children:
-            returnValue += '1 -> '
-            returnValue += str(child) 
-            returnValue += ';\n'
+            returnValue += str(currentNode) + ' -> ' + str(child)
         return returnValue
 
 class DeclarationNode(ASTNode):
@@ -39,7 +47,11 @@ class DeclarationNode(ASTNode):
         return visitor.visitDeclarationNode(self)
 
     def __str__(self):
-        return "Decl"
+        currentNode = counter()
+        label = "Decl-" + str(self.expression) + ":\n " + str(self.identifier)
+        returnValue = str(currentNode) + ';\n'
+        returnValue += str(currentNode) + ' [label="' + label + '" ];\n'
+        return returnValue
 
 class IfStatementNode(ASTNode):
     def __init__(self, condition, ifBody, elseBody):
@@ -128,8 +140,7 @@ class IntegerConstantNode(ASTNode):
         return visitor.IntegerConstantNode(self)
 
     def __str__(self):
-        returnValue = 'Integer:'
-        returnValue += self.value
+        returnValue = 'Integer'
         return returnValue
 
 class FloatingConstantNode(ASTNode):
@@ -140,7 +151,7 @@ class FloatingConstantNode(ASTNode):
         return visitor.FloatingConstantNode(self)
 
     def __str__(self):
-        returnValue = 'Float: '
+        returnValue = 'Float:'
         returnValue += self.value
         return returnValue
 
@@ -166,7 +177,14 @@ class DeclarationSpecifierNode(ASTNode):
         return visitor.DeclarationSpecifierNode(self)
 
     def __str__(self):
-        return "Decl"
+        currentNode = counter()
+        label = ''
+        if self.isConstant: label += 'const '
+        if self.hasPointer: label += '*'
+        print(self.idType)
+        returnValue = str(currentNode) + ';\n'
+        returnValue += str(currentNode) + ' [label = "' + label + '"];\n'
+        return returnValue
 
 
 class IdentifierNode(ASTNode):
@@ -178,4 +196,4 @@ class IdentifierNode(ASTNode):
         return visitor.IdentifierNode(self)
 
     def __str__(self):
-        return "ID"
+        return self.identifier
