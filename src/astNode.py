@@ -36,10 +36,8 @@ class ProgramNode(ASTNode):
 class DeclarationNode(ASTNode):
     def __init__(self, declarationSpecifier, identifier, expression):
         self.declarationSpecifier = declarationSpecifier
-
         self.identifier = identifier
         self.expression = expression
-        print("idType: ", type(self.identifier))
 
     def accept(self, visitor):
         return visitor.visitDeclarationNode(self)
@@ -51,7 +49,6 @@ class DeclarationNode(ASTNode):
         returnValue += str(currentNode) + '->' + str(self.declarationSpecifier)
         returnValue += str(currentNode) + '->' + str(self.identifier)
         returnValue += str(currentNode) + '->' + str(self.expression)
-        print(self.identifier)
         return returnValue
 
 class IfStatementNode(ASTNode):
@@ -141,7 +138,9 @@ class IntegerConstantNode(ASTNode):
         return visitor.IntegerConstantNode(self)
 
     def __str__(self):
-        returnValue = 'Integer'
+        currentNode = counter()
+        returnValue = str(currentNode) + ';\n';
+        returnValue += str(currentNode) + '[label="Integer:\n ' + str(self.value) + '"];\n'
         return returnValue
 
 class FloatingConstantNode(ASTNode):
@@ -178,6 +177,8 @@ class DeclarationSpecifierNode(ASTNode):
         return visitor.DeclarationSpecifierNode(self)
 
     def __str__(self):
+        # No need to create empty node
+        if not self.isConstant and not self.hasPointer: return ''
         currentNode = counter()
         label = ''
         if self.isConstant: label += 'const '
@@ -198,6 +199,5 @@ class IdentifierNode(ASTNode):
     def __str__(self):
         currentNode = counter()
         returnValue = str(currentNode) + ';\n'
-        returnValue += str(currentNode) + '[label="' + str(self.identifier) + '"];\n'
-        # print(returnValue)
-        return self.identifier
+        returnValue += str(currentNode) + '[label="' +'Identifier:\n'+ str(self.identifier) + '"];\n'
+        return returnValue
