@@ -51,7 +51,7 @@ class FunctionDefinitionNode(ASTNode):
         if self.hasPointer: label += '*'
         returnValue = currentNode + ';\n'
         returnValue += currentNode + ' [label="'+ label + '"];\n '
-        if str(self.declarationSpecifier) != '': returnValue += currentNode + '->' + str(self.declarationSpecifier)
+        returnValue += currentNode + '->' + str(self.declarationSpecifier)
         returnValue += currentNode + '->' + str(self.identifier)
         returnValue += currentNode + '->' + str(self.parameterList)
         body = counter()
@@ -87,7 +87,8 @@ class ParameterDeclarationNode(ASTNode):
         currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + ' [label = "ParamDecl"];\n'
-        if str(self.declarationSpecifier) != '': returnValue += currentNode + '->' + str(self.declarationSpecifier)
+        returnValue += currentNode + '->' + str(self.declarationSpecifier)
+        print(type(self.declarator))
         returnValue += currentNode + '->' + str(self.declarator)
         return returnValue
 
@@ -104,7 +105,7 @@ class DeclarationNode(ASTNode):
         currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + ' [label="Decl" ];\n'
-        if str(self.declarationSpecifier) != '': returnValue += currentNode + '->' + str(self.declarationSpecifier)
+        returnValue += currentNode + '->' + str(self.declarationSpecifier)
         returnValue += currentNode + '->' + str(self.identifier)
         returnValue += currentNode + '->' + str(self.expression)
         return returnValue
@@ -282,11 +283,11 @@ class DeclarationSpecifierNode(ASTNode):
         return visitor.DeclarationSpecifierNode(self)
 
     def __str__(self):
-        if not self.isConstant and not self.hasPointer: return ''
         currentNode = counter()
         label = 'DeclSpec:\n'
         if self.isConstant: label += 'const '
         if self.hasPointer: label += '*'
+        label += str(self.idType)
         returnValue = currentNode + ';\n'
         returnValue += currentNode + ' [label = "' + label + '"];\n'
         return returnValue
