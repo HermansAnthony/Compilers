@@ -108,6 +108,9 @@ h3 {
       Nu is de grammatica veel overzichtelijker en dus zal ook de generatie van de AST boom vlotter verlopen.</br>
       Mits een paar kleine aanpassingen is deze voor het grootste deel klaar.</br>
     <h3>AST</h3>
+      De AST heeft ongeveer dezelfde structuur als de ParserRuleContext uit antlr met custom AST nodes en de ProgramNode als root.
+      We kunnen de boom overlopen met de AstVisitor. Meerdere subklassen van deze visitor laten ons toe om de verschillende passes te implementeren.</br></br>
+
       De generatie van het dot formaat was in het algemeen niet zo moeilijk.</br>
       Behalve het feit dat we rekening moesten houden met de ID's van de nodes.</br>
       Dit hebben we opgelost aan de hand van een globale counter in het astNode.py bestand.</br>
@@ -115,6 +118,10 @@ h3 {
     <h3>Symbol table</h3>
       Er is al een ruwe versie van de symbol table aanwezig.
       Deze is echter nog niet geintegreerd in het project zelf.</br>
+
+    <h3>Basic error listener</h3>
+      De basic error listener zorgt er op dit moment voor dat het compilatie proces tijdig stopt bij een parse error.</br>
+      We gebruiken hiervoor de error messages van antlr zelf.</br>
 
     <h3> Testbestanden </h3>
     De C bestanden voor het testen van de compiler bevinden zich in de submap testfiles.</br>
