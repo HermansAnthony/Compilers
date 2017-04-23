@@ -90,7 +90,7 @@ class AstBuilder(CmmVisitor):
 
     def visitExpression(self, ctx:CmmParser.ExpressionContext):
         if ctx.getChildCount() == 1:
-            return self.visitChildren(ctx)
+            return self.visit(ctx.primaryExpression())
         if ctx.getChildCount() == 2:
             if ctx.And() == None:
                 return ExpressionNode(ctx.getChild(1).getText(), True, self.visit( ctx.primaryExpression() ))
@@ -109,7 +109,7 @@ class AstBuilder(CmmVisitor):
             # Rule is array specifier.
             node = self.visit( ctx.expression(0) )
             if isinstance(node, IdentifierNode):
-                node.arrayExpressionList.append( self.visit(ctx.expression()) )
+                node.arrayExpressionList.append( self.visit(ctx.expression(1)) )
             else:
                 print("Cannot select array index of a constant expression.")
         return node        

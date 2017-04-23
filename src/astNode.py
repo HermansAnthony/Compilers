@@ -71,8 +71,11 @@ class ParameterListNode(ASTNode):
         currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + ' [label="ParamList"];\n'
-        for paramDecl in self.paramDecls:
-            returnValue += currentNode + '->' + str(paramDecl)
+        if isinstance(self.paramDecls, list):
+            for paramDecl in self.paramDecls:
+                returnValue += currentNode + '->' + str(paramDecl)
+        else:
+            returnValue += currentNode + '->' + str(self.paramDecls)
         return returnValue
 
 class ParameterDeclarationNode(ASTNode):
