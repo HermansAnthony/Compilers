@@ -30,23 +30,28 @@ class ProgramNode(ASTNode):
         currentNode = counter()
         returnValue = str(currentNode) + ' [label="Program"];\n'
         for child in self.children:
-            returnValue += str(currentNode) + ' -> ' + str(child) + ';\n'
+            returnValue += str(currentNode) + ' -> ' + str(child)
         return returnValue
 
 class DeclarationNode(ASTNode):
     def __init__(self, declarationSpecifier, identifier, expression):
         self.declarationSpecifier = declarationSpecifier
+
         self.identifier = identifier
         self.expression = expression
+        print("idType: ", type(self.identifier))
 
     def accept(self, visitor):
         return visitor.visitDeclarationNode(self)
 
     def __str__(self):
         currentNode = counter()
-        label = "Decl-" + str(self.expression) + ":\n " + str(self.identifier)
         returnValue = str(currentNode) + ';\n'
-        returnValue += str(currentNode) + ' [label="' + label + '" ];\n'
+        returnValue += str(currentNode) + ' [label="Decl" ];\n'
+        returnValue += str(currentNode) + '->' + str(self.declarationSpecifier)
+        returnValue += str(currentNode) + '->' + str(self.identifier)
+        returnValue += str(currentNode) + '->' + str(self.expression)
+        print(self.identifier)
         return returnValue
 
 class IfStatementNode(ASTNode):
@@ -177,7 +182,6 @@ class DeclarationSpecifierNode(ASTNode):
         label = ''
         if self.isConstant: label += 'const '
         if self.hasPointer: label += '*'
-        print(self.idType)
         returnValue = str(currentNode) + ';\n'
         returnValue += str(currentNode) + ' [label = "' + label + '"];\n'
         return returnValue
@@ -192,4 +196,8 @@ class IdentifierNode(ASTNode):
         return visitor.IdentifierNode(self)
 
     def __str__(self):
+        currentNode = counter()
+        returnValue = str(currentNode) + ';\n'
+        returnValue += str(currentNode) + '[label="' + str(self.identifier) + '"];\n'
+        # print(returnValue)
         return self.identifier
