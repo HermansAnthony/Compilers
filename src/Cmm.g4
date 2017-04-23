@@ -118,8 +118,8 @@ compoundStatement
 ;
 
 ifStatement
-    : If LeftParen expression RightParen statement
-    | If LeftParen expression RightParen statement Else statement
+    : If LeftParen expression RightParen compoundStatement
+    | If LeftParen expression RightParen compoundStatement Else compoundStatement
 ;
 
 iterationStatement

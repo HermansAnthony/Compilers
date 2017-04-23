@@ -106,10 +106,10 @@ class AstBuilder(CmmVisitor):
         return self.visitChildren(ctx)
 
     def visitIfStatement(self, ctx:CmmParser.IfStatementContext):
-        ifBody = self.visit(ctx.statement(0))
+        ifBody = self.visit(ctx.compoundStatement(0))
         elseBody = None
         if ctx.Else():
-            elseBody = self.visit(ctx.statement(1))
+            elseBody = self.visit(ctx.compoundStatement(1))
         return IfStatementNode(self.visit(ctx.expression()), ifBody, elseBody)
 
     def visitIterationStatement(self, ctx:CmmParser.IterationStatementContext):

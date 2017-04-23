@@ -15,8 +15,8 @@ def main(argv):
     lexer = CmmLexer(input) 
     stream = CommonTokenStream(lexer) 
     parser = CmmParser(stream)
-    # parser._listeners.append(BasicErrorListener())
-    #parser.addParseListener(BasicErrorListener()) 
+
+    parser._listeners.append(BasicErrorListener())
 
     # Build the parse tree
     parseTree = parser.program()
