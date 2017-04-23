@@ -336,4 +336,6 @@ class IdentifierNode(ASTNode):
         currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + '[label="' +'Identifier:\n'+ str(self.identifier) + '"];\n'
+        for expr in self.arrayExpressionList:
+            returnValue += currentNode + '->' + str(expr)
         return returnValue
