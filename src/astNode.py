@@ -1,10 +1,16 @@
+from astVisitor import astVisitor
+
 class ASTNode:
-    pass
+    def accept(self, visitor:astVisitor):
+        return
 
 class ProgramNode(ASTNode):
     def __init__(self, children):
         self.children = children
 
+    def accept(self, visitor:astVisitor):
+        return visitor.visitProgramNode(self)
+    
     # Writes AST tree to a dot file
     def toDot(self, name):
         print("A dot file with name ", name, " was created.")
@@ -29,6 +35,9 @@ class DeclarationNode(ASTNode):
         self.identifier = identifier
         self.expression = expression
 
+    def accept(self, visitor:astVisitor):
+        return visitor.visitDeclarationNode(self)
+
     def __str__(self):
         return "Decl"
 
@@ -37,6 +46,9 @@ class IfStatementNode(ASTNode):
         self.condition = condition
         self.ifBody = ifBody
         self.elseBody = elseBody
+
+    def accept(self, visitor:astVisitor):
+        return visitor.visitIfStatementNode(self)
 
     def __str__(self):
         return "IfElse"
@@ -52,6 +64,9 @@ class IterationStatementNode(ASTNode):
         self.middle2 = middle2
         self.right = right
 
+    def accept(self, visitor:astVisitor):
+        return visitor.visitIterationStatementNode(self)
+
     def __str__(self):
         return "Iter"
 
@@ -59,13 +74,23 @@ class ReturnNode(ASTNode):
     def __init__(self, expressionNode):
         self.expressionNode = expressionNode
 
+    def accept(self, visitor:astVisitor):
+        return visitor.ReturnNode(self)
+
     def __str__(self):
         return "return"
 
 class ContinueNode(ASTNode):
+    def accept(self, visitor:astVisitor):
+        return visitor.ContinueNode(self)
+
     def __str__(self):
         return "continue"
+
 class BreakNode(ASTNode):
+    def accept(self, visitor:astVisitor):
+        return visitor.BreakNode(self)
+
     def __str__(self):
         return "break"
 
@@ -74,6 +99,9 @@ class BinaryOperationNode(ASTNode):
         self.operator = operator
         self.left = left
         self.right = right
+
+    def accept(self, visitor:astVisitor):
+        return visitor.BinaryOperationNode(self)
 
     def __str__(self):
         returnValue = str(self.operator) + ' -> ' + str(self.left) + ';'
@@ -85,12 +113,19 @@ class ExpressionNode(ASTNode):
         self.operator = operator
         self.isPostfix = isPostfix
         self.child = child
+
+    def accept(self, visitor:astVisitor):
+        return visitor.ExpressionNode(self)
+
     def __str__(self):
         return "expression"
 
 class IntegerConstantNode(ASTNode):
     def __init__(self, value):
         self.value = value
+
+    def accept(self, visitor:astVisitor):
+        return visitor.IntegerConstantNode(self)
 
     def __str__(self):
         returnValue = 'Integer:'
@@ -100,13 +135,22 @@ class IntegerConstantNode(ASTNode):
 class FloatingConstantNode(ASTNode):
     def __init__(self, value):
         self.value = value
+
+    def accept(self, visitor:astVisitor):
+        return visitor.FloatingConstantNode(self)
+
     def __str__(self):
         returnValue = 'Float: '
         returnValue += self.value
         return returnValue
+
 class CharacterConstantNode(ASTNode):
     def __init__(self, value):
         self.value = value
+
+    def accept(self, visitor:astVisitor):
+        return visitor.CharacterConstantNode(self)
+
     def __str__(self):
         returnValue = 'Character: '
         returnValue += self.value
@@ -118,6 +162,9 @@ class DeclarationSpecifierNode(ASTNode):
         self.idType = idType
         self.hasPointer = hasPointer
 
+    def accept(self, visitor:astVisitor):
+        return visitor.DeclarationSpecifierNode(self)
+
     def __str__(self):
         return "Decl"
 
@@ -126,6 +173,9 @@ class IdentifierNode(ASTNode):
     def __init__(self, identifier, arrayExpressionList):
         self.identifier = identifier
         self.arrayExpressionList = arrayExpressionList
+
+    def accept(self, visitor:astVisitor):
+        return visitor.IdentifierNode(self)
 
     def __str__(self):
         return "ID"
