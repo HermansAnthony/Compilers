@@ -30,7 +30,7 @@ class ProgramNode(ASTNode):
         currentNode = counter()
         returnValue = str(currentNode) + ' [label="Program"];\n'
         for child in self.children:
-            returnValue += str(currentNode) + ' -> ' + str(child)
+            returnValue += str(currentNode) + ' -> ' + str(child) + ';\n'
         return returnValue
 
 class DeclarationNode(ASTNode):

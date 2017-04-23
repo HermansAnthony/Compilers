@@ -45,6 +45,7 @@ class AstBuilder(CmmVisitor):
         isConstant = ctx.Const() != None
         idType = ctx.typeSpecifier().getText()
         hasPointer = ctx.Star() != None
+        print("DeclarationSpecifier: ", isConstant)
         return DeclarationSpecifierNode(isConstant, idType, hasPointer)
 
     def visitInitDeclarator(self, ctx:CmmParser.InitDeclaratorContext):
