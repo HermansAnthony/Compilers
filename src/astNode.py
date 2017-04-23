@@ -2,26 +2,34 @@ class ASTNode:
     pass
 
 class ProgramNode(ASTNode):
-    def __init__(self, *children):
+    def __init__(self, children):
         self.children = children
 
+    # Writes AST tree to a dot file
+    def toDot(self, name):
+        print("A dot file with name ", name, " was created.")
+        astStringFormat = 'digraph G {\n'
+        astStringFormat += str(self)
+        astStringFormat += '}'
+        output = open(name, 'w')
+        output.write(astStringFormat)
+        output.close()
+
     def __str__(self):
-        returnValue = '1 [label="Program"];'
-        print (len(self.children))
+        returnValue = '1 [label="Program"];\n'
         for child in self.children:
             returnValue += '1 -> '
-            returnValue += str(child)
+            returnValue += str(child) 
+            returnValue += ';\n'
         return returnValue
 
 class DeclarationNode(ASTNode):
     def __init__(self, declarationSpecifier, identifier, expression):
-        print("test3")
         self.declarationSpecifier = declarationSpecifier
         self.identifier = identifier
         self.expression = expression
 
     def __str__(self):
-        print("test2")
         return "Decl"
 
 class IfStatementNode(ASTNode):

@@ -19,9 +19,9 @@ def main(argv):
     parseTree = parser.program()
 
     # Generate and visit the Abstract Syntax Tree
-    visitor = astBuilder("AST")
-    visitor.visit(parseTree)
-    visitor.toDot(parseTree)
+    visitor = astBuilder()
+    ast = visitor.visit(parseTree)
+    ast.toDot("AST")
 
 if __name__ == '__main__':
     main(sys.argv)
