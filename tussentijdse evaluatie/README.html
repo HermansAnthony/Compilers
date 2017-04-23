@@ -100,13 +100,32 @@ h5 {
       <b> chmod +x [script file]</b>
     </div>
     <h3>Algemeen</h3>
+      Het algemene commando is van de volgende structuur:</br>
       <div class="note">
         <b> ./build [ANTLR-file] [C program file] [P program file] </b></br>
       </div>
+      Dit commando zal eerst met behulp van ANTLR en onze grammatica de benodigde listener, visitor, parser etc. genereren.</br>
+      Daarna zal het de AST boom opbouwen op basis van de gegeven C file en uitschrijven naar een AST dot bestand.
+      Later zal dan P code gegenereerd worden en uitgeschreven naar het P programma bestand.</br>
     <h3>AST</h3>
+      Het commando om van het bekomen dot bestand een PNG bestand te maken is van de volgende structuur:
       <div class="note">
         <b> ./dotWriter [PNG output file] [AST dot file] </b></br>
       </div>
+      Dit scriptje laat ons toe om de AST overzichtelijk en duidelijk weer te geven.
+</div>
+
+<div class="content">
+  <h2>Progress</h2>
+    <h3>Grammatica</h3>
+      Oorspronkelijk was onze grammatica te ingewikkeld dus deze hebben we aangepast.</br>
+      Nu is de grammatica veel overzichtelijker en dus zal ook de generatie van de AST boom vlotter verlopen.</br>
+      Mits een paar kleine aanpassingen nog is deze voor het grootste deel klaar.</br>
+    <h3>AST</h3>
+      De generatie van het dot formaat was in het algemeen niet zo moeilijk.</br>
+      Behalve het feit dat we rekening moesten houden met de ID's van de nodes.</br>
+      Dit hebben we opgelost aan de hand van een globale counter in het astNode.py bestand.</br>
+
 </div>
 
 </body>
