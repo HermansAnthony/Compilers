@@ -47,7 +47,7 @@ class DeclarationNode(ASTNode):
         currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + ' [label="Decl" ];\n'
-        returnValue += currentNode + '->' + str(self.declarationSpecifier)
+        if str(self.declarationSpecifier) != '': returnValue += currentNode + '->' + str(self.declarationSpecifier)
         returnValue += currentNode + '->' + str(self.identifier)
         returnValue += currentNode + '->' + str(self.expression)
         return returnValue
@@ -107,7 +107,6 @@ class IterationStatementNode(ASTNode):
         returnValue += body + '[ label = "body"];\n'
         for stat in self.right:
             returnValue += body + '->' + str(stat)
-
         return returnValue
 
 class ReturnNode(ASTNode):
@@ -227,7 +226,7 @@ class DeclarationSpecifierNode(ASTNode):
 
     def __str__(self):
         # TODO fix thisNo need to create empty node
-        # if not self.isConstant and not self.hasPointer: return ''
+        if not self.isConstant and not self.hasPointer: return ''
         currentNode = counter()
         label = 'DeclSpec:\n'
         if self.isConstant: label += 'const '
