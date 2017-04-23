@@ -88,7 +88,6 @@ class ParameterDeclarationNode(ASTNode):
         returnValue = currentNode + ';\n'
         returnValue += currentNode + ' [label = "ParamDecl"];\n'
         returnValue += currentNode + '->' + str(self.declarationSpecifier)
-        print(type(self.declarator))
         returnValue += currentNode + '->' + str(self.declarator)
         return returnValue
 
