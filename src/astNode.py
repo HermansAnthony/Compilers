@@ -75,14 +75,11 @@ class IfStatementNode(ASTNode):
         returnValue += conditionNode + ' [label = "condition"];\n'
         returnValue += ifNode + ' [label = "ifBody"];\n'
         returnValue += elseNode + ' [label = "elseBody"];\n'
+        returnValue += conditionNode + '->' + str(self.condition)
         for stat in self.ifBody:
             returnValue += ifNode + '->' + str(stat)
         for stat in self.elseBody:
             returnValue += elseNode + '->' + str(stat)
-        # returnValue += conditionNode + '->' + str(self.condition)
-
-        # print(self.condition)
-        # print(self.elseBody)
         return returnValue
 
 class IterationStatementNode(ASTNode):
@@ -146,8 +143,11 @@ class BinaryOperationNode(ASTNode):
         return visitor.BinaryOperationNode(self)
 
     def __str__(self):
-        returnValue = str(self.operator) + ' -> ' + str(self.left) + ';'
-        returnValue += str(self.operator) + ' -> ' + str(self.right) + ';'
+        print(type(self.left))
+        print(type(self.right))
+        currentNode = str(counter())
+        returnValue = currentNode + ';\n'
+        returnValue += currentNode + ' [label = "'+ self.operator + '"];\n'
         return returnValue
 
 class ExpressionNode(ASTNode):
