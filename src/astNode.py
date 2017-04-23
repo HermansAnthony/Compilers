@@ -50,11 +50,9 @@ class FunctionDefinitionNode(ASTNode):
         if self.hasPointer: label += '*'
         returnValue = currentNode + ';\n'
         returnValue += currentNode + ' [label="'+ label + '"];\n '
-        if self.declarationSpecifier:
-            returnValue += currentNode + '->' + str(self.declarationSpecifier)
+        returnValue += currentNode + '->' + str(self.declarationSpecifier)
         returnValue += currentNode + '->' + str(self.identifier)
-        if self.parameterList:
-            returnValue += currentNode + '->' + str(self.parameterList)
+        returnValue += currentNode + '->' + str(self.parameterList)
         body = counter()
         returnValue += currentNode + '->' + body + ';\n'
         returnValue += body + '[ label = "body"];\n'
@@ -178,7 +176,6 @@ class ReturnNode(ASTNode):
         currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + '[label="return"];\n'
-        print(self.expressionNode)
         if str(self.expressionNode) != 'None': returnValue +=  currentNode + '->' + str(self.expressionNode)
         return returnValue
 
