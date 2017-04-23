@@ -97,13 +97,21 @@ class AstBuilder(CmmVisitor):
             return ExpressionNode(ctx.getChild(0).getText(), False, self.visit( ctx.expression(0)) )
         if ctx.getChildCount() == 3:
             return BinaryOperationNode( ctx.binaryOperator().getText(), self.visit( ctx.expression(0) ), self.visit( ctx.expression(1) ) )  
-        # Function call not implemented.
-        # Rule is array specifier.
-        node = self.visit( ctx.expression(0) )
-        if isinstance(node, IdentifierNode):
-            node.arrayExpressionList.append( self.visit(ctx.expression()) )
+        node = None
+        if ctx.primaryExpression():
+            # Rule is function call
+            primaryExpression = self.visit(ctx.primaryExpression())
+            argumentExpressionListNode = None
+            if ctx.argumentExpressionList():
+                argumentExpressionListNode = self.visit(ctx.argumentExpressionList())
+            node = FunctionCallNode(primaryExpression, argumentExpressionListNode)
         else:
-            print("Cannot select array index of a constant expression.")
+            # Rule is array specifier.
+            node = self.visit( ctx.expression(0) )
+            if isinstance(node, IdentifierNode):
+                node.arrayExpressionList.append( self.visit(ctx.expression()) )
+            else:
+                print("Cannot select array index of a constant expression.")
         return node        
 
     def visitArgumentExpressionList(self, ctx:CmmParser.ArgumentExpressionListContext):

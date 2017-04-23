@@ -172,18 +172,18 @@ class ReturnNode(ASTNode):
         self.expressionNode = expressionNode
 
     def accept(self, visitor):
-        return visitor.ReturnNode(self)
+        return visitor.visitReturnNode(self)
 
     def __str__(self):
         currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + '[label="return"];\n'
-        if str(self.expressionNode) != 'None': returnValue += currentNode + '->' + str(self.expressionNode)
+        returnValue +=  currentNode + '->' + str(self.expressionNode)
         return returnValue
 
 class ContinueNode(ASTNode):
     def accept(self, visitor):
-        return visitor.ContinueNode(self)
+        return visitor.visitContinueNode(self)
 
     def __str__(self):
         currentNode = counter()
@@ -193,7 +193,7 @@ class ContinueNode(ASTNode):
 
 class BreakNode(ASTNode):
     def accept(self, visitor):
-        return visitor.BreakNode(self)
+        return visitor.visitBreakNode(self)
 
     def __str__(self):
         currentNode = counter()
@@ -208,7 +208,7 @@ class BinaryOperationNode(ASTNode):
         self.right = right
 
     def accept(self, visitor):
-        return visitor.BinaryOperationNode(self)
+        return visitor.visitBinaryOperationNode(self)
 
     def __str__(self):
         currentNode = counter()
@@ -225,7 +225,7 @@ class ExpressionNode(ASTNode):
         self.child = child
 
     def accept(self, visitor):
-        return visitor.ExpressionNode(self)
+        return visitor.visitExpressionNode(self)
 
     def __str__(self):
         currentNode = counter()
@@ -234,12 +234,43 @@ class ExpressionNode(ASTNode):
         returnValue += currentNode + '->' + str(self.child)
         return returnValue
 
+class FunctionCallNode(ASTNode):
+    def __init__(self, primaryExpression, argumentExpressionListNode):
+        self.primaryExpression = primaryExpression
+        self.argumentExpressionListNode = argumentExpressionListNode
+
+    def accept(self, visitor):
+        return visitor.visitFunctionCallNode(self)
+
+    def __str__(self):
+        currentNode = counter()
+        returnValue = currentNode + ';\n'
+        returnValue += currentNode + ' [ label = "FunctionCall"];\n'
+        returnValue += currentNode + '->' + str(self.primaryExpression)
+        returnValue += currentNode + '->' + str(self.argumentExpressionListNode)
+        return returnValue  
+
+class ArgumentExpressionListNode(ASTNode):
+    def __init__(self, argumentExprs):
+        self.argumentExprs = argumentExprs
+
+    def accept(self, visitor):
+        return visitor.visitArgumentExpressionListNode(self)
+
+    def __str__(self):
+        currentNode = counter()
+        returnValue = currentNode + ';\n'
+        returnValue += currentNode + ' [ label = "ArgExprList"];\n'
+        for expr in self.argumentExprs:
+            returnValue += currentNode + '->' + str(self.expr)
+        return returnValue 
+
 class IntegerConstantNode(ASTNode):
     def __init__(self, value):
         self.value = value
 
     def accept(self, visitor):
-        return visitor.IntegerConstantNode(self)
+        return visitor.visitIntegerConstantNode(self)
 
     def __str__(self):
         currentNode = counter()
@@ -252,7 +283,7 @@ class FloatingConstantNode(ASTNode):
         self.value = value
 
     def accept(self, visitor):
-        return visitor.FloatingConstantNode(self)
+        return visitor.visitFloatingConstantNode(self)
 
     def __str__(self):
         currentNode = counter()
@@ -265,7 +296,7 @@ class CharacterConstantNode(ASTNode):
         self.value = value
 
     def accept(self, visitor):
-        return visitor.CharacterConstantNode(self)
+        return visitor.visitCharacterConstantNode(self)
 
     def __str__(self):
         currentNode = counter()
@@ -280,7 +311,7 @@ class DeclarationSpecifierNode(ASTNode):
         self.hasPointer = hasPointer
 
     def accept(self, visitor):
-        return visitor.DeclarationSpecifierNode(self)
+        return visitor.visitDeclarationSpecifierNode(self)
 
     def __str__(self):
         currentNode = counter()
@@ -298,7 +329,7 @@ class IdentifierNode(ASTNode):
         self.arrayExpressionList = arrayExpressionList
 
     def accept(self, visitor):
-        return visitor.IdentifierNode(self)
+        return visitor.visitIdentifierNode(self)
 
     def __str__(self):
         currentNode = counter()

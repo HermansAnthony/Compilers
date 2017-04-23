@@ -60,6 +60,14 @@ class AstVisitor():
     def visitExpressionNode(self, node:ExpressionNode):
         self.visit(node.child)
 
+    def visitFunctionCallNode(self, node:FunctionCallNode):
+        self.visit(node.primaryExpression)
+        self.visit(node.argumentExpressionListNode)
+
+    def visitArgumentExpressionListNode(self, node:ArgumentExpressionListNode):
+        for expr in node.argumentExprs:
+            self.visit(expr)
+
     def visitIntegerConstantNode(self, node:IntegerConstantNode):
         pass
 
