@@ -1,9 +1,10 @@
+# TODO general make returnvalue statements shorter
 nodeCounter = 0
 def counter():
     global nodeCounter
     returnValue = nodeCounter
     nodeCounter += 1
-    return returnValue
+    return str(returnValue)
 
 class ASTNode:
     def accept(self, visitor):
@@ -15,7 +16,7 @@ class ProgramNode(ASTNode):
 
     def accept(self, visitor):
         return visitor.visitProgramNode(self)
-    
+
     # Writes AST tree to a dot file
     def toDot(self, name):
         print("A dot file with name ", name, " was created.")
@@ -28,29 +29,27 @@ class ProgramNode(ASTNode):
 
     def __str__(self):
         currentNode = counter()
-        returnValue = str(currentNode) + ' [label="Program"];\n'
+        returnValue = currentNode + ' [label="Program"];\n'
         for child in self.children:
-            returnValue += str(currentNode) + ' -> ' + str(child)
+            returnValue += currentNode + ' -> ' + str(child)
         return returnValue
 
 class DeclarationNode(ASTNode):
     def __init__(self, declarationSpecifier, identifier, expression):
         self.declarationSpecifier = declarationSpecifier
-
         self.identifier = identifier
         self.expression = expression
-        print("idType: ", type(self.identifier))
 
     def accept(self, visitor):
         return visitor.visitDeclarationNode(self)
 
     def __str__(self):
         currentNode = counter()
-        returnValue = str(currentNode) + ';\n'
-        returnValue += str(currentNode) + ' [label="Decl" ];\n'
-        returnValue += str(currentNode) + '->' + str(self.declarationSpecifier)
-        returnValue += str(currentNode) + '->' + str(self.identifier)
-        returnValue += str(currentNode) + '->' + str(self.expression)
+        returnValue = currentNode + ';\n'
+        returnValue += currentNode + ' [label="Decl" ];\n'
+        returnValue += currentNode + '->' + str(self.declarationSpecifier)
+        returnValue += currentNode + '->' + str(self.identifier)
+        returnValue += currentNode + '->' + str(self.expression)
         return returnValue
 
 class IfStatementNode(ASTNode):
@@ -63,12 +62,12 @@ class IfStatementNode(ASTNode):
         return visitor.visitIfStatementNode(self)
 
     def __str__(self):
-        currentNode = str(counter())
+        currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + ' [label = "Branch"];\n'
-        conditionNode = str(counter())
-        ifNode = str(counter())
-        elseNode = str(counter())
+        conditionNode = counter()
+        ifNode = counter()
+        elseNode = counter()
         returnValue += currentNode + '->' + conditionNode + ';\n'
         returnValue += currentNode + '->' + ifNode + ';\n'
         returnValue += currentNode + '->' + elseNode + ';\n'
@@ -97,7 +96,19 @@ class IterationStatementNode(ASTNode):
         return visitor.visitIterationStatementNode(self)
 
     def __str__(self):
-        return "Iter"
+        currentNode = counter()
+        returnValue = currentNode + ';\n'
+        returnValue += currentNode + '[ label = "' + self.statementName + '"];\n'
+        returnValue += currentNode + '->'+ str(self.left)
+        returnValue += currentNode + '->' + str(self.middle1)
+        returnValue += currentNode + '->' + str(self.middle2)
+        body = counter()
+        returnValue += currentNode + '->' + body + ';\n'
+        returnValue += body + '[ label = "body"];\n'
+        for stat in self.right:
+            returnValue += body + '->' + str(stat)
+
+        return returnValue
 
 class ReturnNode(ASTNode):
     def __init__(self, expressionNode):
@@ -107,7 +118,7 @@ class ReturnNode(ASTNode):
         return visitor.ReturnNode(self)
 
     def __str__(self):
-        currentNode = str(counter())
+        currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + '[label="return"];\n'
         returnValue +=  currentNode + '->' + str(self.expressionNode)
@@ -118,7 +129,7 @@ class ContinueNode(ASTNode):
         return visitor.ContinueNode(self)
 
     def __str__(self):
-        currentNode = str(counter())
+        currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + '[label="continue"];\n'
         return returnValue
@@ -128,7 +139,7 @@ class BreakNode(ASTNode):
         return visitor.BreakNode(self)
 
     def __str__(self):
-        currentNode = str(counter())
+        currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + '[label="break"];\n'
         return returnValue
@@ -143,11 +154,11 @@ class BinaryOperationNode(ASTNode):
         return visitor.BinaryOperationNode(self)
 
     def __str__(self):
-        print(type(self.left))
-        print(type(self.right))
-        currentNode = str(counter())
+        currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + ' [label = "'+ self.operator + '"];\n'
+        returnValue += currentNode + '->' + str(self.left)
+        returnValue += currentNode + '->' + str(self.right)
         return returnValue
 
 class ExpressionNode(ASTNode):
@@ -160,7 +171,11 @@ class ExpressionNode(ASTNode):
         return visitor.ExpressionNode(self)
 
     def __str__(self):
-        return "expression"
+        currentNode = counter()
+        returnValue = currentNode + ';\n'
+        returnValue += currentNode + ' [ label = "' + self.operator + '"];\n'
+        returnValue += currentNode + '->' + str(self.child)
+        return returnValue
 
 class IntegerConstantNode(ASTNode):
     def __init__(self, value):
@@ -171,8 +186,8 @@ class IntegerConstantNode(ASTNode):
 
     def __str__(self):
         currentNode = counter()
-        returnValue = str(currentNode) + ';\n';
-        returnValue += str(currentNode) + '[label="Integer:\n ' + str(self.value) + '"];\n'
+        returnValue = currentNode + ';\n';
+        returnValue += currentNode + '[label="Integer:\n ' + str(self.value) + '"];\n'
         return returnValue
 
 class FloatingConstantNode(ASTNode):
@@ -184,8 +199,8 @@ class FloatingConstantNode(ASTNode):
 
     def __str__(self):
         currentNode = counter()
-        returnValue = str(currentNode) + ';\n';
-        returnValue += str(currentNode) + '[label="Float:\n ' + str(self.value) + '"];\n'
+        returnValue = currentNode + ';\n';
+        returnValue += currentNode + '[label="Float:\n ' + str(self.value) + '"];\n'
         return returnValue
 
 class CharacterConstantNode(ASTNode):
@@ -197,8 +212,8 @@ class CharacterConstantNode(ASTNode):
 
     def __str__(self):
         currentNode = counter()
-        returnValue = str(currentNode) + ';\n';
-        returnValue += str(currentNode) + '[label="Character:\n ' + self.value + '"];\n'
+        returnValue = currentNode + ';\n';
+        returnValue += currentNode + '[label="Character:\n ' + self.value + '"];\n'
         return returnValue
 
 class DeclarationSpecifierNode(ASTNode):
@@ -211,16 +226,15 @@ class DeclarationSpecifierNode(ASTNode):
         return visitor.DeclarationSpecifierNode(self)
 
     def __str__(self):
-        # No need to create empty node
+        # TODO fix thisNo need to create empty node
         # if not self.isConstant and not self.hasPointer: return ''
         currentNode = counter()
         label = 'DeclSpec:\n'
         if self.isConstant: label += 'const '
         if self.hasPointer: label += '*'
-        returnValue = str(currentNode) + ';\n'
-        returnValue += str(currentNode) + ' [label = "' + label + '"];\n'
+        returnValue = currentNode + ';\n'
+        returnValue += currentNode + ' [label = "' + label + '"];\n'
         return returnValue
-
 
 class IdentifierNode(ASTNode):
     def __init__(self, identifier, arrayExpressionList):
@@ -232,6 +246,6 @@ class IdentifierNode(ASTNode):
 
     def __str__(self):
         currentNode = counter()
-        returnValue = str(currentNode) + ';\n'
-        returnValue += str(currentNode) + '[label="' +'Identifier:\n'+ str(self.identifier) + '"];\n'
+        returnValue = currentNode + ';\n'
+        returnValue += currentNode + '[label="' +'Identifier:\n'+ str(self.identifier) + '"];\n'
         return returnValue
