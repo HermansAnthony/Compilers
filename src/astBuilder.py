@@ -93,7 +93,7 @@ class AstBuilder(CmmVisitor):
         if isinstance(node, IdentifierNode):
             node.arrayExpressionList.append( self.visit(ctx.expression()) )
         else:
-            print("Semantic Error: Cannot select array index of a constant expression.")
+            print("Cannot select array index of a constant expression.")
         return node        
 
     def visitArgumentExpressionList(self, ctx:CmmParser.ArgumentExpressionListContext):
