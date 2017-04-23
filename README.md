@@ -7,6 +7,8 @@ A C-to-P-Compiler
 
 # Environment / Tools
   - Python3
-  - ANTLR
+  - ANTLR4
   - Graphiz
+  - PyCharm
+  
   
