@@ -2,7 +2,7 @@ import sys
 from antlr4 import *
 from CmmLexer import CmmLexer
 from CmmParser import CmmParser
-from astBuilder import astBuilder
+from astBuilder import AstBuilder
 
 def main(argv):
     print ("Main program:\n")
@@ -19,7 +19,7 @@ def main(argv):
     parseTree = parser.program()
 
     # Generate and visit the Abstract Syntax Tree
-    visitor = astBuilder()
+    visitor = AstBuilder()
     ast = visitor.visit(parseTree)
     ast.toDot("AST")
 

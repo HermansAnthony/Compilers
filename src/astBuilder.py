@@ -2,7 +2,7 @@ from astNode import *
 from CmmVisitor import CmmVisitor
 from CmmParser import CmmParser
 
-class astBuilder(CmmVisitor):
+class AstBuilder(CmmVisitor):
 
     def visitChildren(self, node):
         result = self.defaultResult()
