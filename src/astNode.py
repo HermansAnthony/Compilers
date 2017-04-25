@@ -50,9 +50,11 @@ class FunctionDefinitionNode(ASTNode):
         if self.hasPointer: label += '*'
         returnValue = currentNode + ';\n'
         returnValue += currentNode + ' [label="'+ label + '"];\n '
-        returnValue += currentNode + '->' + str(self.declarationSpecifier)
+        if self.declarationSpecifier:
+            returnValue += currentNode + '->' + str(self.declarationSpecifier)
         returnValue += currentNode + '->' + str(self.identifier)
-        returnValue += currentNode + '->' + str(self.parameterList)
+        if self.parameterList:
+            returnValue += currentNode + '->' + str(self.parameterList)
         body = counter()
         returnValue += currentNode + '->' + body + ';\n'
         returnValue += body + '[ label = "body"];\n'
