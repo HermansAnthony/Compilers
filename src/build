@@ -10,5 +10,18 @@
 echo "Generating the lexer, parser, visitor and listener with ANTLR"
 java -jar $1 -Dlanguage=Python3 Cmm.g4 -visitor
 
-echo "Compiling"
-python3 c2p.py $2 $3
+mkdir -p ast_output
+folder="ast_output/"
+dot=".dot"
+
+for file in $2*
+do
+  echo "Compiling of the file:" $file
+  python3 c2p.py $file $3
+  echo "Generating AST(PNG and DOT)"
+  temp=$(echo $file| cut -d'/' -f 2)
+  filename=$(echo $temp| cut -d'.' -f 1)
+  outputPNG=$folder$filename".png"
+  inputDotFile=$folder$filename$dot
+  dot -Tpng -o $outputPNG $inputDotFile
+done
