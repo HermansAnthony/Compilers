@@ -14,7 +14,7 @@ externalDeclaration
 ;
 
 functionDefinition
-    : declarationSpecifier? Star? identifier LeftParen parameterList? RightParen compoundStatement
+    : declarationSpecifier Star? identifier LeftParen parameterList? RightParen compoundStatement
 ;
 
 parameterList
@@ -81,18 +81,23 @@ floatingConstant
 ;
 
 characterConstant
-    : Apostrophe (Character | Nondigit)* Apostrophe
+    : Character
 ;
 
 // Expression part of the grammar
 expression
     : primaryExpression
+    | arrayExpression
     | And expression
-    | expression binaryOperator expression
-    | expression LeftBracket expression RightBracket
-    | primaryExpression LeftParen argumentExpressionList? RightParen
-    | primaryExpression PlusPlus
-    | primaryExpression MinusMinus 
+    | (primaryExpression|arrayExpression) binaryOperator expression
+    | identifier LeftParen argumentExpressionList? RightParen
+    | identifier PlusPlus
+    | identifier MinusMinus 
+;
+
+arrayExpression
+    : identifier
+    | arrayExpression LeftBracket expression RightBracket
 ;
 
 binaryOperator
@@ -152,6 +157,8 @@ LineComment
 ;
 
 // Tokens
+Apostrophe : '\'';
+Character : Apostrophe ~['\\\r\n] Apostrophe;
 Const : 'const';
 Void : 'void';
 Int : 'int';
@@ -209,5 +216,3 @@ Dot : '.';
 NonZeroDigit : [1-9];
 ZeroDigit : [0];
 Nondigit : [a-zA-Z_];
-Apostrophe : '\'';
-Character : ~['\\\r\n];

@@ -61,7 +61,7 @@ class AstVisitor():
         self.visit(node.child)
 
     def visitFunctionCallNode(self, node:FunctionCallNode):
-        self.visit(node.primaryExpression)
+        self.visit(node.identifier)
         self.visit(node.argumentExpressionListNode)
 
     def visitArgumentExpressionListNode(self, node:ArgumentExpressionListNode):
