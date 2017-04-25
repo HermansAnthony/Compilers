@@ -93,18 +93,18 @@ class AstBuilder(CmmVisitor):
             return self.visit(ctx.primaryExpression())
         if ctx.getChildCount() == 2:
             if ctx.And() == None:
-                return ExpressionNode(ctx.getChild(1).getText(), True, self.visit( ctx.primaryExpression() ))
+                return ExpressionNode(ctx.getChild(1).getText(), True, self.visit( ctx.identifier() ))
             return ExpressionNode(ctx.getChild(0).getText(), False, self.visit( ctx.expression(0)) )
         if ctx.getChildCount() == 3:
             return BinaryOperationNode( ctx.binaryOperator().getText(), self.visit( ctx.expression(0) ), self.visit( ctx.expression(1) ) )  
         node = None
         if ctx.primaryExpression():
             # Rule is function call
-            primaryExpression = self.visit(ctx.primaryExpression())
+            identifier = self.visit(ctx.identifier())
             argumentExpressionListNode = None
             if ctx.argumentExpressionList():
                 argumentExpressionListNode = self.visit(ctx.argumentExpressionList())
-            node = FunctionCallNode(primaryExpression, argumentExpressionListNode)
+            node = FunctionCallNode(identifier, argumentExpressionListNode)
         else:
             # Rule is array specifier.
             node = self.visit( ctx.expression(0) )
