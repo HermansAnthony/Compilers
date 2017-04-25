@@ -1,0 +1,14 @@
+#!/bin/bash
+
+#####################################################################
+#  Script to build the lexer, parser, visitor and listener with ANTLR
+#  First argument is the ANTLR.jar file
+#  Second argument is the input C program file
+#  Third argument is the output P program file
+#####################################################################
+
+echo "Generating the lexer, parser, visitor and listener with ANTLR"
+java -jar $1 -Dlanguage=Python3 Cmm.g4 -visitor
+
+echo "Compiling"
+python3 c2p.py $2 $3
