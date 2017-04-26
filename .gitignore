@@ -6,3 +6,8 @@ antlr*
 .idea/*
 .idea
 src/gen/*
+src/ast_output/*
+src/*.tokens
+src/CmmL*
+src/CmmP*
+src/CmmV*
