@@ -32,6 +32,7 @@ def main(argv):
         outputAST = "ast_output/" + (filename.split("/")[1]).split(".")[0] + ".dot"
         ast.toDot(outputAST)
 
+    # Catch all antlr related errors
     except Exception as err:
         print(err)
 
