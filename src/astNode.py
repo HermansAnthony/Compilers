@@ -26,7 +26,7 @@ class ProgramNode(ASTNode):
         output.write(astStringFormat)
         output.close()
 
-    def __str__(self):https://github.com/babbel056/Compilers.git
+    def __str__(self):
         currentNode = counter()
         returnValue = currentNode + ' [label="Program"];\n'
         for child in self.children:
@@ -241,8 +241,8 @@ class ExpressionNode(ASTNode):
         return returnValue
 
 class FunctionCallNode(ASTNode):
-    def __init__(self, identifier, argumentExpressionListNode):
-        self.identifier = identifier
+    def __init__(self, primaryExpression, argumentExpressionListNode):
+        self.primaryExpression = primaryExpression
         self.argumentExpressionListNode = argumentExpressionListNode
 
     def accept(self, visitor):
@@ -252,7 +252,7 @@ class FunctionCallNode(ASTNode):
         currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + ' [ label = "FunctionCall"];\n'
-        returnValue += currentNode + '->' + str(self.identifier)
+        returnValue += currentNode + '->' + str(self.primaryExpression)
         returnValue += currentNode + '->' + str(self.argumentExpressionListNode)
         return returnValue  
 
