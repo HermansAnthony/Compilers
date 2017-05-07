@@ -1,6 +1,7 @@
 import sys
 from antlr4 import *
 from BasicErrorListener import BasicErrorListener
+from Exceptions import *
 from CmmLexer import CmmLexer
 from CmmParser import CmmParser
 from astBuilder import AstBuilder
@@ -33,6 +34,10 @@ def main(argv):
         ast.toDot(outputAST)
 
     # Catch all antlr related errors
+    except antlrError as e:
+        print("An antlr error has occurred:\n", e)
+
+    # Catch the standard exceptions
     except Exception as err:
         print(err)
 
