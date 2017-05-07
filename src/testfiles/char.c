@@ -1,3 +1,4 @@
+// Testfile that tests character construction and comments
 char c = 'C';
 // This is a comment
 /*
