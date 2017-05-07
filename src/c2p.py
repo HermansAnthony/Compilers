@@ -1,4 +1,4 @@
-import sys
+import sys, traceback
 from antlr4 import *
 from BasicErrorListener import BasicErrorListener
 from Exceptions import *
@@ -39,6 +39,8 @@ def main(argv):
 
     # Catch the standard exceptions
     except Exception as err:
+        exc_traceback = sys.exc_info()[2]
+        traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
         print(err)
 
     # Catch all errors in a clean way
