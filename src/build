@@ -12,3 +12,4 @@ java -jar $1 -Dlanguage=Python3 Cmm.g4 -visitor
 
 echo "Compiling"
 python3 c2p.py $2 $3
+./toPNG.sh $2.png AST
