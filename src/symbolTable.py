@@ -1,6 +1,15 @@
 # Symbol table for the compiler
 # Based on http://www.newagepublishers.com/samplechapter/001679.pdf
 
+class simpleElement:
+    def __init__(self, type, address):
+        self.type = type
+        self.address = address
+
+    def __repr__(self):
+        returnValue = "Simple element with type " + str(self.type) + " and address " + str(self.address)
+        return returnValue
+
 class symbolTableLocal:
     """ Symbol table for a local scope / block"""
     def __init__(self):
@@ -11,17 +20,18 @@ class symbolTableLocal:
         return str(self.table)
 
     # Insert a key in the symbol table
-    def insertSymbol(self, key, token):
+    def insertSymbol(self, key, type, address):
         if key in self.table:
             print("Duplicate declaration for ", key)
         else:
-            self.table[key] = token
+            newItem = simpleElement(type, address)
+            self.table[key] = newItem
 
     # Lookup a key in the table if it is present
     def lookupSymbol(self, key):
         if key in self.table:
             return self.table[key]
-        print("Symbol not present in current table")
+        print("Symbol not present in current scope")
         return None
 
 class generalSymbolTable:
@@ -50,12 +60,13 @@ class generalSymbolTable:
         self.presentScope -= 1
 
     # Insert a symbol depending on the current scope
-    def insertSymbol(self, key, token):
+    def insertSymbol(self, key, type, address):
         if self.presentScope == -1:
             if key in self.globalScope: print("Duplicate declaration for ", key)
-            self.globalScope[key] = token
+            newItem = simpleElement(type, address)
+            self.globalScope[key] = newItem
         else:
-            self.localScope[self.presentScope].insertSymbol(key, token)
+            self.localScope[self.presentScope].insertSymbol(key, type, address)
 
     # Lookup a key first in the current local scope and then the surrounding scopes
     def lookupSymbol(self, key):
