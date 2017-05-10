@@ -28,7 +28,7 @@ parameterDeclaration
 
 // Declaration part of the grammar
 declaration
-    : declarationSpecifier initDeclarator? Semicolon
+    : declarationSpecifier initDeclarator Semicolon
 ;
 
 declarationSpecifier
@@ -49,7 +49,7 @@ initDeclarator
 
 declarator
     : identifier
-    | declarator LeftBracket expression? RightBracket
+    | declarator LeftBracket expression RightBracket
 ;
 
 // Primary expression part of the grammar

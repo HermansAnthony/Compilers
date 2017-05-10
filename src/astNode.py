@@ -79,7 +79,6 @@ class ParameterListNode(ASTNode):
         else:
             returnValue += currentNode + '->' + str(self.paramDecls)
         return returnValue
-
 class ParameterDeclarationNode(ASTNode):
     def __init__(self, declarationSpecifier, declarator):
         self.declarationSpecifier = declarationSpecifier

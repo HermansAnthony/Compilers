@@ -35,17 +35,17 @@ def main(argv):
 
     # Catch all antlr related errors
     except antlrError as e:
-        print("An antlr error has occurred:\n", e)
+        print(e)
 
     # Catch the standard exceptions
-    except Exception as err:
-        exc_traceback = sys.exc_info()[2]
-        traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
-        print(err)
+    #except Exception as err:
+    #    exc_traceback = sys.exc_info()[2]
+    #    traceback.print_tb(exc_traceback, limit=200, file=sys.stdout)
+    #    print(err)
 
     # Catch all errors in a clean way
-    except:
-        print("Unexpected error: ", sys.exc_info()[0])
+    #except:
+    #    print("Unexpected error: ", sys.exc_info()[0])
 
 if __name__ == '__main__':
     main(sys.argv)
