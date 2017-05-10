@@ -56,7 +56,7 @@ declarator
 primaryExpression
     : identifier
     | constant
-    | LeftParen expression RightParen
+//    | LeftParen expression RightParen
 ;
 
 // Identifier part of the grammar

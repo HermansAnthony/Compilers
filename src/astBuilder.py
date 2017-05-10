@@ -90,13 +90,22 @@ class AstBuilder(CmmVisitor):
 
     def visitExpression(self, ctx:CmmParser.ExpressionContext):
         if ctx.getChildCount() == 1:
+            if ctx.primaryExpression() == None:
+                return self.visit(ctx.arrayExpression())
             return self.visit(ctx.primaryExpression())
         if ctx.getChildCount() == 2:
             if ctx.And() == None:
                 return ExpressionNode(ctx.getChild(1).getText(), True, self.visit( ctx.identifier() ))
             return ExpressionNode(ctx.getChild(0).getText(), False, self.visit( ctx.expression(0)) )
         if ctx.getChildCount() == 3:
-            return BinaryOperationNode( ctx.binaryOperator().getText(), self.visit( ctx.expression(0) ), self.visit( ctx.expression(1) ) )  
+            if ctx.arrayExpression == None:
+                return BinaryOperationNode( ctx.binaryOperator().getText(), 
+                    self.visit( ctx.primaryExpression() ), self.visit( ctx.expression() ) )  
+            result = ctx.arrayExpression()
+            idNode = result[-1]
+            idNode.arrayExpressionList = result[:-1]
+            return BinaryOperationNode( ctx.binaryOperator().getText(),
+                self.visit( idNode ), self.visit( ctx.expression() ) ) 
         node = None
         if ctx.primaryExpression():
             # Rule is function call
@@ -113,6 +122,10 @@ class AstBuilder(CmmVisitor):
             else:
                 print("Cannot select array index of a constant expression.")
         return node        
+    def visitArrayExpression(self, ctx:CmmParser.ArrayExpressionContext):
+        if ctx.identifier() != None:
+            return [self.visit(ctx.identifier)]
+        return [self.visit(expression)].extend(self.visit(arrayExpression))
 
     def visitArgumentExpressionList(self, ctx:CmmParser.ArgumentExpressionListContext):
         return self.visitChildren(ctx)
