@@ -14,7 +14,8 @@ externalDeclaration
 ;
 
 functionDefinition
-    : declarationSpecifier Star? identifier LeftParen parameterList? RightParen compoundStatement
+// TODO Pointer
+    : declarationSpecifier Star? Identifier LeftParen parameterList? RightParen compoundStatement
 ;
 
 parameterList
@@ -29,10 +30,11 @@ parameterDeclaration
 // Declaration part of the grammar
 declaration
     : declarationSpecifier initDeclarator Semicolon
+    | declarationSpecifier Star? Identifier LeftParen parameterList? RightParen Semicolon
 ;
 
 declarationSpecifier
-    :   Const? typeSpecifier Star*
+    :   Const? typeSpecifier? Star*
 ;
 
 typeSpecifier
@@ -48,27 +50,23 @@ initDeclarator
 ;
 
 declarator
-    : identifier
+    : Identifier
     | declarator LeftBracket expression RightBracket
 ;
 
 // Primary expression part of the grammar
 primaryExpression
-    : identifier
+    : Identifier
     | constant
 //    | LeftParen expression RightParen
-;
-
-// Identifier part of the grammar
-identifier
-    :   Nondigit (Nondigit | NonZeroDigit | ZeroDigit)*
 ;
 
 // Constant part of the grammar
 constant
     : integerConstant
     | floatingConstant
-    | characterConstant
+    | Character
+    | String
 ;
 
 integerConstant
@@ -80,23 +78,23 @@ floatingConstant
     : (Plus | Minus)? (NonZeroDigit | ZeroDigit)* Dot (NonZeroDigit | ZeroDigit)*
 ;
 
-characterConstant
-    : Character
-;
-
 // Expression part of the grammar
 expression
     : primaryExpression
     | arrayExpression
+    | functionCallExpression
     | And expression
-    | (primaryExpression|arrayExpression) binaryOperator expression
-    | identifier LeftParen argumentExpressionList? RightParen
-    | identifier PlusPlus
-    | identifier MinusMinus 
+    | Identifier PlusPlus
+    | Identifier MinusMinus
+    | (primaryExpression | arrayExpression | functionCallExpression) binaryOperator expression
+;
+
+functionCallExpression
+    : Identifier LeftParen argumentExpressionList? RightParen
 ;
 
 arrayExpression
-    : identifier
+    : Identifier
     | arrayExpression LeftBracket expression RightBracket
 ;
 
@@ -115,7 +113,7 @@ statement
     | ifStatement
     | iterationStatement
     | jumpStatement
-    | expression? Semicolon
+    | expression Semicolon
 ;
 
 compoundStatement
@@ -158,7 +156,8 @@ LineComment
 
 // Tokens
 Apostrophe : '\'';
-Character : Apostrophe ~['\\\r\n] Apostrophe;
+Character : Apostrophe . Apostrophe;
+String : '"' (~('"') | '\\"')* '"';
 Const : 'const';
 Void : 'void';
 Int : 'int';
@@ -171,6 +170,14 @@ For : 'for';
 Break : 'break';
 Continue : 'continue';
 Return : 'return';
+
+Identifier
+    :   Nondigit (Nondigit | NonZeroDigit | ZeroDigit)*
+;
+
+NonZeroDigit : [1-9];
+ZeroDigit : [0];
+Nondigit : [a-zA-Z_];
 
 LeftParen : '(';
 RightParen : ')';
@@ -213,6 +220,4 @@ NotEqual : '!=';
 Arrow : '->';
 Dot : '.';
 
-NonZeroDigit : [1-9];
-ZeroDigit : [0];
-Nondigit : [a-zA-Z_];
+Pound : '#';

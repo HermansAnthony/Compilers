@@ -32,7 +32,7 @@ class AstBuilder(CmmVisitor):
         if ctx.declarationSpecifier():
             declarationSpecifier = self.visit(ctx.declarationSpecifier())
         hasPointer = ctx.Star() != None
-        identifier = self.visit(ctx.identifier())
+        identifier = self.visitIdentifier(ctx.Identifier())
         parameterListNode = None
         if ctx.parameterList():
             parameterListNode = self.visit(ctx.parameterList())
@@ -43,7 +43,7 @@ class AstBuilder(CmmVisitor):
         return ParameterListNode(self.visitChildren(ctx))
 
     def visitParameterDeclaration(self, ctx:CmmParser.ParameterDeclarationContext):
-        declarationSpecifier = self.visit(ctx.declarationSpecifier())
+        declarationSpecifier = self.visit( ctx.declarationSpecifier() )
         result = self.visit( ctx.declarator() )
         idNode = result[-1]
         idNode.arrayExpressionList = list(reversed(result[:-1]))
@@ -51,12 +51,21 @@ class AstBuilder(CmmVisitor):
 
     def visitDeclaration(self, ctx:CmmParser.DeclarationContext):
         declarationSpec = self.visit(ctx.declarationSpecifier())
-        identifier, expression = self.visit(ctx.initDeclarator())
-        return DeclarationNode(declarationSpec, identifier, expression)
+        if ctx.getChildCount() == 3:
+            identifier, expression = self.visit(ctx.initDeclarator())
+            return DeclarationNode(declarationSpec, identifier, expression)
+        identifier = self.visitIdentifier(ctx.Identifier())
+        parameterListNode = None
+        hasPointer = ctx.Star() != None
+        if ctx.parameterList():
+            parameterListNode = self.visit(ctx.parameterList())
+        return ForwardFunctionDeclarationNode(declarationSpec, hasPointer, identifier, parameterListNode)
 
     def visitDeclarationSpecifier(self, ctx:CmmParser.DeclarationSpecifierContext):
         isConstant = ctx.Const() != None
-        idType = ctx.typeSpecifier().getText()
+        idType = ""
+        if ctx.typeSpecifier() != None:
+            idType = ctx.typeSpecifier().getText()
         hasPointer = ctx.Star(0) != None
         return DeclarationSpecifierNode(isConstant, idType, hasPointer)
 
@@ -64,11 +73,13 @@ class AstBuilder(CmmVisitor):
         result = self.visit( ctx.declarator() )
         idNode = result[-1]
         idNode.arrayExpressionList = list(reversed(result[:-1]))
+        if ctx.expression() == None:
+            return [idNode, None]
         return [idNode, self.visit(ctx.expression())]
 
     def visitDeclarator(self, ctx:CmmParser.DeclaratorContext):
         if ctx.getChildCount() == 1:
-            return [self.visit(ctx.identifier())]
+            return [self.visitIdentifier(ctx.Identifier())]
         resList = [self.visit( ctx.expression() )]
         resList.extend( self.visit(ctx.declarator()) )
         return resList
@@ -76,10 +87,15 @@ class AstBuilder(CmmVisitor):
     def visitPrimaryExpression(self, ctx:CmmParser.PrimaryExpressionContext):
         return self.visitChildren(ctx)
 
-    def visitIdentifier(self, ctx:CmmParser.IdentifierContext):
+    def visitIdentifier(self, ctx):
         return IdentifierNode(ctx.getText(), [])
 
     def visitConstant(self, ctx:CmmParser.ConstantContext):
+        if ctx.Character():
+            return CharacterConstantNode(ctx.getText())
+        if ctx.String():
+            # TODO
+            return CharacterConstantNode(ctx.getText())
         return self.visitChildren(ctx)
 
     def visitIntegerConstant(self, ctx:CmmParser.IntegerConstantContext):
@@ -88,47 +104,54 @@ class AstBuilder(CmmVisitor):
     def visitFloatingConstant(self, ctx:CmmParser.FloatingConstantContext):
         return FloatingConstantNode(ctx.getText())
 
-    def visitCharacterConstant(self, ctx:CmmParser.CharacterConstantContext):
-        return CharacterConstantNode(ctx.getText())
-
     def visitExpression(self, ctx:CmmParser.ExpressionContext):
         if ctx.getChildCount() == 1:
-            if ctx.primaryExpression() == None:
+            if ctx.arrayExpression():
                 result = self.visit( ctx.arrayExpression() )
                 idNode = result[-1]
                 idNode.arrayExpressionList = list(reversed(result[:-1]))
                 return idNode
-            return self.visit(ctx.primaryExpression())
+            if ctx.primaryExpression():
+                return self.visit(ctx.primaryExpression())
+            return self.visit(ctx.functionCallExpression())
         if ctx.getChildCount() == 2:
             if ctx.And() == None:
-                return ExpressionNode(ctx.getChild(1).getText(), True, self.visit( ctx.identifier() ))
+                return ExpressionNode(ctx.getChild(1).getText(), True, self.visitIdentifier(ctx.Identifier()) )
             return ExpressionNode(ctx.getChild(0).getText(), False, self.visit( ctx.expression(0)) )
-        if ctx.getChildCount() == 3:
-            if ctx.arrayExpression() == None:
+        if ctx.getChildCount() == 3 and ctx.Identifier() == None:
+            if ctx.primaryExpression():
                 return BinaryOperationNode( ctx.binaryOperator().getText(), 
                     self.visit( ctx.primaryExpression() ), self.visit( ctx.expression() ) )  
-            result = self.visit( ctx.arrayExpression() )
-            idNode = result[-1]
-            idNode.arrayExpressionList = list(reversed(result[:-1]))
-            return BinaryOperationNode( ctx.binaryOperator().getText(),
-                self.visit( idNode ), self.visit( ctx.expression() ) ) 
-        # Rule is function call
-        identifier = self.visit(ctx.identifier())
-        argumentExpressionListNode = None
+            if ctx.arrayExpression():
+                result = self.visit( ctx.arrayExpression() )
+                idNode = result[-1]
+                idNode.arrayExpressionList = list(reversed(result[:-1]))
+                return BinaryOperationNode( ctx.binaryOperator().getText(),
+                    self.visit( idNode ), self.visit( ctx.expression() ) ) 
+            return self.visit( ctx.functionCallExpression() )
+
+    def visitFunctionCallExpression(self, ctx:CmmParser.FunctionCallExpressionContext):
+        identifier = self.visitIdentifier(ctx.Identifier())
+        argExprNode = None
         if ctx.argumentExpressionList():
-            argumentExpressionListNode = self.visit(ctx.argumentExpressionList())
-        return FunctionCallNode(identifier, argumentExpressionListNode)
+            exprList = list(reversed( self.visit(ctx.argumentExpressionList()) ))
+            argExprNode = ArgumentExpressionListNode(exprList)
+        return FunctionCallNode(identifier, argExprNode)
       
     def visitArrayExpression(self, ctx:CmmParser.ArrayExpressionContext):
-        if ctx.identifier() != None:
-            idNode = self.visit(ctx.identifier())
+        if ctx.Identifier() != None:
+            idNode = self.visitIdentifier(ctx.Identifier())
             return [idNode]
         resList = [self.visit(ctx.expression())]
         resList.extend(self.visit(ctx.arrayExpression()))
         return resList
 
     def visitArgumentExpressionList(self, ctx:CmmParser.ArgumentExpressionListContext):
-        return self.visitChildren(ctx)
+        if ctx.argumentExpressionList():
+            result = [self.visit(ctx.expression())]
+            result.extend(self.visit(ctx.argumentExpressionList()))
+            return result
+        return [self.visit(ctx.expression())]
 
     def visitStatement(self, ctx:CmmParser.StatementContext):
         return self.visitChildren(ctx)

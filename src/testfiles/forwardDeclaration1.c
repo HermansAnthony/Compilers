@@ -1,4 +1,4 @@
-int f();
+f();
 
 f(){
   return 0;

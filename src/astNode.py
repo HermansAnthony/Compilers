@@ -18,7 +18,7 @@ class ProgramNode(ASTNode):
 
     # Writes AST tree to a dot file
     def toDot(self, name):
-        print("A dot file with name ", name, " was created.")
+        #print("A dot file with name ", name, " was created.")
         astStringFormat = 'digraph G {\n'
         astStringFormat += str(self)
         astStringFormat += '}'
@@ -36,6 +36,7 @@ class ProgramNode(ASTNode):
 class FunctionDefinitionNode(ASTNode):
     def __init__(self, declarationSpecifier, hasPointer, identifier, parameterList, functionBody):
         self.declarationSpecifier = declarationSpecifier
+        # TODO hasPointer
         self.hasPointer = hasPointer
         self.identifier = identifier
         self.parameterList = parameterList
@@ -79,6 +80,7 @@ class ParameterListNode(ASTNode):
         else:
             returnValue += currentNode + '->' + str(self.paramDecls)
         return returnValue
+
 class ParameterDeclarationNode(ASTNode):
     def __init__(self, declarationSpecifier, declarator):
         self.declarationSpecifier = declarationSpecifier
@@ -110,7 +112,32 @@ class DeclarationNode(ASTNode):
         returnValue += currentNode + ' [label="Decl" ];\n'
         returnValue += currentNode + '->' + str(self.declarationSpecifier)
         returnValue += currentNode + '->' + str(self.identifier)
-        returnValue += currentNode + '->' + str(self.expression)
+        if self.expression:
+            returnValue += currentNode + '->' + str(self.expression)
+        return returnValue
+
+class ForwardFunctionDeclarationNode(ASTNode):
+    def __init__(self, declarationSpecifier, hasPointer, identifier, parameterList):
+        self.declarationSpecifier = declarationSpecifier
+        # TODO hasPointer
+        self.hasPointer = hasPointer
+        self.identifier = identifier
+        self.parameterList = parameterList
+
+    def accept(self, visitor):
+        return visitor.visitForwardFunctionDeclarationNode(self)
+
+    def __str__(self):
+        currentNode = counter()
+        label = "Function"
+        if self.hasPointer: label += '*'
+        returnValue = currentNode + ';\n'
+        returnValue += currentNode + ' [label="'+ label + '"];\n '
+        if self.declarationSpecifier:
+            returnValue += currentNode + '->' + str(self.declarationSpecifier)
+        returnValue += currentNode + '->' + str(self.identifier)
+        if self.parameterList:
+            returnValue += currentNode + '->' + str(self.parameterList)
         return returnValue
 
 class IfStatementNode(ASTNode):
@@ -241,7 +268,7 @@ class ExpressionNode(ASTNode):
 
 class FunctionCallNode(ASTNode):
     def __init__(self, primaryExpression, argumentExpressionListNode):
-        self.primaryExpression = primaryExpression
+        self.identifier = primaryExpression
         self.argumentExpressionListNode = argumentExpressionListNode
 
     def accept(self, visitor):
@@ -251,8 +278,10 @@ class FunctionCallNode(ASTNode):
         currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + ' [ label = "FunctionCall"];\n'
-        returnValue += currentNode + '->' + str(self.primaryExpression)
-        returnValue += currentNode + '->' + str(self.argumentExpressionListNode)
+        # TODO
+        returnValue += currentNode + '->' + str(self.identifier)
+        if self.argumentExpressionListNode:
+            returnValue += currentNode + '->' + str(self.argumentExpressionListNode)
         return returnValue  
 
 class ArgumentExpressionListNode(ASTNode):
@@ -266,8 +295,11 @@ class ArgumentExpressionListNode(ASTNode):
         currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + ' [ label = "ArgExprList"];\n'
-        for expr in self.argumentExprs:
-            returnValue += currentNode + '->' + str(self.expr)
+        if isinstance(self.argumentExprs, list):
+            for expr in self.argumentExprs:
+                returnValue += currentNode + '->' + str(expr)
+        else:
+            returnValue += currentNode + '->' + str(self.argumentExprs)
         return returnValue 
 
 class IntegerConstantNode(ASTNode):
@@ -304,6 +336,9 @@ class CharacterConstantNode(ASTNode):
         return visitor.visitCharacterConstantNode(self)
 
     def __str__(self):
+        if "\"" in self.value:
+            # TODO
+            return ""
         currentNode = counter()
         returnValue = currentNode + ';\n';
         returnValue += currentNode + '[label="Character:\n ' + self.value + '"];\n'
