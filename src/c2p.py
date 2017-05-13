@@ -5,7 +5,7 @@ from Exceptions import *
 from CmmLexer import CmmLexer
 from CmmParser import CmmParser
 from astBuilder import AstBuilder
-from astVisitor import SymbolTableBuilder
+from codeBuilder import CodeBuilder
 from SymbolTable import generalSymbolTable
 
 def main(argv):
@@ -26,14 +26,14 @@ def main(argv):
         # Build the parse tree
         parseTree = parser.program()
 
-        # Generate and visit the Abstract Syntax Tree
-        visitor = AstBuilder()
-        ast = visitor.visit(parseTree)
+        # Generate the Abstract Syntax Tree
+        astBuilder = AstBuilder()
+        ast = astBuilder.visit(parseTree)
 
-        # Build the symbol table
+        # Semantic analysis and code generation
         symbolTable = generalSymbolTable()
-        visitorSymbolTable = SymbolTableBuilder(symbolTable)
-        visitorSymbolTable.visit(ast)
+        codeBuilder = CodeBuilder(symbolTable)
+        codeBuilder.visit(ast)
         print(symbolTable)
 
         # Generate dot file for the AST

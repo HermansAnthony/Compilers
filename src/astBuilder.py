@@ -41,7 +41,11 @@ class AstBuilder(CmmVisitor):
         return ForwardFunctionDeclarationNode(declarationSpec, identifier, parameterListNode)
 
     def visitParameterList(self, ctx:CmmParser.ParameterListContext):
-        return ParameterListNode(self.visitChildren(ctx))
+        paramDecls = [self.visit( ctx.parameterDeclaration() )]
+        if ctx.parameterList():
+            result = self.visit( ctx.parameterList() )
+            paramDecls.extend(result.paramDecls)
+        return ParameterListNode(paramDecls)
 
     def visitParameterDeclaration(self, ctx:CmmParser.ParameterDeclarationContext):
         declarationSpecifier = self.visit( ctx.declarationSpecifier() )
