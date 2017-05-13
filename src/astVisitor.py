@@ -36,6 +36,10 @@ class AstVisitor():
         if parameterList:
             self.visit(node.parameterList)
 
+    def visitAssignmentNode(self, node:AssignmentNode):
+        self.visit(node.identifier)
+        self.visit(node.expression)
+
     def visitIfStatementNode(self, node:IfStatementNode):
         self.visit(node.condition)
         self.visit(node.ifBody)

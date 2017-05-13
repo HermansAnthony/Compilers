@@ -144,6 +144,30 @@ class DeclarationNode(ASTNode):
             returnValue += currentNode + '->' + str(self.expression)
         return returnValue
 
+class AssignmentNode(ASTNode):
+    def __init__(self, dereferenceCount, identifier, expression):
+        self.dereferenceCount = dereferenceCount
+        self.identifier = identifier
+        self.expression = expression
+
+    def accept(self, visitor):
+        return visitor.visitDeclarationNode(self)
+
+    def getID(self):
+        return self.identifier.getID()
+
+    def __str__(self):
+        currentNode = counter()
+        returnValue = currentNode + ';\n'
+        label = 'Assignment:\n'
+        if self.dereferenceCount != 0: 
+            label += str(self.dereferenceCount) + ' Dereferences'
+        returnValue += currentNode + ' [label = "' + label + '"];\n'
+        returnValue += currentNode + '->' + str(self.identifier)
+        if self.expression:
+            returnValue += currentNode + '->' + str(self.expression)
+        return returnValue
+
 class ForwardFunctionDeclarationNode(ASTNode):
     def __init__(self, declarationSpecifier, identifier, parameterList):
         self.declarationSpecifier = declarationSpecifier

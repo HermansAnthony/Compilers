@@ -9,12 +9,13 @@ program
 ;
 
 externalDeclaration
-    : functionDefinition
+    : functionDeclaration
     | declaration
 ;
 
-functionDefinition
+functionDeclaration
     : declarationSpecifier Identifier LeftParen parameterList? RightParen compoundStatement
+    | declarationSpecifier Identifier LeftParen parameterList? RightParen Semicolon 
 ;
 
 parameterList
@@ -29,12 +30,10 @@ parameterDeclaration
 // Declaration part of the grammar
 declaration
     : declarationSpecifier initDeclarator Semicolon
-    // Forward Function Declaration
-    | declarationSpecifier Identifier LeftParen parameterList? RightParen Semicolon 
 ;
 
 declarationSpecifier
-    :   typeSpecifier? Star*
+    :   typeSpecifier Star*
 ;
 
 typeSpecifier
@@ -100,7 +99,7 @@ arrayExpression
 ;
 
 binaryOperator
-    : Assign | OrOr | AndAnd | Or | Caret | And | Equal | NotEqual | Less | Greater | LessEqual | GreaterEqual | Plus | Minus | Star | Div
+    : OrOr | AndAnd | Or | Caret | And | Equal | NotEqual | Less | Greater | LessEqual | GreaterEqual | Plus | Minus | Star | Div
 ;
 
 argumentExpressionList
@@ -110,11 +109,15 @@ argumentExpressionList
 
 // Statement part of the grammar
 statement
-    : compoundStatement
-    | ifStatement
+    : ifStatement
     | iterationStatement
     | jumpStatement
     | expression Semicolon
+    | assignment Semicolon
+;
+
+assignment
+    : Star* declarator Assign expression
 ;
 
 compoundStatement
@@ -127,9 +130,9 @@ ifStatement
 ;
 
 iterationStatement
-    : While LeftParen expression RightParen statement
-    | For LeftParen expression? Semicolon expression? Semicolon expression? RightParen statement
-    | For LeftParen declaration expression? Semicolon expression? RightParen statement
+    : While LeftParen expression RightParen compoundStatement
+    | For LeftParen expression? Semicolon expression? Semicolon expression? RightParen compoundStatement
+    | For LeftParen declaration expression? Semicolon expression? RightParen compoundStatement
 ;
 
 jumpStatement

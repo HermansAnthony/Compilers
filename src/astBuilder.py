@@ -27,7 +27,7 @@ class AstBuilder(CmmVisitor):
     def visitExternalDeclaration(self, ctx:CmmParser.ExternalDeclarationContext):
         return self.visitChildren(ctx)
 
-    def visitFunctionDefinition(self, ctx:CmmParser.FunctionDefinitionContext):
+    def visitFunctionDeclaration(self, ctx:CmmParser.FunctionDeclarationContext):
         declarationSpecifier = None
         if ctx.declarationSpecifier():
             declarationSpecifier = self.visit(ctx.declarationSpecifier())
@@ -35,8 +35,10 @@ class AstBuilder(CmmVisitor):
         parameterListNode = None
         if ctx.parameterList():
             parameterListNode = self.visit(ctx.parameterList())
-        functionBody = self.visit(ctx.compoundStatement())
-        return FunctionDefinitionNode(declarationSpecifier, identifier, parameterListNode, functionBody)
+        if ctx.compoundStatement():
+            functionBody = self.visit(ctx.compoundStatement())
+            return FunctionDefinitionNode(declarationSpecifier, identifier, parameterListNode, functionBody)
+        return ForwardFunctionDeclarationNode(declarationSpec, identifier, parameterListNode)
 
     def visitParameterList(self, ctx:CmmParser.ParameterListContext):
         return ParameterListNode(self.visitChildren(ctx))
@@ -50,19 +52,11 @@ class AstBuilder(CmmVisitor):
 
     def visitDeclaration(self, ctx:CmmParser.DeclarationContext):
         declarationSpec = self.visit(ctx.declarationSpecifier())
-        if ctx.getChildCount() == 3:
-            identifier, expression = self.visit(ctx.initDeclarator())
-            return DeclarationNode(declarationSpec, identifier, expression)
-        identifier = self.visitIdentifier(ctx.Identifier())
-        parameterListNode = None
-        if ctx.parameterList():
-            parameterListNode = self.visit(ctx.parameterList())
-        return ForwardFunctionDeclarationNode(declarationSpec, identifier, parameterListNode)
+        identifier, expression = self.visit(ctx.initDeclarator())
+        return DeclarationNode(declarationSpec, identifier, expression)
 
     def visitDeclarationSpecifier(self, ctx:CmmParser.DeclarationSpecifierContext):
-        idType = ""
-        if ctx.typeSpecifier() != None:
-            idType = ctx.typeSpecifier().getText()
+        idType = ctx.typeSpecifier().getText()
         return DeclarationSpecifierNode(idType, len(ctx.Star()))
 
     def visitInitDeclarator(self, ctx:CmmParser.InitDeclaratorContext):
@@ -118,14 +112,14 @@ class AstBuilder(CmmVisitor):
             return ExpressionNode(ctx.getChild(1).getText(), True, self.visitIdentifier(ctx.Identifier()) )
         if ctx.getChildCount() == 3:
             expr0 = self.visit( ctx.expression(0) )
-            expr1 = self.visit( ctx.expression() ) 
+            expr1 = self.visit( ctx.expression(1) ) 
             if isinstance(expr0, list): 
                 # first expression is an array expression
                 idNode = expr0[-1]
                 idNode.arrayExpressionList = list(reversed(result[:-1]))
                 return BinaryOperationNode( ctx.binaryOperator().getText(),
                     self.visit(idNode), expr1)                 
-            return BinaryOperationNode(ctx.binaryoperator().getText(), expr0, expr1)
+            return BinaryOperationNode(ctx.binaryOperator().getText(), expr0, expr1)
 
     def visitFunctionCallExpression(self, ctx:CmmParser.FunctionCallExpressionContext):
         identifier = self.visitIdentifier(ctx.Identifier())
@@ -153,6 +147,11 @@ class AstBuilder(CmmVisitor):
     def visitStatement(self, ctx:CmmParser.StatementContext):
         return self.visitChildren(ctx)
 
+    def visitAssignment(self, ctx:CmmParser.AssignmentContext):
+        identifier = self.visit( ctx.declarator() )
+        expression = self.visit( ctx.expression() )
+        return AssignmentNode(len(ctx.Star()), identifier, expression);
+
     def visitCompoundStatement(self, ctx:CmmParser.CompoundStatementContext):
         return self.visitChildren(ctx)
 
@@ -165,11 +164,11 @@ class AstBuilder(CmmVisitor):
 
     def visitIterationStatement(self, ctx:CmmParser.IterationStatementContext):
         if ctx.While():
-            return IterationStatementNode("While", self.visit(ctx.expression(0)), None, None, self.visit(ctx.statement()))
+            return IterationStatementNode("While", self.visit(ctx.expression(0)), None, None, self.visit(ctx.compoundStatement()))
         left = None
         middle1 = None
         middle2 = None
-        right = self.visit(ctx.statement())
+        right = self.visit(ctx.compoundStatement())
         if ctx.declaration():
             left = self.visit(ctx.declaration())
             if ctx.expression(0):
