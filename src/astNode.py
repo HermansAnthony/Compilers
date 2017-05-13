@@ -34,10 +34,8 @@ class ProgramNode(ASTNode):
         return returnValue
 
 class FunctionDefinitionNode(ASTNode):
-    def __init__(self, declarationSpecifier, hasPointer, identifier, parameterList, functionBody):
+    def __init__(self, declarationSpecifier, identifier, parameterList, functionBody):
         self.declarationSpecifier = declarationSpecifier
-        # TODO hasPointer
-        self.hasPointer = hasPointer
         self.identifier = identifier
         self.parameterList = parameterList
         self.functionBody = functionBody
@@ -51,7 +49,6 @@ class FunctionDefinitionNode(ASTNode):
     def __str__(self):
         currentNode = counter()
         label = "Function"
-        if self.hasPointer: label += '*'
         returnValue = currentNode + ';\n'
         returnValue += currentNode + ' [label="'+ label + '"];\n '
         if self.declarationSpecifier:
@@ -148,10 +145,8 @@ class DeclarationNode(ASTNode):
         return returnValue
 
 class ForwardFunctionDeclarationNode(ASTNode):
-    def __init__(self, declarationSpecifier, hasPointer, identifier, parameterList):
+    def __init__(self, declarationSpecifier, identifier, parameterList):
         self.declarationSpecifier = declarationSpecifier
-        # TODO hasPointer
-        self.hasPointer = hasPointer
         self.identifier = identifier
         self.parameterList = parameterList
 
@@ -161,7 +156,6 @@ class ForwardFunctionDeclarationNode(ASTNode):
     def __str__(self):
         currentNode = counter()
         label = "Function"
-        if self.hasPointer: label += '*'
         returnValue = currentNode + ';\n'
         returnValue += currentNode + ' [label="'+ label + '"];\n '
         if self.declarationSpecifier:
@@ -295,7 +289,24 @@ class ExpressionNode(ASTNode):
         label = "Expression:" + self.operator
         returnValue += currentNode + ' [ label = "' + label + '"];\n'
         returnValue += currentNode + '->' + str(self.child)
-        return returnValue
+        return returnValue     
+
+class DereferenceExpressionNode(ASTNode):
+    def __init__(self, derefCount, child):
+        self.derefCount = derefCount
+        self.child = child
+
+    def accept(self, visitor):
+        return visitor.visitExpressionNode(self)
+
+    def __str__(self):
+        currentNode = counter()
+        returnValue = currentNode + ';\n'
+        label = "DerefExpression:\n"
+        label += str(self.pointerCount) + ' dereferences'
+        returnValue += currentNode + ' [ label = "' + label + '"];\n'
+        returnValue += currentNode + '->' + str(self.child)
+        return returnValue    
 
 class FunctionCallNode(ASTNode):
     def __init__(self, primaryExpression, argumentExpressionListNode):
@@ -376,10 +387,9 @@ class CharacterConstantNode(ASTNode):
         return returnValue
 
 class DeclarationSpecifierNode(ASTNode):
-    def __init__(self, isConstant, idType, hasPointer):
-        self.isConstant = isConstant
+    def __init__(self, idType, pointerCount):
         self.idType = idType
-        self.hasPointer = hasPointer
+        self.pointerCount = pointerCount
 
     def accept(self, visitor):
         return visitor.visitDeclarationSpecifierNode(self)
@@ -394,8 +404,8 @@ class DeclarationSpecifierNode(ASTNode):
     def __str__(self):
         currentNode = counter()
         label = 'DeclSpec:\n'
-        if self.isConstant: label += 'const '
-        if self.hasPointer: label += '*'
+        if self.pointerCount != 0: 
+            label += str(self.pointerCount) + ' pointers'
         label += str(self.idType)
         returnValue = currentNode + ';\n'
         returnValue += currentNode + ' [label = "' + label + '"];\n'
