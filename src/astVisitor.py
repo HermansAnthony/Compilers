@@ -1,4 +1,5 @@
 from astNode import *
+from SymbolTable import *
 
 class AstVisitor():
     def visit(self, node:ASTNode):
@@ -12,7 +13,7 @@ class AstVisitor():
         if node.declarationSpecifier:
             self.visit(node.declarationSpecifier)
         self.visit(node.identifier)
-        if parameterList:
+        if node.parameterList:
             self.visit(node.parameterList)
         self.visit(node.functionBody)
 
@@ -82,6 +83,28 @@ class AstVisitor():
 
     def visitIdentifierNode(self, node:IdentifierNode):
         for expression in node.arrayExpressionList:
-            self.visit(expression)     
-  
-     
+            self.visit(expression)
+
+class SymbolTableBuilder(AstVisitor):
+    def __init__(self, table):
+        self.symbolTable = table
+        self.currentScope = 0
+
+    def visitDeclarationNode(self, node: DeclarationNode):
+        value = ""
+        if node.declarationSpecifier.isConstant: value += 'const'
+        if node.declarationSpecifier.hasPointer: value += '*'
+        value+=str(node.declarationSpecifier.idType)
+        id = str(node.identifier.identifier)
+
+        self.visit(node.declarationSpecifier)
+        self.visit(node.identifier)
+        self.visit(node.expression)
+        self.symbolTable.insertSymbol(id, value)
+
+    # def visitIdentifierNode(self, node: IdentifierNode):
+    #     self.symbolTable.insertSymbol(node.identifier, "int")
+    #     print(len(node.arrayExpressionList))
+    #     for expression in node.arrayExpressionList:
+    #         print("hehe",str(expression))
+    #         self.visit(expression)

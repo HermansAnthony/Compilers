@@ -5,7 +5,8 @@ from Exceptions import *
 from CmmLexer import CmmLexer
 from CmmParser import CmmParser
 from astBuilder import AstBuilder
-from SymbolTableBuilder import SymbolTableBuilder
+from astVisitor import SymbolTableBuilder
+from SymbolTable import generalSymbolTable
 
 def main(argv):
     #print ("Main program:\n")
@@ -30,8 +31,10 @@ def main(argv):
         ast = visitor.visit(parseTree)
 
         # Build the symbol table
-        symbolTable = SymbolTableBuilder()
-        symbolTable.build(ast)
+        symbolTable = generalSymbolTable()
+        visitorSymbolTable = SymbolTableBuilder(symbolTable)
+        visitorSymbolTable.visit(ast)
+        print(symbolTable)
 
         # Generate dot file for the AST
         filename = str(argv[1])

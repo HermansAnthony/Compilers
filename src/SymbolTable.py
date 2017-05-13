@@ -7,7 +7,8 @@ class simpleElement:
         self.address = address
 
     def __repr__(self):
-        returnValue = "Simple element with type " + str(self.type) + " and address " + str(self.address)
+        returnValue = str(self.type)
+        if self.address != None: returnValue += "[address:" + str(self.address) + "]"
         return returnValue
 
 class symbolTableLocal:
@@ -60,7 +61,7 @@ class generalSymbolTable:
         self.presentScope -= 1
 
     # Insert a symbol depending on the current scope
-    def insertSymbol(self, key, type, address):
+    def insertSymbol(self, key, type, address=None):
         if self.presentScope == -1:
             if key in self.globalScope: print("Duplicate declaration for ", key)
             newItem = simpleElement(type, address)
