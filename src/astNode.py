@@ -70,17 +70,10 @@ class ParameterListNode(ASTNode):
     def accept(self, visitor):
         return visitor.visitParameterListNode(self)
 
-    def getType(self): pass
-    def getID(self): pass
-
     def getParams(self):
         params = dict()
         if isinstance(self.paramDecls, list):
-            print(len(self.paramDecls))
-            cnt = 0
             for paramDecl in self.paramDecls:
-                print(str(cnt),type(paramDecl))
-                cnt+=1
                 params[paramDecl.getID()] = paramDecl.getType()
         else:
             params[self.paramDecls.getID()] = self.paramDecls.getType()

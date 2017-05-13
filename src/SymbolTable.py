@@ -20,7 +20,7 @@ class functionElement:
     def __repr__(self):
         returnValue = '(proc)' + str(self.type) + " - parameters: "
         for key in self.parameters.keys():
-            returnValue += str(key) + '[' + str(self.parameters[key]) +'], '
+            returnValue += str(key) + '[' + str(self.parameters[key]) +'] '
         return returnValue
 
 class symbolTableLocal:
