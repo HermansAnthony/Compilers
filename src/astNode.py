@@ -396,8 +396,8 @@ class DeclarationSpecifierNode(ASTNode):
 
     def getType(self):
         type = ""
-        if self.isConstant: type += 'const'
-        if self.hasPointer: type += '*'
+        for ptr in range(0, self.pointerCount):
+            type += '*'
         type += str(self.idType)
         return type
 
