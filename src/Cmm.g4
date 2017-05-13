@@ -14,8 +14,7 @@ externalDeclaration
 ;
 
 functionDefinition
-// TODO Pointer
-    : declarationSpecifier Star? Identifier LeftParen parameterList? RightParen compoundStatement
+    : declarationSpecifier Identifier LeftParen parameterList? RightParen compoundStatement
 ;
 
 parameterList
@@ -30,11 +29,12 @@ parameterDeclaration
 // Declaration part of the grammar
 declaration
     : declarationSpecifier initDeclarator Semicolon
-    | declarationSpecifier Star? Identifier LeftParen parameterList? RightParen Semicolon
+    // Forward Function Declaration
+    | declarationSpecifier Identifier LeftParen parameterList? RightParen Semicolon 
 ;
 
 declarationSpecifier
-    :   Const? typeSpecifier? Star*
+    :   typeSpecifier? Star*
 ;
 
 typeSpecifier
@@ -84,9 +84,10 @@ expression
     | arrayExpression
     | functionCallExpression
     | And expression
+    | Star* expression
     | Identifier PlusPlus
     | Identifier MinusMinus
-    | (primaryExpression | arrayExpression | functionCallExpression) binaryOperator expression
+    | expression binaryOperator expression
 ;
 
 functionCallExpression
