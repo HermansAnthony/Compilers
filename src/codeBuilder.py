@@ -1,7 +1,7 @@
 from astVisitor import AstVisitor
 from astNode import *
 
-# Overloaded Ast Visitor to configure the symbolTable
+# Overloaded Ast Visitor for semantic analysis and code generation.
 class CodeBuilder(AstVisitor):
     def __init__(self, table):
         self.symbolTable = table

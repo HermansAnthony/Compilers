@@ -229,9 +229,9 @@ class IterationStatementNode(ASTNode):
         currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + '[ label = "' + self.statementName + '"];\n'
-        returnValue += currentNode + '->'+ str(self.left)
-        if self.middle1 != None: returnValue += currentNode + '->' + str(self.middle1)
-        if self.middle2 != None: returnValue += currentNode + '->' + str(self.middle2)
+        if self.left: returnValue += currentNode + '->'+ str(self.left)
+        if self.middle1: returnValue += currentNode + '->' + str(self.middle1)
+        if self.middle2: returnValue += currentNode + '->' + str(self.middle2)
         body = counter()
         returnValue += currentNode + '->' + body + ';\n'
         returnValue += body + '[ label = "body"];\n'
