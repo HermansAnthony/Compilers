@@ -45,6 +45,9 @@ class FunctionDefinitionNode(ASTNode):
     def accept(self, visitor):
         return visitor.visitFunctionDefinitionNode(self)
 
+    def getID(self):
+        return self.identifier.getID()
+
     def __str__(self):
         currentNode = counter()
         label = "Function"
@@ -70,6 +73,22 @@ class ParameterListNode(ASTNode):
     def accept(self, visitor):
         return visitor.visitParameterListNode(self)
 
+    def getType(self): pass
+    def getID(self): pass
+
+    def getParams(self):
+        params = dict()
+        if isinstance(self.paramDecls, list):
+            print(len(self.paramDecls))
+            cnt = 0
+            for paramDecl in self.paramDecls:
+                print(str(cnt),type(paramDecl))
+                cnt+=1
+                params[paramDecl.getID()] = paramDecl.getType()
+        else:
+            params[self.paramDecls.getID()] = self.paramDecls.getType()
+        return params
+
     def __str__(self):
         currentNode = counter()
         returnValue = currentNode + ';\n'
@@ -89,6 +108,12 @@ class ParameterDeclarationNode(ASTNode):
     def accept(self, visitor):
         return visitor.visitParameterDeclarationNode(self)
 
+    def getType(self):
+        return self.declarationSpecifier.getType()
+
+    def getID(self):
+        return self.declarator.getID()
+
     def __str__(self):
         currentNode = counter()
         returnValue = currentNode + ';\n'
@@ -105,6 +130,12 @@ class DeclarationNode(ASTNode):
 
     def accept(self, visitor):
         return visitor.visitDeclarationNode(self)
+
+    def getType(self):
+        return self.declarationSpecifier.getType()
+
+    def getID(self):
+        return self.identifier.getID()
 
     def __str__(self):
         currentNode = counter()
@@ -353,6 +384,13 @@ class DeclarationSpecifierNode(ASTNode):
     def accept(self, visitor):
         return visitor.visitDeclarationSpecifierNode(self)
 
+    def getType(self):
+        type = ""
+        if self.isConstant: type += 'const'
+        if self.hasPointer: type += '*'
+        type += str(self.idType)
+        return type
+
     def __str__(self):
         currentNode = counter()
         label = 'DeclSpec:\n'
@@ -370,6 +408,9 @@ class IdentifierNode(ASTNode):
 
     def accept(self, visitor):
         return visitor.visitIdentifierNode(self)
+
+    def getID(self):
+        return str(self.identifier)
 
     def __str__(self):
         currentNode = counter()

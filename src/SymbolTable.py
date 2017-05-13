@@ -1,5 +1,6 @@
 # Symbol table for the compiler
 # Based on http://www.newagepublishers.com/samplechapter/001679.pdf
+from Exceptions import semanticException
 
 class simpleElement:
     def __init__(self, type, address):
@@ -7,8 +8,19 @@ class simpleElement:
         self.address = address
 
     def __repr__(self):
-        returnValue = str(self.type)
+        returnValue = '(var) ' + str(self.type)
         if self.address != None: returnValue += "[address:" + str(self.address) + "]"
+        return returnValue
+
+class functionElement:
+    def __init__(self, type, paramlist):
+        self.type = type
+        self.parameters = paramlist
+
+    def __repr__(self):
+        returnValue = '(proc)' + str(self.type) + " - parameters: "
+        for key in self.parameters.keys():
+            returnValue += str(key) + '[' + str(self.parameters[key]) +'], '
         return returnValue
 
 class symbolTableLocal:
@@ -61,10 +73,13 @@ class generalSymbolTable:
         self.presentScope -= 1
 
     # Insert a symbol depending on the current scope
-    def insertSymbol(self, key, type, address=None):
+    def insertSymbol(self, key, type, params={}, address=None):
         if self.presentScope == -1:
-            if key in self.globalScope: print("Duplicate declaration for ", key)
+            if key in self.globalScope:
+                msg = "Variable " + str(key) + " is already declared (" + str(self.globalScope[key]) + ")"
+                raise semanticException(msg)
             newItem = simpleElement(type, address)
+            if len(params) != 0: newItem = functionElement(type, params)
             self.globalScope[key] = newItem
         else:
             self.localScope[self.presentScope].insertSymbol(key, type, address)
@@ -76,5 +91,5 @@ class generalSymbolTable:
             if self.localScope[temporaryScope].lookupSymbol(key) != None:
                 return self.localScope[temporaryScope].lookupSymbol(key)
             temporaryScope -= 1
-        if self.globalScope[key] == None: print("Key ", key, "not found in the symbol table")
+        if self.globalScope[key] == None: print("Key ", key, " not found in the symbol table")
         return self.globalScope[key]

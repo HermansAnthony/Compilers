@@ -85,26 +85,19 @@ class AstVisitor():
         for expression in node.arrayExpressionList:
             self.visit(expression)
 
+# Overloaded Ast Visitor to configure the symbolTable
 class SymbolTableBuilder(AstVisitor):
     def __init__(self, table):
         self.symbolTable = table
         self.currentScope = 0
 
     def visitDeclarationNode(self, node: DeclarationNode):
-        value = ""
-        if node.declarationSpecifier.isConstant: value += 'const'
-        if node.declarationSpecifier.hasPointer: value += '*'
-        value+=str(node.declarationSpecifier.idType)
-        id = str(node.identifier.identifier)
+        self.symbolTable.insertSymbol(node.getID(), node.getType())
 
-        self.visit(node.declarationSpecifier)
-        self.visit(node.identifier)
-        self.visit(node.expression)
-        self.symbolTable.insertSymbol(id, value)
+    def visitFunctionDefinitionNode(self, node:FunctionDefinitionNode):
+        parameters = dict()
+        if node.parameterList:
+            parameters = node.parameterList.getParams()
+        self.symbolTable.insertSymbol(node.getID(), node.declarationSpecifier.getType(), parameters)
 
-    # def visitIdentifierNode(self, node: IdentifierNode):
-    #     self.symbolTable.insertSymbol(node.identifier, "int")
-    #     print(len(node.arrayExpressionList))
-    #     for expression in node.arrayExpressionList:
-    #         print("hehe",str(expression))
-    #         self.visit(expression)
+        # self.visit(node.functionBody)

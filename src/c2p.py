@@ -45,6 +45,10 @@ def main(argv):
     except antlrError as e:
         print(e)
 
+    # Catch all semantic related errors
+    except semanticException as e:
+        print(e)
+
     # Catch the standard exceptions
     #except Exception as err:
     #    exc_traceback = sys.exc_info()[2]
