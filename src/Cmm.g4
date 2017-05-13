@@ -84,7 +84,7 @@ expression
     | arrayExpression
     | functionCallExpression
     | And expression
-    | Star* expression
+    | Star+ expression
     | Identifier PlusPlus
     | Identifier MinusMinus
     | expression binaryOperator expression
