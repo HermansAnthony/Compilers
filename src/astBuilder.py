@@ -102,8 +102,16 @@ class AstBuilder(CmmVisitor):
 
     def visitExpression(self, ctx:CmmParser.ExpressionContext):
         if ctx.Star():
-            return DereferenceExpressionNode(len(ctx.Star()), self.visit( ctx.expression(0) ))
+            # Star+ (Identifier | arrayExpression)
+            if ctx.Identifier():
+                identifier =  self.visitIdentifier(ctx.Identifier())
+                return DereferenceExpressionNode(len(ctx.Star()), identifier)
+            result = self.visit( ctx.arrayExpression() )
+            idNode = result[-1]
+            idNode.arrayExpressionList = list(reversed(result[:-1]))
+            return DereferenceExpressionNode(len(ctx.Star()), idNode)
         if ctx.getChildCount() == 1:
+            # arrayExpression | primaryExpression | functionCallExpression
             if ctx.arrayExpression():
                 result = self.visit( ctx.arrayExpression() )
                 idNode = result[-1]
@@ -115,9 +123,26 @@ class AstBuilder(CmmVisitor):
             return self.visit(ctx.functionCallExpression())
         if ctx.getChildCount() == 2:
             if ctx.And():
-                return ExpressionNode(ctx.getChild(0).getText(), False, self.visit( ctx.expression(0)) )
-            return ExpressionNode(ctx.getChild(1).getText(), True, self.visitIdentifier(ctx.Identifier()) )
+                # And (Identifier | arrayExpression)
+                if ctx.Identifier():
+                    identifier =  self.visitIdentifier(ctx.Identifier())
+                    return ReferenceExpressionNode(identifier)
+                result = self.visit( ctx.arrayExpression() )
+                idNode = result[-1]
+                idNode.arrayExpressionList = list(reversed(result[:-1]))
+                return ReferenceExpressionNode(idNode)
+            # (Identifier | arrayExpression) PlusPlus 
+            # (Identifier | arrayExpression) MinusMinus
+            if ctx.Identifier():
+                return ExpressionNode(ctx.getChild(1).getText(), 
+                    True, self.visitIdentifier(ctx.Identifier()))
+            result = self.visit( ctx.arrayExpression() )
+            idNode = result[-1]
+            idNode.arrayExpressionList = list(reversed(result[:-1])) 
+            return ExpressionNode(ctx.getChild(1).getText(), 
+                True, idNode)          
         if ctx.getChildCount() == 3:
+            # expression binaryOperator expression
             expr0 = self.visit( ctx.expression(0) )
             expr1 = self.visit( ctx.expression(1) ) 
             if isinstance(expr0, list): 

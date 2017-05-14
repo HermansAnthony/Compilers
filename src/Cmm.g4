@@ -82,10 +82,10 @@ expression
     : primaryExpression
     | arrayExpression
     | functionCallExpression
-    | And expression
-    | Star+ expression
-    | Identifier PlusPlus
-    | Identifier MinusMinus
+    | And (Identifier | arrayExpression)
+    | Star+ (Identifier | arrayExpression)
+    | (Identifier | arrayExpression)  PlusPlus
+    | (Identifier | arrayExpression) MinusMinus
     | expression binaryOperator expression
 ;
 

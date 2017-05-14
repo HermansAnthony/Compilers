@@ -328,6 +328,21 @@ class DereferenceExpressionNode(ASTNode):
         returnValue += currentNode + '->' + str(self.child)
         return returnValue    
 
+class ReferenceExpressionNode(ASTNode):
+    def __init__(self, child):
+        self.child = child
+
+    def accept(self, visitor):
+        return visitor.visitExpressionNode(self)
+
+    def __str__(self):
+        currentNode = counter()
+        returnValue = currentNode + ';\n'
+        label = "ReferenceExpression:\n"
+        returnValue += currentNode + ' [ label = "' + label + '"];\n'
+        returnValue += currentNode + '->' + str(self.child)
+        return returnValue   
+
 class FunctionCallNode(ASTNode):
     def __init__(self, primaryExpression, argumentExpressionListNode):
         self.identifier = primaryExpression
@@ -414,10 +429,15 @@ class DeclarationSpecifierNode(ASTNode):
         return visitor.visitDeclarationSpecifierNode(self)
 
     def getType(self):
-        type = str(self.idType)
-        for ptr in range(self.pointerCount):
-            type += '*'
-        return type
+        idType = ""
+        if self.idType == "int":
+            idType = "i"
+        else if self.idType == "float":
+            idType = "r"
+        else if self.idType == "char":
+            idType = "c"
+        return {'idType': idType, 
+            'refCount': self.pointerCount}
 
     def __str__(self):
         currentNode = counter()

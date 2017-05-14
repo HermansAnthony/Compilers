@@ -73,6 +73,9 @@ class AstVisitor():
     
     def visitDereferenceExpressionNode(self, node:DereferenceExpressionNode):
         self.visit(node.child)
+
+    def visitReferenceExpressionNode(self, node:ReferenceExpressionNode):
+        self.visit(node.child)
     
     def visitFunctionCallNode(self, node:FunctionCallNode):
         self.visit(node.identifier)
