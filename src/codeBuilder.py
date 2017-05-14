@@ -17,3 +17,10 @@ class CodeBuilder(AstVisitor):
         self.symbolTable.insertSymbol(node.getID(), node.declarationSpecifier.getType(), parameters)
 
         # self.visit(node.functionBody)
+        # TODO enterscope with symbol table
+
+    def visitForwardFunctionDeclarationNode(self, node:ForwardFunctionDeclarationNode):
+        parameters = dict()
+        if node.parameterList:
+            parameters = node.parameterList.getParams()
+        self.symbolTable.insertSymbol(node.getID(), node.declarationSpecifier.getType(), parameters)

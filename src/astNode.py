@@ -170,6 +170,9 @@ class ForwardFunctionDeclarationNode(ASTNode):
     def accept(self, visitor):
         return visitor.visitForwardFunctionDeclarationNode(self)
 
+    def getID(self):
+        return self.identifier.getID()
+
     def __str__(self):
         currentNode = counter()
         label = "Function"
