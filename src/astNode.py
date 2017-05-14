@@ -340,7 +340,6 @@ class FunctionCallNode(ASTNode):
         currentNode = counter()
         returnValue = currentNode + ';\n'
         returnValue += currentNode + ' [ label = "FunctionCall"];\n'
-        # TODO
         returnValue += currentNode + '->' + str(self.identifier)
         if self.argumentExpressionListNode:
             returnValue += currentNode + '->' + str(self.argumentExpressionListNode)
@@ -415,10 +414,9 @@ class DeclarationSpecifierNode(ASTNode):
         return visitor.visitDeclarationSpecifierNode(self)
 
     def getType(self):
-        type = ""
-        for ptr in range(0, self.pointerCount):
+        type = str(self.idType)
+        for ptr in range(self.pointerCount):
             type += '*'
-        type += str(self.idType)
         return type
 
     def __str__(self):

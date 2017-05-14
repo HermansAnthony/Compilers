@@ -90,7 +90,7 @@ class AstBuilder(CmmVisitor):
         if ctx.Character():
             return CharacterConstantNode(ctx.getText())
         if ctx.String():
-            # TODO
+            # TODO String is recognized for printf and scanf
             return CharacterConstantNode(ctx.getText())
         return self.visitChildren(ctx)
 

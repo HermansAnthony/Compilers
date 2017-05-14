@@ -73,13 +73,14 @@ class generalSymbolTable:
         self.presentScope -= 1
 
     # Insert a symbol depending on the current scope
-    def insertSymbol(self, key, type, params={}, address=None):
+    def insertSymbol(self, key, type, params=None, address=None):
         if self.presentScope == -1:
             if key in self.globalScope:
                 msg = "Variable " + str(key) + " is already declared (" + str(self.globalScope[key]) + ")"
                 raise semanticException(msg)
             newItem = simpleElement(type, address)
-            if len(params) != 0: newItem = functionElement(type, params)
+            if params: 
+                newItem = functionElement(type, params)
             self.globalScope[key] = newItem
         else:
             self.localScope[self.presentScope].insertSymbol(key, type, address)
