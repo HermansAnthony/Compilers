@@ -27,18 +27,23 @@ class symbolTableLocal:
     """ Symbol table for a local scope / block"""
     def __init__(self):
         self.table = dict()
+        # Offset starts at 5 because of organizational cells
+        self.currentOffset = 5
 
     # Return the symbol table in a readable format
     def __str__(self):
         return str(self.table)
 
     # Insert a key in the symbol table
-    def insertSymbol(self, key, type, address):
+    def insertSymbol(self, key, type):
+        newItem = None
         if key in self.table:
             print("Duplicate declaration for ", key)
         else:
-            newItem = simpleElement(type, address)
+            newItem = simpleElement(type, currentOffset)
+            currentOffset += 1
             self.table[key] = newItem
+        return newItem
 
     # Lookup a key in the table if it is present
     def lookupSymbol(self, key):
@@ -52,6 +57,7 @@ class generalSymbolTable:
     def __init__(self):
         self.globalScope = dict()
         self.localScope = list()
+        self.currentOffset = 0
         self.presentScope = -1
 
     # Print the symbol table
@@ -73,17 +79,23 @@ class generalSymbolTable:
         self.presentScope -= 1
 
     # Insert a symbol depending on the current scope
-    def insertSymbol(self, key, type, params=None, address=None):
+    def insertSymbol(self, key, type, params=None):
         if self.presentScope == -1:
             if key in self.globalScope:
                 msg = "Variable " + str(key) + " is already declared (" + str(self.globalScope[key]) + ")"
                 raise semanticException(msg)
-            newItem = simpleElement(type, address)
+            newItem = None
             if params: 
+                # Function declaration
                 newItem = functionElement(type, params)
+            else:
+                # Variable declaration
+                newItem = simpleElement(type, currentOffset)
+                currentOffset += 1
             self.globalScope[key] = newItem
+            return newItem
         else:
-            self.localScope[self.presentScope].insertSymbol(key, type, address)
+            return self.localScope[self.presentScope].insertSymbol(key, type, address)
 
     # Lookup a key first in the current local scope and then the surrounding scopes
     def lookupSymbol(self, key):

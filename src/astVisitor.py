@@ -14,7 +14,8 @@ class AstVisitor():
         self.visit(node.identifier)
         if parameterList:
             self.visit(node.parameterList)
-        self.visit(node.functionBody)
+        for declstat in self.functionBody:
+            self.visit(declstat)
 
     def visitParameterList(self, node:ParameterListNode):
         for paramDecl in node.paramDecls:

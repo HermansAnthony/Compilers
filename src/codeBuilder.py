@@ -4,27 +4,35 @@ import copy
 
 class Code():
     code = ""
-    def newline(line):
+    maxOffset = 0
+
+    def newline(self, line):
         code += line + "\n"
 
-    def getCode():
-        return code
+    def newblock(self, other)
+        self.code += other.code
 
 # Overloaded Ast Visitor for semantic analysis and code generation.
 class CodeBuilder(AstVisitor):
     def __init__(self, table):
         self.symbolTable = table
-        # Current relative address
-        self.currentOffset = 0
         # Intermediate code being generated
-        self.code = Code
+        self.code = Code()
+        # Function body intermediate code
+        self.functionBodyCode = None
 
     def visitDeclarationNode(self, node:DeclarationNode):
-        self.symbolTable.insertSymbol(node.getID(), node.getType())
-        idType = node.declarationSpecifier.idType()
+        declType = node.getType()
+        item = self.symbolTable.insertSymbol(node.getID(), declType)
         # Generate expression and compare types
         # exprType is a dictionary with idType and refCount
         exprType = self.visit(node.expression)
+
+        code.newline("str " + decltype['idType'] + "0"
+
+    def visitBinaryOperationNode(self, node:BinaryOperationNode):
+        self.visit(node.left)
+        self.visit(node.right)
 
     def visitExpressionNode(self, node:ExpressionNode):
         exprType = None
@@ -77,23 +85,60 @@ class CodeBuilder(AstVisitor):
         code.newline("ldc a " + item.address)
         exprType = copy.deepcopy(item.type)
         exprType['refCount'] += 1
-        return exprType    
+        return exprType  
+
+    def visitFunctionCallNode(self, node:FunctionCallNode):
+        self.visit(node.identifier)
+        self.visit(node.argumentExpressionListNode)  
 
     def visitFunctionDefinitionNode(self, node:FunctionDefinitionNode):
+        # Insert function into symbol table
         parameters = dict()
         if node.parameterList:
             parameters = node.parameterList.getParams()
         functionName = node.getID()
-        self.symbolTable.insertSymbol(functionName+"()", node.declarationSpecifier.getType(), parameters)
-        # Enter the scope
+        self.symbolTable.insertSymbol(functionName+"()", 
+            node.declarationSpecifier.getType(), parameters)
+
         self.symbolTable.beginScope()
-        self.visit(node.functionBody)
         # Generate procedure label
         code.newline(functionName + ":")
-        code.newline("")
+        
+        # Calculate the length of the static section of the stack frame
+        # 5 organizational cells after MP
+        staticLength = 5    
+        for paramDecl in node.parameterList.paramDecls:
+            self.visit(paramDecl)
+            staticLength += 1
+        for declstat in self.functionBody:
+            if type(declstat) == DeclarationNode:
+                staticLength += 1
+        # Calculate the value of the extreme stack pointer
+        functionBodyCode = Code()
+        for declstat in self.functionBody:
+            self.visit(declstat)
+        maxOffset = functionBodyCode.maxOffset
+        
+        # Set the stack pointer and EP
+        code.newline("ent " + maxOffset + " " + staticLength)
+
+        code.newblock(functionBodyCode)
         self.symbolTable.endScope() 
 
+    def visitParameterDeclarationNode(self, node:ParameterDeclarationNode):
+        self.symbolTable.insertSymbol(node.getID(), node.getType())
+        # Check if type is array to increase size        
+
+    def visitIdentifierNode(self, node:IdentifierNode):
+        idType = {'idType': idType, 'refCount': 0}
+        for expression in node.arrayExpressionList:
+            self.visit(expression)
+
+
+
+
     def visitForwardFunctionDeclarationNode(self, node:ForwardFunctionDeclarationNode):
+        # Ignore forward function declarations for now
         parameters = dict()
         if node.parameterList:
             parameters = node.parameterList.getParams()

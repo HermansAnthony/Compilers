@@ -59,8 +59,8 @@ class FunctionDefinitionNode(ASTNode):
         body = counter()
         returnValue += currentNode + '->' + body + ';\n'
         returnValue += body + '[ label = "body"];\n'
-        for stat in self.functionBody:
-            returnValue += body + '->' + str(stat)
+        for declstat in self.functionBody:
+            returnValue += body + '->' + str(declstat)
         return returnValue
 
 class ParameterListNode(ASTNode):

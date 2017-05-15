@@ -1,0 +1,93 @@
+http://homepages.cwi.nl/~steven/pascal/book/10pcode.html
+
+COMMENTS
+A stack frame is generated and placed on the stack each time a procedure or function is called
+ENT = ssp and sep
+mst (nesting depth applied - nesting depth defining) bij ons normaal altijd 0
+The CUP (call user procedure) instruction sets the new value of MP and the link for the return address and finally causes the jump to the procedure concerned.
+
+Stack frame voor main:
+   +0           +1          +2 +3     +4+5+6+7
+|own MP|Program MP|Program MP|EP|old PC|a|b| |
+Dus SP = MP + (5+2) - 1 
+
+Totale stack terwijl in func:
+glob    +0           +1          +2 +3     +4+5+6      +0      +1      +2 +3         +4
+3   |main MP|Program MP|Program MP|EP|old PC|a|b|func MP|main MP|main MP|EP|PC at call|
+
+C-CODE
+============================
+int glob = 3;
+
+void func(int a) {}
+
+int main() {
+    int a = 0;
+    a = 5;
+    int b = 3;
+    f(a);
+    return 0;
+}
+
+P-CODE
+============================
+# Global variables
+ldc 3
+
+# MAIN PROGRAM BLOCK
+# Call the main procedure
+mst 0       STORE[SP + 2] = base(p, MP)
+            STORE[SP + 3] = MP
+            STORE[SP + 4] = EP
+            SP = SP + 5
+Geen actuele parameters
+cup 0 main  MP = SP - (p + 4)
+            STORE[MP + 4] = PC
+            PC = main
+hlt     
+
+# Define the func procedure
+func:
+ent 0 6     SP = MP + q - 1
+`           EP = SP + p
+            EP >= NP check
+retp        SP = MP - 1
+            PC = STORE[MP + 4]
+            EP = STORE[MP + 3]
+            EP >= NP check
+            MP = STORE[MP + 2]
+
+# Define the main procedure
+main:
+ent 1 7     SP = MP + q - 1
+`           EP = SP + p
+            EP >= NP check
+ldc i 0    
+str i 0 5   STORE[base(p,MP)+q] = STORE[SP]
+            SP = SP - 1
+ldc i 5
+str i 0 5   STORE[base(p,MP)+q] = STORE[SP]
+            SP = SP - 1
+ldc i 3
+str i 0 6   STORE[base(p,MP)+q] = STORE[SP]
+            SP = SP - 1
+# Call the func procedure
+mst 0       STORE[SP + 2] = base(p, MP)
+            STORE[SP + 3] = MP
+            STORE[SP + 4] = EP
+            SP = SP + 5
+# actuele parameters
+# stop kopie van a(address = main MP + 5) op (SP + 6) = (func MP + 5)
+lod i 0 5
+cup 0 main  MP = SP - (p + 4)
+            STORE[MP + 4] = PC
+            PC = main
+# Put the return value at MP
+ldc i 0
+str i 0 0
+retf        SP = MP
+            PC = STORE[MP + 4]
+            EP = STORE[MP + 3]
+            EP >= NP check
+            MP = STORE[MP + 2]
+            STORE[SP] = STORE[base(p,MP) + q]
