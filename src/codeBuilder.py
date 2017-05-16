@@ -25,33 +25,82 @@ class CodeBuilder(AstVisitor):
         declType = node.getType()
         item = self.symbolTable.insertSymbol(node.getID(), declType)
         # Generate expression and compare types
-        # exprType is a dictionary with idType and refCount
         exprType = self.visit(node.expression)
-
-        code.newline("str " + decltype['idType'] + "0"
+        if exprType['idType'] != declType['idType'] or 
+            exprType['refCount'] != declType['refCount']:   
+            # Semantic error: declType and exprType don't match
+            # TODO use an actual error
+            print("Semantic error in declaration"
+            return
+        # Store as address if it is a pointer
+        idType = declType['idType']
+        if declType['refCount'] != 0:
+            idType = "a"
+        code.newline("str " + idType + "0"
 
     def visitBinaryOperationNode(self, node:BinaryOperationNode):
-        self.visit(node.left)
-        self.visit(node.right)
-
+        # address + float X
+        # address + char  X
+        # char + anything X
+        # int + float     X
+        # Only int + int and int+address
+        # float + float
+        # char + char
+        # address + address
+        exprTypeLeft = self.visit(node.left)
+        exprTypeRight = self.visit(node.right)
+        typeLeft = exprTypeLeft['idType']
+        typeRight = exprTypeRight['idType']
+        # Currently add, minus, mul, div only
+        if node.operator != "+" and node.operator != "-"
+            and node.operator != "*" and node.operator != "/":
+            return
+        if exprTypeRight['refCount'] > 0 or
+            exprTypeLeft['refCount'] > 0:
+            # TODO use an actual error
+            print("Semantic Error: cannot add/subtract/mul or div an address") 
+            return
+        if typeLeft == typeRight:
+            if node.operator == "+":
+                code.newline("add " + typeLeft)   
+            else if node.operator == "-":
+                code.newline("sub " + typeLeft)
+            else if node.operator == "*":  
+                code.newline("mul " + typeLeft) 
+            else if node.operator == "/":  
+                code.newline("div " + typeLeft) 
+        else:
+            # TODO use an actual error
+            print("Semantic Error: cannot add " + typeLeft + " and " + typeRight)
+            return
+        return typeLeft
+            
     def visitExpressionNode(self, node:ExpressionNode):
         exprType = None
         if self.isPostfix():
-            # Id++ or Id-- works for all types
+            # Id++ or Id-- works for all types except for char
+            # Get the type of the identifier
             exprType = self.visit(node.child)
+            idType = exprType['idType']
+            if exprType['refCount'] > 0:
+                idType = "a"
+            if idType == "c":
+                # TODO use an actual error
+                print("Semantic Error: cannot increment/decrement character")
+                return
+            # Get the address and nesting difference of the identifier
             item = self.symbolTable.lookupSymbol(node.child.getID())
-            address = item.address
-            idType = "i"
-            if "float" in exprType:
-                idType = "r"
+            offset = item.address
+            nestingDiff = symboltable.getCurrentNestingDepth() - item.nestingdepth
             # load lvalue  
-            code.newline("lod T nestingdiff offset")
+            code.newline("lod " + idType + " " + nestingDiff + " " + offset)
+            # Increment or decrement
             if node.operator == "++":
                 code.newline("inc " + idType + "1")
             else:
                 code.newline("dec " + idType + "1")
             # store lvalue
-            code.newline("str T nestingdiff offset")
+            code.newline("str " + idType + " " + nestingDiff + " " + offset")
         return exprType
 
     def visitDereferenceExpressionNode(self, node:DereferenceExpressionNode):
@@ -59,16 +108,16 @@ class CodeBuilder(AstVisitor):
         # int *a = *b
         # int a = ***b + 3
         # int a = *b[2] + 3
-        # TODO array support
         item = self.symbolTable.lookupSymbol(node.child.getID())
         if item.type['refCount'] < node.derefCount:
-            # Raise too many dereferences error
-            pass
+            # TODO Raise too many dereferences error
+            print("Too many dereferences")
+            return 
         idType = "a"
         if item.type['refCount'] == node.derefCount:
             idType = item.type['idType']
-        address = item.address
-        code.newline("ldc a " + address)
+        offset = item.address
+        code.newline("ldc a " + offset)
         for i in range(node.derefCount-1):
             code.newline("ind a")
         code.newline("ind " + idType)
@@ -80,7 +129,6 @@ class CodeBuilder(AstVisitor):
     def visitReferenceExpressionNode(self, node:ReferenceExpressionNode):
         # int *a = &b + 3
         # int *a = &b[1] + 3
-        # TODO array support
         item = self.symbolTable.lookupSymbol(node.child.getID())
         code.newline("ldc a " + item.address)
         exprType = copy.deepcopy(item.type)
