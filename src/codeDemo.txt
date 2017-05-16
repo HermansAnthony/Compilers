@@ -91,3 +91,19 @@ retf        SP = MP
             EP >= NP check
             MP = STORE[MP + 2]
             STORE[SP] = STORE[base(p,MP) + q]
+
+
+EXPRESSIONS
+=======================
+int a = 5 + b;
+# BinaryOperationNode
+ldc i 5
+lod i depth b
+add i
+# Declaration
+str i depth a
+
+int a = b++;
+
+
+int a = &a + 3

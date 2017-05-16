@@ -3,9 +3,10 @@
 from Exceptions import semanticException
 
 class simpleElement:
-    def __init__(self, type, address):
+    def __init__(self, type, address, nestingDepth):
         self.type = type
         self.address = address
+        self.nestingDepth = nestingDepth
 
     def __repr__(self):
         returnValue = '(var) ' + str(self.type)
@@ -40,7 +41,7 @@ class symbolTableLocal:
         if key in self.table:
             print("Duplicate declaration for ", key)
         else:
-            newItem = simpleElement(type, currentOffset)
+            newItem = simpleElement(type, currentOffset, self.getNestingDepth())
             currentOffset += 1
             self.table[key] = newItem
         return newItem
@@ -51,6 +52,10 @@ class symbolTableLocal:
             return self.table[key]
         print("Symbol not present in current scope")
         return None
+
+    # Get the nesting depth
+    def getNestingDepth():
+        return 1 
 
 class generalSymbolTable:
     """ Symbol table for the general program (global and local scopes)"""
@@ -90,12 +95,18 @@ class generalSymbolTable:
                 newItem = functionElement(type, params)
             else:
                 # Variable declaration
-                newItem = simpleElement(type, currentOffset)
+                newItem = simpleElement(type, currentOffset, self.getCurrentNestingDepth())
                 currentOffset += 1
             self.globalScope[key] = newItem
             return newItem
         else:
             return self.localScope[self.presentScope].insertSymbol(key, type, address)
+
+    # Get the current nesting depth
+    def getCurrentNestingDepth():
+        if len(self.localScope) == 0:
+            return 
+        return self.localScope[-1].getNestingDepth()
 
     # Lookup a key first in the current local scope and then the surrounding scopes
     def lookupSymbol(self, key):
