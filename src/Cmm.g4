@@ -112,7 +112,9 @@ statement
     : ifStatement
     | iterationStatement
     | jumpStatement
-    | expression Semicolon
+    | functionCallExpression Semicolon
+    | (Identifier | arrayExpression)  PlusPlus Semicolon
+    | (Identifier | arrayExpression)  MinusMinus Semicolon
     | assignment Semicolon
 ;
 

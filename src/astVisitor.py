@@ -57,7 +57,8 @@ class AstVisitor():
             self.visit(node.right)
 
     def visitReturnNode(self, node:ReturnNode):
-        self.visit(node.expressionNode)
+        if self.expressionNode:
+            self.visit(node.expressionNode)
 
     def visitBreakNode(self, node:BreakNode):
         pass

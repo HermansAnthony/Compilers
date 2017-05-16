@@ -46,6 +46,9 @@ class FunctionDefinitionNode(ASTNode):
     def getID(self):
         return self.identifier.getID()
 
+    def getType(self):
+        return self.declarationSpecifier.getType()
+
     def __str__(self):
         currentNode = counter()
         label = "Function"
@@ -71,12 +74,11 @@ class ParameterListNode(ASTNode):
         return visitor.visitParameterListNode(self)
 
     def getParams(self):
-        params = dict()
+        params = list()
         if isinstance(self.paramDecls, list):
-            for paramDecl in self.paramDecls:
-                params[paramDecl.getID()] = paramDecl.getType()
+            params.extend(self.paramDecls)
         else:
-            params[self.paramDecls.getID()] = self.paramDecls.getType()
+            params.append(self.paramDecls)
         return params
 
     def __str__(self):
@@ -144,7 +146,7 @@ class AssignmentNode(ASTNode):
         self.expression = expression
 
     def accept(self, visitor):
-        return visitor.visitDeclarationNode(self)
+        return visitor.visitAssignmentNode(self)
 
     def getID(self):
         return self.identifier.getID()
@@ -172,6 +174,9 @@ class ForwardFunctionDeclarationNode(ASTNode):
 
     def getID(self):
         return self.identifier.getID()
+
+    def getType(self):
+        return self.declarationSpecifier.getType()
 
     def __str__(self):
         currentNode = counter()
@@ -317,7 +322,7 @@ class DereferenceExpressionNode(ASTNode):
         self.child = child
 
     def accept(self, visitor):
-        return visitor.visitExpressionNode(self)
+        return visitor.visitDereferenceExpressionNode(self)
 
     def __str__(self):
         currentNode = counter()
@@ -333,7 +338,7 @@ class ReferenceExpressionNode(ASTNode):
         self.child = child
 
     def accept(self, visitor):
-        return visitor.visitExpressionNode(self)
+        return visitor.visitReferenceExpressionNode(self)
 
     def __str__(self):
         currentNode = counter()
@@ -350,6 +355,9 @@ class FunctionCallNode(ASTNode):
 
     def accept(self, visitor):
         return visitor.visitFunctionCallNode(self)
+
+    def getID(self):
+        return self.identifier.getID()
 
     def __str__(self):
         currentNode = counter()
@@ -432,9 +440,9 @@ class DeclarationSpecifierNode(ASTNode):
         idType = ""
         if self.idType == "int":
             idType = "i"
-        else if self.idType == "float":
+        elif self.idType == "float":
             idType = "r"
-        else if self.idType == "char":
+        elif self.idType == "char":
             idType = "c"
         return {'idType': idType, 
             'refCount': self.pointerCount}

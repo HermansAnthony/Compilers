@@ -77,9 +77,10 @@ mst 0       STORE[SP + 2] = base(p, MP)
             STORE[SP + 4] = EP
             SP = SP + 5
 # actuele parameters
-# stop kopie van a(address = main MP + 5) op (SP + 6) = (func MP + 5)
+# stop kopie van a(address = main MP + 5) op (SP + 6) = (func MP + 5) 
+# = bovenaan de stack (dus enkel lod)
 lod i 0 5
-cup 0 main  MP = SP - (p + 4)
+cup 1 func  MP = SP - (p + 4)
             STORE[MP + 4] = PC
             PC = main
 # Put the return value at MP

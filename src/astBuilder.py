@@ -177,12 +177,25 @@ class AstBuilder(CmmVisitor):
         return [self.visit(ctx.expression())]
 
     def visitStatement(self, ctx:CmmParser.StatementContext):
+        # (Identifier | arrayExpression) PlusPlus 
+        # (Identifier | arrayExpression) MinusMinus
+        if ctx.Identifier():
+            return ExpressionNode(ctx.getChild(1).getText(), 
+                True, self.visitIdentifier(ctx.Identifier()))            
+        if ctx.arrayExpression():
+            result = self.visit( ctx.arrayExpression() )
+            idNode = result[-1]
+            idNode.arrayExpressionList = list(reversed(result[:-1])) 
+            return ExpressionNode(ctx.getChild(1).getText(), 
+                True, idNode)          
         return self.visitChildren(ctx)
 
     def visitAssignment(self, ctx:CmmParser.AssignmentContext):
-        identifier = self.visit( ctx.declarator() )
+        result = self.visit( ctx.declarator() )
+        idNode = result[-1]
+        idNode.arrayExpressionList = list(reversed(result[:-1]))
         expression = self.visit( ctx.expression() )
-        return AssignmentNode(len(ctx.Star()), identifier, expression);
+        return AssignmentNode(len(ctx.Star()), idNode, expression);
 
     def visitCompoundStatement(self, ctx:CmmParser.CompoundStatementContext):
         return self.visitChildren(ctx)

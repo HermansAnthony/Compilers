@@ -14,9 +14,10 @@ class simpleElement:
         return returnValue
 
 class functionElement:
-    def __init__(self, type, paramlist):
+    def __init__(self, type, paramlist, nestingDepth):
         self.type = type
         self.parameters = paramlist
+        self.nestingDepth = nestingDepth
 
     def __repr__(self):
         returnValue = '(proc)' + str(self.type) + " - parameters: "
@@ -30,6 +31,10 @@ class symbolTableLocal:
         self.table = dict()
         # Offset starts at 5 because of organizational cells
         self.currentOffset = 5
+        # Current extreme stack pointer
+        self.currentEP = 0
+        # Maximum extreme stack pointer
+        self.maxEP = 2
 
     # Return the symbol table in a readable format
     def __str__(self):
@@ -41,8 +46,8 @@ class symbolTableLocal:
         if key in self.table:
             print("Duplicate declaration for ", key)
         else:
-            newItem = simpleElement(type, currentOffset, self.getNestingDepth())
-            currentOffset += 1
+            newItem = simpleElement(type, self.currentOffset, self.getNestingDepth())
+            self.currentOffset += 1
             self.table[key] = newItem
         return newItem
 
@@ -50,20 +55,31 @@ class symbolTableLocal:
     def lookupSymbol(self, key):
         if key in self.table:
             return self.table[key]
-        print("Symbol not present in current scope")
         return None
 
     # Get the nesting depth
-    def getNestingDepth():
+    def getNestingDepth(self):
         return 1 
+
+    def resetCurrentEP(self):
+        self.currentEP = 2
+
+    # Increase the current EP
+    def increaseCurrentEP(self, val):
+        self.currentEP += val
+        if self.currentEP > self.maxEP:
+            self.maxEP = self.currentEP
+
+    def getMaxEP(self):
+        return self.maxEP
 
 class generalSymbolTable:
     """ Symbol table for the general program (global and local scopes)"""
     def __init__(self):
         self.globalScope = dict()
         self.localScope = list()
-        self.currentOffset = 0
         self.presentScope = -1
+        self.currentOffset = 0
 
     # Print the symbol table
     def __repr__(self):
@@ -72,16 +88,15 @@ class generalSymbolTable:
             returnValue += "Local scope: " + str(scope) + "\n"
         return returnValue
 
-    # Enter a new scope
-    def beginScope(self):
-        newScope = symbolTableLocal
+    # Begin a new scope
+    def createScope(self):
+        newScope = symbolTableLocal()
         self.localScope.append(newScope)
         self.presentScope += 1
 
-    # Close the scope
-    def endScope(self):
-        self.localScope.pop()
-        self.presentScope -= 1
+    # Enter the next scope
+    def nextScope(self):
+        self.presentScope += 1  
 
     # Insert a symbol depending on the current scope
     def insertSymbol(self, key, type, params=None):
@@ -92,28 +107,47 @@ class generalSymbolTable:
             newItem = None
             if params: 
                 # Function declaration
-                newItem = functionElement(type, params)
+                newItem = functionElement(type, params, self.getCurrentNestingDepth())
             else:
                 # Variable declaration
-                newItem = simpleElement(type, currentOffset, self.getCurrentNestingDepth())
-                currentOffset += 1
+                newItem = simpleElement(type, self.currentOffset, self.getCurrentNestingDepth())
+                self.currentOffset += 1
             self.globalScope[key] = newItem
             return newItem
         else:
-            return self.localScope[self.presentScope].insertSymbol(key, type, address)
-
-    # Get the current nesting depth
-    def getCurrentNestingDepth():
-        if len(self.localScope) == 0:
-            return 
-        return self.localScope[-1].getNestingDepth()
+            return self.localScope[self.presentScope].insertSymbol(key, type)
 
     # Lookup a key first in the current local scope and then the surrounding scopes
     def lookupSymbol(self, key):
-        temporaryScope = len(self.localScope)-1
-        while temporaryScope != 0:
-            if self.localScope[temporaryScope].lookupSymbol(key) != None:
-                return self.localScope[temporaryScope].lookupSymbol(key)
-            temporaryScope -= 1
-        if self.globalScope[key] == None: print("Key ", key, " not found in the symbol table")
+        if self.presentScope != -1:
+            if self.localScope[self.presentScope].lookupSymbol(key) != None:
+                return self.localScope[self.presentScope].lookupSymbol(key)           
+        if key not in self.globalScope: 
+            print("Key ", key, " not found in the symbol table")
+            # TODO raise semantic error
+            return None
         return self.globalScope[key]
+
+    # Get the current nesting depth
+    def getCurrentNestingDepth(self):
+        if self.presentScope == -1:
+            return 0
+        return self.localScope[self.presentScope].getNestingDepth()
+
+    def resetCurrentEP(self):
+        if self.presentScope != -1:
+            self.localScope[self.presentScope].resetCurrentEP(EpVal)        
+
+    # Increase the current EP
+    def increaseCurrentEP(self, val):
+        if self.presentScope != -1:
+            self.localScope[self.presentScope].increaseCurrentEP(EpVal)
+
+    def getMaxEP(self):
+        if self.presentScope != -1:
+            return self.localScope[self.presentScope].getMaxEP()     
+        return 0
+
+    def resetScopeCounter(self):
+        self.presentScope = -1
+

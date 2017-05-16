@@ -5,6 +5,7 @@ from Exceptions import *
 from CmmLexer import CmmLexer
 from CmmParser import CmmParser
 from astBuilder import AstBuilder
+from semanticVisitor import SemanticVisitor
 from codeBuilder import CodeBuilder
 from SymbolTable import generalSymbolTable
 
@@ -30,11 +31,18 @@ def main(argv):
         astBuilder = AstBuilder()
         ast = astBuilder.visit(parseTree)
 
-        # Semantic analysis and code generation
+        # Semantic analysis
         symbolTable = generalSymbolTable()
+        semanticVisitor = SemanticVisitor(symbolTable)
+        semanticVisitor.visit(ast)
+        # Code generation
         codeBuilder = CodeBuilder(symbolTable)
         codeBuilder.visit(ast)
-        print(symbolTable)
+        
+        # Write the code to the output file
+        f = open(argv[2]+".p", 'w')
+        f.write(codeBuilder.getCode())
+        f.close()
 
         # Generate dot file for the AST
         filename = str(argv[1])
