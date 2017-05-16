@@ -11,3 +11,4 @@ src/*.tokens
 src/CmmL*
 src/CmmP*
 src/CmmV*
+Pmachine/*
