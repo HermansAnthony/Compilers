@@ -20,27 +20,32 @@ class declarationException(semanticException):
     def __str__(self):
         var = "Variable"
         if self.isFunction: var = "Function"
-        return  "Semantic error occurred on line " + str(self.line) + ": "+ var + " "\
+        return  "Semantic error occurred on line " + str(self.line) + ":\n"+ var + " "\
                 + str(self.variableName) + " is already declared as " + getType(self.type)
 
 class unknownVariable(semanticException):
-    def __init__(self, name, line=""):
+    def __init__(self, name, line, isFunction=False):
         self.variableName = name
         self.line = line
+        self.isFunction = isFunction
 
     def __str__(self):
-        return  "Semantic error occurred on line " + str(self.line) + ": Variable "\
-                + str(self.variableName) + " is not found."
+        var = "Variable "
+        if self.isFunction: var = "Function "
+        return  "Semantic error occurred on line " + str(self.line) + ":\n"\
+                + var + str(self.variableName) + " is not declared."
 
 # Main function is not found
 class mainException(semanticException):
     def __str__(self):
-        return "Semantic error occurred: Main function not found."
+        return "Semantic error occurred:\nMain function not declared."
 
 # Main function is not found
 class mainTypeException(semanticException):
+    def __init__(self, position):
+        self.position = position
     def __str__(self):
-        return "Semantic error occurred: Main function must return int."
+        return "Semantic error occurred on line " + str(self.position) + ":\nMain function must return int."
 
 # The type and the expr type mismatch
 class wrongType(semanticException):
@@ -50,8 +55,8 @@ class wrongType(semanticException):
         self.line = line
 
     def __str__(self):
-        returnValue = "Mismatched type error occurred on line " + str(self.line) + ": "
-        returnValue += "You declared the variable as " + str(self.type) + " while it should be " + str(self.correctType)
+        returnValue = "Mismatched type error occurred on line " + str(self.line) + ":\n"
+        returnValue += "You declared the variable as " + str(getType(self.type)) + " while it should be " + str(getType(self.correctType))
         return returnValue
 
 # The return type and the type of the function don'tmatch
@@ -62,8 +67,8 @@ class wrongReturnType(semanticException):
         self.line = line
 
     def __str__(self):
-        returnValue = "Wrong function return type error occurred on line " + str(self.line) + ": "
-        returnValue += "You returned a variable of type " + str(self.returnType) + " while it should be " + str(self.correctType)
+        returnValue = "Wrong function return type error occurred on line " + str(self.line) + ":\n"
+        returnValue += "You returned a variable of type " + str(getType(self.returnType)) + " while it should be " + str(getType(self.correctType))
         return returnValue
 
 # Exception that will be throwed when you dereference too many times
@@ -72,7 +77,7 @@ class deReference(semanticException):
         self.line = line
 
     def __str__(self):
-        return "Dereference error occurred on line " + str(self.line) + ": Too many dereferences in assignment"
+        return "Dereference error occurred on line " + str(self.line) + ":\nToo many dereferences in assignment"
 
 class wrongOperation(semanticException):
     def __init__(self, operations, operand, line, secondOperand=""):
@@ -82,7 +87,7 @@ class wrongOperation(semanticException):
         self.line = line
 
     def __str__(self):
-        returnValue = "Semantic error occurred on line " + str(self.line) + ": Not possible to " + str(self.operations) + " on " + str(getType(self.operand))
+        returnValue = "Semantic error occurred on line " + str(self.line) + ":\nNot possible to " + str(self.operations) + " on " + str(getType(self.operand))
         if self.secondOperand != "": returnValue += " and " + str(getType(self.secondOperand))
         return returnValue
 
@@ -93,7 +98,7 @@ class incrementError(semanticException):
 
     def __str__(self):
         return "Semantic error occurred on line " + str(self.line)+\
-               ": Impossible to increment/decrement a variable of type " + str(self.operand)
+               ":\n Impossible to increment/decrement a variable of type " + str(self.operand)
 
 class parameterError(semanticException):
     def __init__(self, givenParamCount, expectedParamCount, line):
@@ -102,7 +107,7 @@ class parameterError(semanticException):
         self.line = line
 
     def __str__(self):
-        return "Semantic error occurred on line " + str(self.line) + ": Expected " + str(self.correctParamCount)\
+        return "Semantic error occurred on line " + str(self.line) + ":\nExpected " + str(self.correctParamCount)\
                + " arguments but " + str(self.currentParamCount) + " were given"
 
 class parameterTypeError(semanticException):
@@ -112,7 +117,7 @@ class parameterTypeError(semanticException):
         self.line = line
 
     def __str__(self):
-        return "Semantic error occurred on line " + str(self.line) + ": Expected argument of type " + str(self.correctType) \
+        return "Semantic error occurred on line " + str(self.line) + ":\nExpected argument of type " + str(self.correctType) \
                + " but received argument of type " + str(self.currentType)
 
 # All antlr related errors

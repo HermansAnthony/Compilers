@@ -34,11 +34,12 @@ class ProgramNode(ASTNode):
         return returnValue
 
 class FunctionDefinitionNode(ASTNode):
-    def __init__(self, declarationSpecifier, identifier, parameterList, functionBody):
+    def __init__(self, declarationSpecifier, identifier, parameterList, functionBody, position):
         self.declarationSpecifier = declarationSpecifier
         self.identifier = identifier
         self.parameterList = parameterList
         self.functionBody = functionBody
+        self.position = position
 
     def accept(self, visitor):
         return visitor.visitFunctionDefinitionNode(self)
@@ -48,6 +49,9 @@ class FunctionDefinitionNode(ASTNode):
 
     def getType(self):
         return self.declarationSpecifier.getType()
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         currentNode = counter()
@@ -115,10 +119,11 @@ class ParameterDeclarationNode(ASTNode):
         return returnValue
 
 class DeclarationNode(ASTNode):
-    def __init__(self, declarationSpecifier, identifier, expression):
+    def __init__(self, declarationSpecifier, identifier, expression, position):
         self.declarationSpecifier = declarationSpecifier
         self.identifier = identifier
         self.expression = expression
+        self.position = position
 
     def accept(self, visitor):
         return visitor.visitDeclarationNode(self)
@@ -128,6 +133,9 @@ class DeclarationNode(ASTNode):
 
     def getID(self):
         return self.identifier.getID()
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         currentNode = counter()
@@ -140,16 +148,20 @@ class DeclarationNode(ASTNode):
         return returnValue
 
 class AssignmentNode(ASTNode):
-    def __init__(self, dereferenceCount, identifier, expression):
+    def __init__(self, dereferenceCount, identifier, expression, position):
         self.dereferenceCount = dereferenceCount
         self.identifier = identifier
         self.expression = expression
+        self.position = position
 
     def accept(self, visitor):
         return visitor.visitAssignmentNode(self)
 
     def getID(self):
         return self.identifier.getID()
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         currentNode = counter()
@@ -349,15 +361,19 @@ class ReferenceExpressionNode(ASTNode):
         return returnValue   
 
 class FunctionCallNode(ASTNode):
-    def __init__(self, primaryExpression, argumentExpressionListNode):
+    def __init__(self, primaryExpression, argumentExpressionListNode, position):
         self.identifier = primaryExpression
         self.argumentExpressionListNode = argumentExpressionListNode
+        self.position = position
 
     def accept(self, visitor):
         return visitor.visitFunctionCallNode(self)
 
     def getID(self):
         return self.identifier.getID()
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         currentNode = counter()
@@ -458,15 +474,19 @@ class DeclarationSpecifierNode(ASTNode):
         return returnValue
 
 class IdentifierNode(ASTNode):
-    def __init__(self, identifier, arrayExpressionList):
+    def __init__(self, identifier, arrayExpressionList, position):
         self.identifier = identifier
         self.arrayExpressionList = arrayExpressionList
+        self.position = position
 
     def accept(self, visitor):
         return visitor.visitIdentifierNode(self)
 
     def getID(self):
         return str(self.identifier)
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         currentNode = counter()

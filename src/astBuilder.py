@@ -29,15 +29,17 @@ class AstBuilder(CmmVisitor):
 
     def visitFunctionDeclaration(self, ctx:CmmParser.FunctionDeclarationContext):
         declarationSpecifier = None
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
         if ctx.declarationSpecifier():
             declarationSpecifier = self.visit(ctx.declarationSpecifier())
-        identifier = self.visitIdentifier(ctx.Identifier())
+        identifier = self.visitIdentifier(ctx.Identifier(), place)
         parameterListNode = None
         if ctx.parameterList():
             parameterListNode = self.visit(ctx.parameterList())
         if ctx.compoundStatement():
             functionBody = self.visit(ctx.compoundStatement())
-            return FunctionDefinitionNode(declarationSpecifier, identifier, parameterListNode, functionBody)
+            return FunctionDefinitionNode(declarationSpecifier, identifier, parameterListNode, functionBody, place)
         return ForwardFunctionDeclarationNode(declarationSpec, identifier, parameterListNode)
 
     def visitParameterList(self, ctx:CmmParser.ParameterListContext):
@@ -57,7 +59,9 @@ class AstBuilder(CmmVisitor):
     def visitDeclaration(self, ctx:CmmParser.DeclarationContext):
         declarationSpec = self.visit(ctx.declarationSpecifier())
         identifier, expression = self.visit(ctx.initDeclarator())
-        return DeclarationNode(declarationSpec, identifier, expression)
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
+        return DeclarationNode(declarationSpec, identifier, expression, place)
 
     def visitDeclarationSpecifier(self, ctx:CmmParser.DeclarationSpecifierContext):
         idType = ctx.typeSpecifier().getText()
@@ -72,19 +76,23 @@ class AstBuilder(CmmVisitor):
         return [idNode, self.visit(ctx.expression())]
 
     def visitDeclarator(self, ctx:CmmParser.DeclaratorContext):
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
         if ctx.getChildCount() == 1:
-            return [self.visitIdentifier(ctx.Identifier())]
+            return [self.visitIdentifier(ctx.Identifier(), place)]
         resList = [self.visit( ctx.expression() )]
         resList.extend( self.visit(ctx.declarator()) )
         return resList
 
     def visitPrimaryExpression(self, ctx:CmmParser.PrimaryExpressionContext):
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
         if ctx.Identifier():
-            return self.visitIdentifier(ctx)
+            return self.visitIdentifier(ctx, place)
         return self.visit(ctx.constant())                            
 
-    def visitIdentifier(self, ctx):
-        return IdentifierNode(ctx.getText(), [])
+    def visitIdentifier(self, ctx, place):
+        return IdentifierNode(ctx.getText(), [], place)
 
     def visitConstant(self, ctx:CmmParser.ConstantContext):
         if ctx.Character():
@@ -101,10 +109,12 @@ class AstBuilder(CmmVisitor):
         return FloatingConstantNode(ctx.getText())
 
     def visitExpression(self, ctx:CmmParser.ExpressionContext):
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
         if ctx.Star():
             # Star+ (Identifier | arrayExpression)
             if ctx.Identifier():
-                identifier =  self.visitIdentifier(ctx.Identifier())
+                identifier =  self.visitIdentifier(ctx.Identifier(), place)
                 return DereferenceExpressionNode(len(ctx.Star()), identifier)
             result = self.visit( ctx.arrayExpression() )
             idNode = result[-1]
@@ -125,7 +135,7 @@ class AstBuilder(CmmVisitor):
             if ctx.And():
                 # And (Identifier | arrayExpression)
                 if ctx.Identifier():
-                    identifier =  self.visitIdentifier(ctx.Identifier())
+                    identifier =  self.visitIdentifier(ctx.Identifier(), place)
                     return ReferenceExpressionNode(identifier)
                 result = self.visit( ctx.arrayExpression() )
                 idNode = result[-1]
@@ -135,7 +145,7 @@ class AstBuilder(CmmVisitor):
             # (Identifier | arrayExpression) MinusMinus
             if ctx.Identifier():
                 return ExpressionNode(ctx.getChild(1).getText(), 
-                    True, self.visitIdentifier(ctx.Identifier()))
+                    True, self.visitIdentifier(ctx.Identifier(), place))
             result = self.visit( ctx.arrayExpression() )
             idNode = result[-1]
             idNode.arrayExpressionList = list(reversed(result[:-1])) 
@@ -154,16 +164,20 @@ class AstBuilder(CmmVisitor):
             return BinaryOperationNode(ctx.binaryOperator().getText(), expr0, expr1)
 
     def visitFunctionCallExpression(self, ctx:CmmParser.FunctionCallExpressionContext):
-        identifier = self.visitIdentifier(ctx.Identifier())
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
+        identifier = self.visitIdentifier(ctx.Identifier(), place)
         argExprNode = None
         if ctx.argumentExpressionList():
             exprList = list(reversed( self.visit(ctx.argumentExpressionList()) ))
             argExprNode = ArgumentExpressionListNode(exprList)
-        return FunctionCallNode(identifier, argExprNode)
+        return FunctionCallNode(identifier, argExprNode, place)
       
     def visitArrayExpression(self, ctx:CmmParser.ArrayExpressionContext):
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
         if ctx.Identifier() != None:
-            idNode = self.visitIdentifier(ctx.Identifier())
+            idNode = self.visitIdentifier(ctx.Identifier(), place)
             return [idNode]
         resList = [self.visit(ctx.expression())]
         resList.extend(self.visit(ctx.arrayExpression()))
@@ -179,9 +193,11 @@ class AstBuilder(CmmVisitor):
     def visitStatement(self, ctx:CmmParser.StatementContext):
         # (Identifier | arrayExpression) PlusPlus 
         # (Identifier | arrayExpression) MinusMinus
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
         if ctx.Identifier():
             return ExpressionNode(ctx.getChild(1).getText(), 
-                True, self.visitIdentifier(ctx.Identifier()))            
+                True, self.visitIdentifier(ctx.Identifier(), place))
         if ctx.arrayExpression():
             result = self.visit( ctx.arrayExpression() )
             idNode = result[-1]
@@ -195,7 +211,9 @@ class AstBuilder(CmmVisitor):
         idNode = result[-1]
         idNode.arrayExpressionList = list(reversed(result[:-1]))
         expression = self.visit( ctx.expression() )
-        return AssignmentNode(len(ctx.Star()), idNode, expression);
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
+        return AssignmentNode(len(ctx.Star()), idNode, expression, place);
 
     def visitCompoundStatement(self, ctx:CmmParser.CompoundStatementContext):
         return self.visitChildren(ctx)

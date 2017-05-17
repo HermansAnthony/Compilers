@@ -35,7 +35,7 @@ def main(argv):
         symbolTable = generalSymbolTable()
         semanticVisitor = SemanticVisitor(symbolTable)
         semanticVisitor.visit(ast)
-        print(symbolTable)
+        # print(symbolTable)
         # Code generation
         codeBuilder = CodeBuilder(symbolTable)
         codeBuilder.visit(ast)
@@ -65,7 +65,7 @@ def main(argv):
     #    print(err)
 
     # Catch all errors in a clean way
-    #except:
+    # except:
     #    print("Unexpected error: ", sys.exc_info()[0])
 
 if __name__ == '__main__':

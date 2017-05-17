@@ -8,15 +8,12 @@ class SemanticVisitor(AstVisitor):
     def __init__(self, table):
         self.symbolTable = table
         self.mainFunctionFound = False
-        self.mainFunctionCorrectType = False
 
     def visitProgramNode(self, node:ProgramNode):
         for child in node.children:
             self.visit(child)
         if not self.mainFunctionFound:
             raise mainException()
-        if not self.mainFunctionCorrectType:
-            raise mainTypeException()
         self.symbolTable.resetScopeCounter()
 
     def visitFunctionDefinitionNode(self, node:FunctionDefinitionNode):
@@ -26,11 +23,11 @@ class SemanticVisitor(AstVisitor):
             parameters = node.parameterList.getParams()
         functionName = node.getID()
         functionType = node.getType()
-        if self.symbolTable.insertSymbol(functionName+"()", functionType, parameters) == None: raise declarationException(functionName, functionType, True,"TODO line")
+        if self.symbolTable.insertSymbol(functionName+"()", functionType, parameters) == None: raise declarationException(functionName, functionType, True, node.getPosition())
         if functionName == "main":
             self.mainFunctionFound = True
-            if functionType['idType'] == 'i': 
-                self.mainFunctionCorrectType = True
+            if functionType['idType'] != 'i':
+                raise mainTypeException(node.getPosition())
         # Visit the function body
         self.symbolTable.createScope(functionName)
         # Insert parameters into symbol table
@@ -45,7 +42,7 @@ class SemanticVisitor(AstVisitor):
                 retType.pop('returnStat')
                 if retType  != functionType:
                     # TODO Fix this so the error can occur
-                    raise wrongReturnType(retType, functionType, "TODO add line here")
+                    raise wrongReturnType(retType, functionType, node.getPosition())
                 return
 
     def visitParameterDeclarationNode(self, node:ParameterDeclarationNode):
@@ -60,7 +57,7 @@ class SemanticVisitor(AstVisitor):
     def visitAssignmentNode(self, node:AssignmentNode):
         # Compare types
         item = self.symbolTable.lookupSymbol(node.getID())
-        if item == None: raise unknownVariable(node.getID(), node.getLine())
+        if item == None: raise unknownVariable(node.getID(), node.getPosition())
         exprType = self.visit(node.expression)
         # *b = 5
         declType = copy.deepcopy(item.type)
@@ -69,14 +66,14 @@ class SemanticVisitor(AstVisitor):
         if declType['refCount'] < 0:
             raise deReference("TODO add line")
         if exprType != declType:
-            raise wrongType(exprType, declType, "TODO add line")
+            raise wrongType(exprType['idType'], declType['idType'], "TODO add line")
 
     def visitIfStatementNode(self, node:IfStatementNode):
         # Check if expression is boolean
         exprType = self.visit(node.condition)
         declType = {'idType': "b", 'refCount': 0}
         if exprType != declType:     
-            raise wrongType(exprType, declType, "TODO fix line here")
+            raise wrongType(exprType['idType'], declType['idType'], "TODO fix line here")
         for declStat in node.ifBody:
             self.visit(declStat)
         for declStat in node.elseBody:
@@ -88,7 +85,7 @@ class SemanticVisitor(AstVisitor):
             exprType = self.visit(node.left)
             declType = {'idType': "b", 'refCount': 0}
             if exprType != declType:     
-                raise wrongType(exprType, declType, "TODO fix line here")
+                raise wrongType(exprType['idType'], declType['idType'], "TODO fix line here")
             # visit function body
             for declStat in node.right:
                 self.visit(declStat)
@@ -109,10 +106,10 @@ class SemanticVisitor(AstVisitor):
         # Compare types
         exprType = self.visit(node.expression)
         declType = node.getType()
-        if exprType != declType:     
-            raise wrongType(exprType, declType, "TODO fix line here")
+        if exprType != declType:
+            raise wrongType(exprType, declType['idType'], node.getPosition())
         if self.symbolTable.insertSymbol(node.getID(), declType) == None:
-            raise declarationException(node.getID(), declType['idType'], False, "TODO line")
+            raise declarationException(node.getID(), declType['idType'], False, node.getPosition())
 
     def visitBinaryOperationNode(self, node:BinaryOperationNode):
         exprTypeLeft = self.visit(node.left)
@@ -168,7 +165,7 @@ class SemanticVisitor(AstVisitor):
         #self.visit(node.identifier)
         # self.visit(node.argumentExpressionListNode)
         item = self.symbolTable.lookupSymbol(node.getID() + "()")
-        if item == None: raise unknownVariable(node.getID()+"()", node.getLine())
+        if item == None: raise unknownVariable(node.getID()+"()", node.getPosition(), True)
         params = item.parameters # List of parameterDeclNode
         args = node.argumentExpressionListNode.argumentExprs
         if len(params) != len(args):
@@ -199,12 +196,10 @@ class SemanticVisitor(AstVisitor):
 
     def visitIdentifierNode(self, node:IdentifierNode):
         item = self.symbolTable.lookupSymbol(node.getID())
-        if item == None: raise unknownVariable(node.getID(), node.getLine())
+        if item == None: raise unknownVariable(node.getID(), node.getPosition())
         #for expression in node.arrayExpressionList:
         #    self.visit(expression)
         return item.type
-
-
 
     def visitForwardFunctionDeclarationNode(self, node:ForwardFunctionDeclarationNode):
         # Ignore forward function declarations for now

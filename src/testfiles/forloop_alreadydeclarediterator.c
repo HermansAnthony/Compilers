@@ -4,5 +4,5 @@ int main(int a){
     for (i = 0; i < a; i++){
         counter++;
     }
-    return;
+    return 0;
 }

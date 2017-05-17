@@ -3,7 +3,7 @@ void f(float a, float b){
 }
 
 char g(){
-    char c = 'Hello world!';
+    char c = '!';
     return c;
 }
 
@@ -13,7 +13,7 @@ char g(){
 
 int main (int argc, char *argv[]) {
   f(1.0, 2.5);
-  print(g());
+  g();
 
   int ref = 1;
   int* p = &ref;

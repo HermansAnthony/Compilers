@@ -5,7 +5,7 @@ from Exceptions import *
 # TODO maybe add more error handling (ambiguity etc)
 class BasicErrorListener(ErrorListener):
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-        message = "Syntax error found on " + "line " + str(line) + ":" + str(column) + "\n" + str(msg)
+        message = "Syntax error found on " + "line " + str(line) + ", position " + str(column) + ":\n" + str(msg)
         raise syntaxException(message)
 
     def reportAmbiguity(self, recognizer, dfa, startIndex, stopIndex, exact, ambigAlts, configs):
