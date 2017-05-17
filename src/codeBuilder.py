@@ -33,6 +33,7 @@ class CodeBuilder(AstVisitor):
                 self.visit(child)        
 
     def visitFunctionDefinitionNode(self, node:FunctionDefinitionNode):
+        self.currentLabelNo = 0
         self.symbolTable.nextScope() 
         # Generate procedure label
         self.code.newline(node.getID() + ":")
@@ -170,7 +171,7 @@ class CodeBuilder(AstVisitor):
     def visitExpressionNode(self, node:ExpressionNode):
         exprType = None
         if node.isPostfix:
-            # Get the type of the identifier
+            # Put the identifier on the top of the stack
             self.visit(node.child)
             # Get the address and nesting difference of the identifier
             item = self.symbolTable.lookupSymbol(node.child.getID())
@@ -178,13 +179,11 @@ class CodeBuilder(AstVisitor):
             idType = exprType['idType']
             nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
             offset = item.address
-            # load lvalue  
-            self.code.newline("lod " + idType + " " + str(nestingDiff) + " " + str(offset))
             # Increment or decrement
             if node.operator == "++":
-                self.code.newline("inc " + idType + "1")
+                self.code.newline("inc " + idType + " 1")
             else:
-                self.code.newline("dec " + idType + "1")
+                self.code.newline("dec " + idType + " 1")
             # store lvalue
             self.code.newline("str " + idType + " " + str(nestingDiff) + " " + str(offset))
         return exprType

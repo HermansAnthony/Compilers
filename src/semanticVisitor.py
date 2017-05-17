@@ -28,8 +28,9 @@ class SemanticVisitor(AstVisitor):
         functionType = node.getType()
         if self.symbolTable.insertSymbol(functionName+"()", functionType, parameters) == None: raise declarationException(functionName, functionType, True,"TODO line")
         if functionName == "main":
-            if functionType == 'i': self.mainFunctionCorrectType = True
             self.mainFunctionFound = True
+            if functionType['idType'] == 'i': 
+                self.mainFunctionCorrectType = True
         # Visit the function body
         self.symbolTable.createScope(functionName)
         # Insert parameters into symbol table
