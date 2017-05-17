@@ -54,7 +54,7 @@ class SemanticVisitor(AstVisitor):
     def visitAssignmentNode(self, node:AssignmentNode):
         # Compare types
         item = self.symbolTable.lookupSymbol(node.getID())
-        if item == None: raise unknownVariable(node.getID(), "ADD line")
+        if item == None: raise unknownVariable(node.getID(), node.getLine())
         exprType = self.visit(node.expression)
         # *b = 5
         declType = copy.deepcopy(item.type)
@@ -162,7 +162,7 @@ class SemanticVisitor(AstVisitor):
         #self.visit(node.identifier)
         # self.visit(node.argumentExpressionListNode)
         item = self.symbolTable.lookupSymbol(node.getID() + "()")
-        if item == None: raise unknownVariable(node.getID()+"()", "ADD line")
+        if item == None: raise unknownVariable(node.getID()+"()", node.getLine())
         params = item.parameters # List of parameterDeclNode
         args = node.argumentExpressionListNode.argumentExprs
         if len(params) != len(args):
@@ -193,7 +193,7 @@ class SemanticVisitor(AstVisitor):
 
     def visitIdentifierNode(self, node:IdentifierNode):
         item = self.symbolTable.lookupSymbol(node.getID())
-        if item == None: raise unknownVariable(node.getID(), "ADD line")
+        if item == None: raise unknownVariable(node.getID(), node.getLine())
         #for expression in node.arrayExpressionList:
         #    self.visit(expression)
         return item.type
