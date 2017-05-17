@@ -71,11 +71,12 @@ class SemanticVisitor(AstVisitor):
         declType = {'idType': "b", 'refCount': 0}
         if exprType != declType:     
             raise wrongType(exprType, declType, "TODO fix line here")
-        self.visit(node.ifBody)
-        self.visit(node.elseBody)
+        for declStat in node.ifBody:
+            self.visit(declStat)
+        for declStat in node.elseBody:
+            self.visit(declStat)
 
     def visitIterationStatementNode(self, node:IterationStatementNode):
-        self.statementName = statementName
         if node.statementName == "While":
             # Check if while expression is boolean
             exprType = self.visit(node.left)
@@ -83,7 +84,8 @@ class SemanticVisitor(AstVisitor):
             if exprType != declType:     
                 raise wrongType(exprType, declType, "TODO fix line here")
             # visit function body
-            self.visit(node.right)
+            for declStat in node.right:
+                self.visit(declStat)
 
     def visitReturnNode(self, node:ReturnNode):
         if node.expressionNode:
@@ -129,7 +131,7 @@ class SemanticVisitor(AstVisitor):
             
     def visitExpressionNode(self, node:ExpressionNode):
         exprType = None
-        if self.isPostfix():
+        if node.isPostfix:
             # Id++ or Id-- works for all types except for char
             # Get the type of the identifier
             exprType = self.visit(node.child)
