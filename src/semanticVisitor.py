@@ -49,6 +49,11 @@ class SemanticVisitor(AstVisitor):
                 return
 
     def visitParameterDeclarationNode(self, node:ParameterDeclarationNode):
+        identifier = node.declarator
+        exprList = identifier.arrayExpressionList
+        if len(exprList) != 0 and len(exprList) != 1:
+            # Raise exception int main(a[5][5]), one dimensional arrays only for now 
+            pass 
         if self.symbolTable.insertSymbol(node.getID(), node.getType()) == None:
             raise declarationException(node.getID(), node.getType(), False, "TODO line")
 
