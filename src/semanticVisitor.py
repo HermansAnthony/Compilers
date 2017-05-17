@@ -23,8 +23,7 @@ class SemanticVisitor(AstVisitor):
             parameters = node.parameterList.getParams()
         functionName = node.getID()
         functionType = node.getType()
-        self.symbolTable.insertSymbol(functionName+"()", 
-            functionType, parameters)
+        if self.symbolTable.insertSymbol(functionName+"()", functionType, parameters) == None: raise declarationException(functionName, functionType, True,"TODO line")
         if functionName == "main":
             self.mainFunctionFound = True
         # Visit the function body
@@ -45,11 +44,13 @@ class SemanticVisitor(AstVisitor):
                 return
 
     def visitParameterDeclarationNode(self, node:ParameterDeclarationNode):
-        self.symbolTable.insertSymbol(node.getID(), node.getType())
+        if self.symbolTable.insertSymbol(node.getID(), node.getType()) == None:
+            raise declarationException(node.getID(), node.getType(), False, "TODO line")
 
     def visitAssignmentNode(self, node:AssignmentNode):
         # Compare types
         item = self.symbolTable.lookupSymbol(node.getID())
+        if item == None: raise unknownVariable(node.getID(), "ADD line")
         exprType = self.visit(node.expression)
         # *b = 5
         declType = copy.deepcopy(item.type)
@@ -93,7 +94,9 @@ class SemanticVisitor(AstVisitor):
         declType = node.getType()
         if exprType != declType:     
             raise wrongType(exprType, declType, "TODO fix line here")
-        self.symbolTable.insertSymbol(node.getID(), declType)
+
+        if self.symbolTable.insertSymbol(node.getID(), declType) == None:
+            raise declarationException(node.getID(), declType['idType'], False, "TODO line")
 
     def visitBinaryOperationNode(self, node:BinaryOperationNode):
         exprTypeLeft = self.visit(node.left)
@@ -104,8 +107,7 @@ class SemanticVisitor(AstVisitor):
         typeLeft = exprTypeLeft['idType']
         typeRight = exprTypeRight['idType']
         if typeLeft != typeRight:
-            # TODO maybe more operations than only add?
-            raise wrongType(typeLeft, "add", "TODO fix line here", typeRight)
+            raise wrongOperation("add/subtract/mul or div", typeLeft, "TODO fix line here", typeRight)
         return typeLeft
             
     def visitExpressionNode(self, node:ExpressionNode):
@@ -121,6 +123,7 @@ class SemanticVisitor(AstVisitor):
 
     def visitDereferenceExpressionNode(self, node:DereferenceExpressionNode):
         item = self.symbolTable.lookupSymbol(node.child.getID())
+        if item == None: raise unknownVariable(node.child.getID(), "ADD line")
         if item.type['refCount'] < node.derefCount:
             raise deReference("TODO add line")
         # Decrease the reference count of the exprType
@@ -130,6 +133,7 @@ class SemanticVisitor(AstVisitor):
 
     def visitReferenceExpressionNode(self, node:ReferenceExpressionNode):
         item = self.symbolTable.lookupSymbol(node.child.getID())
+        if item == None: raise unknownVariable(node.child.getID(), "ADD line")
         # Increase the reference count of the exprType
         exprType = copy.deepcopy(item.type)
         exprType['refCount'] += 1
@@ -137,8 +141,9 @@ class SemanticVisitor(AstVisitor):
 
     def visitFunctionCallNode(self, node:FunctionCallNode):
         #self.visit(node.identifier)
-        # self.visit(node.argumentExpressionListNode)  
-        item = self.symbolTable.lookupSymbol(node.getID()+"()")
+        # self.visit(node.argumentExpressionListNode)
+        item = self.symbolTable.lookupSymbol(node.getID() + "()")
+        if item == None: raise unknownVariable(node.getID()+"()", "ADD line")
         params = item.parameters # List of parameterDeclNode
         args = node.argumentExpressionListNode.argumentExprs
         if len(params) != len(args):
@@ -151,7 +156,8 @@ class SemanticVisitor(AstVisitor):
         return item.type
 
     def visitParameterDeclarationNode(self, node:ParameterDeclarationNode):
-        self.symbolTable.insertSymbol(node.getID(), node.getType())
+        if self.symbolTable.insertSymbol(node.getID(), node.getType()) == None:
+            raise declarationException(node.getID(), node.getType(), False, "TODO line")
         # Check if type is array to increase size     
 
     def visitIntegerConstantNode(self, node:IntegerConstantNode):
@@ -168,6 +174,7 @@ class SemanticVisitor(AstVisitor):
 
     def visitIdentifierNode(self, node:IdentifierNode):
         item = self.symbolTable.lookupSymbol(node.getID())
+        if item == None: raise unknownVariable(node.getID(), "ADD line")
         #for expression in node.arrayExpressionList:
         #    self.visit(expression)
         return item.type

@@ -1,7 +1,5 @@
 # Symbol table for the compiler
 # Based on http://www.newagepublishers.com/samplechapter/001679.pdf
-from Exceptions import semanticException
-
 class simpleElement:
     def __init__(self, type, address, nestingDepth):
         self.type = type
@@ -42,13 +40,10 @@ class symbolTableLocal:
 
     # Insert a key in the symbol table
     def insertSymbol(self, key, type):
-        newItem = None
-        if key in self.table:
-            print("Duplicate declaration for ", key)
-        else:
-            newItem = simpleElement(type, self.currentOffset, self.getNestingDepth())
-            self.currentOffset += 1
-            self.table[key] = newItem
+        if key in self.table: return None
+        newItem = simpleElement(type, self.currentOffset, self.getNestingDepth())
+        self.currentOffset += 1
+        self.table[key] = newItem
         return newItem
 
     # Lookup a key in the table if it is present
@@ -101,9 +96,7 @@ class generalSymbolTable:
     # Insert a symbol depending on the current scope
     def insertSymbol(self, key, type, params=None):
         if self.presentScope == -1:
-            if key in self.globalScope:
-                msg = "Variable " + str(key) + " is already declared (" + str(self.globalScope[key]) + ")"
-                raise semanticException(msg)
+            if key in self.globalScope: return None
             newItem = None
             if params: 
                 # Function declaration
@@ -122,10 +115,7 @@ class generalSymbolTable:
         if self.presentScope != -1:
             if self.localScope[self.presentScope].lookupSymbol(key) != None:
                 return self.localScope[self.presentScope].lookupSymbol(key)           
-        if key not in self.globalScope: 
-            print("Key ", key, " not found in the symbol table")
-            # TODO raise semantic error
-            return None
+        if key not in self.globalScope: return None
         return self.globalScope[key]
 
     # Get the current nesting depth

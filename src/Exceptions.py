@@ -1,15 +1,41 @@
+def getType(type):
+    if type == 'c': return "char"
+    if type == 'i': return "integer"
+    if type == 'f' or type == 'r': return "float"
+    if type == 'v': return "void"
+    return type
+
 # All semantic related exceptions
 class semanticException(Exception):
-    def __init__(self, message=None):
-        self.message = message
+    pass
+
+# Variable has already been declared
+class declarationException(semanticException):
+    def __init__(self, name, type, function, line):
+        self.variableName = name
+        self.isFunction = function
+        self.type = type
+        self.line = line
 
     def __str__(self):
-        return "Semantic error: " + str(self.message)
+        var = "Variable"
+        if self.isFunction: var = "Function"
+        return  "Semantic error occurred on line " + str(self.line) + ": "+ var + " "\
+                + str(self.variableName) + " is already declared as " + getType(self.type)
+
+class unknownVariable(semanticException):
+    def __init__(self, name, line=""):
+        self.variableName = name
+        self.line = line
+
+    def __str__(self):
+        return  "Semantic error occurred on line " + str(self.line) + ": Variable "\
+                + str(self.variableName) + " is not found."
 
 # Main function is not found
 class mainException(semanticException):
     def __str__(self):
-        return "Error occurred: Main function not found."
+        return "Semantic error occurred: Main function not found."
 
 # The type and the expr type mismatch
 class wrongType(semanticException):
@@ -36,14 +62,14 @@ class wrongReturnType(semanticException):
         return returnValue
 
 # Exception that will be throwed when you dereference too many times
-def deReference(semanticException):
+class deReference(semanticException):
     def __init__(self, line):
         self.line = line
 
     def __str__(self):
         return "Dereference error occurred on line " + str(self.line) + ": too many dereferences in assignment"
 
-def wrongOperation(semanticException):
+class wrongOperation(semanticException):
     def __init__(self, operations, operand, line, secondOperand=""):
         self.operations = operations
         self.operand = operand
@@ -51,11 +77,11 @@ def wrongOperation(semanticException):
         self.line = line
 
     def __str__(self):
-        returnValue = "Semantic error occurred on line " + str(self.line) + ": not possible to " + str(self.operations) + " on " + str(self.operand)
-        if self.secondOperand != "": returnValue += " and " + str(self.secondOperand)
+        returnValue = "Semantic error occurred on line " + str(self.line) + ": not possible to " + str(self.operations) + " on " + str(getType(self.operand))
+        if self.secondOperand != "": returnValue += " and " + str(getType(self.secondOperand))
         return returnValue
 
-def incrementError(semanticExceptions):
+class incrementError(semanticException):
     def __init__(self, operand, line):
         self.operand = operand
         self.line = line
@@ -64,7 +90,7 @@ def incrementError(semanticExceptions):
         return "Semantic error occurred on line " + str(self.line)+\
                ": Impossible to increment/decrement a variable of type " + str(self.operand)
 
-def parameterError(semanticExceptions):
+class parameterError(semanticException):
     def __init__(self, givenParamCount, expectedParamCount, line):
         self.currentParamCount = givenParamCount
         self.correctParamCount = expectedParamCount
@@ -74,7 +100,7 @@ def parameterError(semanticExceptions):
         return "Semantic error occurred on line " + str(self.line) + ": expected " + str(self.correctParamCount)\
                + " arguments but " + str(self.currentParamCount) + " were given"
 
-def parameterTypeError(semanticExceptions):
+class parameterTypeError(semanticException):
     def __init__(self, currentType, correctType, line):
         self.currentType = currentType
         self.correctType = correctType
