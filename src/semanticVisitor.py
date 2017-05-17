@@ -8,12 +8,15 @@ class SemanticVisitor(AstVisitor):
     def __init__(self, table):
         self.symbolTable = table
         self.mainFunctionFound = False
+        self.mainFunctionCorrectType = False
 
     def visitProgramNode(self, node:ProgramNode):
         for child in node.children:
             self.visit(child)
         if not self.mainFunctionFound:
             raise mainException()
+        if not self.mainFunctionCorrectType:
+            raise mainTypeException()
         self.symbolTable.resetScopeCounter()
 
     def visitFunctionDefinitionNode(self, node:FunctionDefinitionNode):
@@ -25,6 +28,7 @@ class SemanticVisitor(AstVisitor):
         functionType = node.getType()
         if self.symbolTable.insertSymbol(functionName+"()", functionType, parameters) == None: raise declarationException(functionName, functionType, True,"TODO line")
         if functionName == "main":
+            if functionType == 'i': self.mainFunctionCorrectType = True
             self.mainFunctionFound = True
         # Visit the function body
         self.symbolTable.createScope(functionName)
@@ -116,8 +120,7 @@ class SemanticVisitor(AstVisitor):
                 raise wrongOperation("&& and ||", 
                     typeLeft, "TODO fix line here", typeRight)
             if typeLeft != typeRight:
-                # TODO adjusts message: ==, !=, <, >, <=, >=, ||, && also works here!
-                raise wrongOperation("add/subtract/mul or div", 
+                raise wrongOperation(str(node.operator),
                     typeLeft, "TODO fix line here", typeRight)
         if (node.operator != "+" and node.operator != "-" 
             and node.operator != "*" and node.operator != "/"):
