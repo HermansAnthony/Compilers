@@ -37,6 +37,11 @@ class mainException(semanticException):
     def __str__(self):
         return "Semantic error occurred: Main function not found."
 
+# Main function is not found
+class mainTypeException(semanticException):
+    def __str__(self):
+        return "Semantic error occurred: Main function must return int."
+
 # The type and the expr type mismatch
 class wrongType(semanticException):
     def __init__(self, type, correctType, line):
@@ -67,7 +72,7 @@ class deReference(semanticException):
         self.line = line
 
     def __str__(self):
-        return "Dereference error occurred on line " + str(self.line) + ": too many dereferences in assignment"
+        return "Dereference error occurred on line " + str(self.line) + ": Too many dereferences in assignment"
 
 class wrongOperation(semanticException):
     def __init__(self, operations, operand, line, secondOperand=""):
@@ -77,7 +82,7 @@ class wrongOperation(semanticException):
         self.line = line
 
     def __str__(self):
-        returnValue = "Semantic error occurred on line " + str(self.line) + ": not possible to " + str(self.operations) + " on " + str(getType(self.operand))
+        returnValue = "Semantic error occurred on line " + str(self.line) + ": Not possible to " + str(self.operations) + " on " + str(getType(self.operand))
         if self.secondOperand != "": returnValue += " and " + str(getType(self.secondOperand))
         return returnValue
 
@@ -97,7 +102,7 @@ class parameterError(semanticException):
         self.line = line
 
     def __str__(self):
-        return "Semantic error occurred on line " + str(self.line) + ": expected " + str(self.correctParamCount)\
+        return "Semantic error occurred on line " + str(self.line) + ": Expected " + str(self.correctParamCount)\
                + " arguments but " + str(self.currentParamCount) + " were given"
 
 class parameterTypeError(semanticException):
@@ -107,7 +112,7 @@ class parameterTypeError(semanticException):
         self.line = line
 
     def __str__(self):
-        return "Semantic error occurred on line " + str(self.line) + ": expected argument of type " + str(self.correctType) \
+        return "Semantic error occurred on line " + str(self.line) + ": Expected argument of type " + str(self.correctType) \
                + " but received argument of type " + str(self.currentType)
 
 # All antlr related errors
