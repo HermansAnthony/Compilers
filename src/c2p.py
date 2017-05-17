@@ -35,6 +35,7 @@ def main(argv):
         symbolTable = generalSymbolTable()
         semanticVisitor = SemanticVisitor(symbolTable)
         semanticVisitor.visit(ast)
+        print(symbolTable)
         # Code generation
         codeBuilder = CodeBuilder(symbolTable)
         codeBuilder.visit(ast)

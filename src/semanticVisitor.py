@@ -1,5 +1,6 @@
 from astVisitor import AstVisitor
 from astNode import *
+from Exceptions import *
 import copy
 
 # Overloaded Ast Visitor for semantic analysis.
@@ -12,8 +13,7 @@ class SemanticVisitor(AstVisitor):
         for child in node.children:
             self.visit(child)
         if not self.mainFunctionFound:
-            # TODO use an actual error
-            print("Error: Main function not found")            
+            raise mainException()
         self.symbolTable.resetScopeCounter()
 
     def visitFunctionDefinitionNode(self, node:FunctionDefinitionNode):
@@ -27,7 +27,7 @@ class SemanticVisitor(AstVisitor):
             functionType, parameters)
         if functionName == "main":
             self.mainFunctionFound = True
-        # Visit the functionbody
+        # Visit the function body
         self.symbolTable.createScope()
         # Insert parameters into symbol table
         if node.parameterList:
@@ -40,9 +40,9 @@ class SemanticVisitor(AstVisitor):
             if retType and 'returnStat' in retType:
                 retType.pop('returnStat')
                 if retType  != functionType:
-                    # TODO use an actual error
-                    print("Semantic error: retType and functionType don't match")
-                return                           
+                    # TODO Fix this so the error can occur
+                    raise wrongReturnType(retType, functionType, "TODO add line here")
+                return
 
     def visitParameterDeclarationNode(self, node:ParameterDeclarationNode):
         self.symbolTable.insertSymbol(node.getID(), node.getType())
@@ -56,13 +56,9 @@ class SemanticVisitor(AstVisitor):
         if node.dereferenceCount > 0:
             declType['refCount'] -= node.dereferenceCount
         if declType['refCount'] < 0:
-            # TODO use an actual error
-            print("Semantic error: too many dereferences in assignment")
-            return 
-        if exprType != declType:   
-            # TODO use an actual error
-            print("Semantic error: declType and exprType don't match")
-            return    
+            raise deReference("TODO add line")
+        if exprType != declType:
+            raise wrongType(exprType, declType, "TODO add line")
 
     def visitIfStatementNode(self, node:IfStatementNode):
         self.visit(node.condition)
@@ -96,9 +92,7 @@ class SemanticVisitor(AstVisitor):
         exprType = self.visit(node.expression)
         declType = node.getType()
         if exprType != declType:     
-            # TODO use an actual error
-            print("Semantic error: declType and exprType don't match")
-            return
+            raise wrongType(exprType, declType, "TODO fix line here")
         self.symbolTable.insertSymbol(node.getID(), declType)
 
     def visitBinaryOperationNode(self, node:BinaryOperationNode):
@@ -106,15 +100,12 @@ class SemanticVisitor(AstVisitor):
         exprTypeRight = self.visit(node.right)
         if (exprTypeRight['refCount'] > 0 or
             exprTypeLeft['refCount'] > 0):
-            # TODO use an actual error
-            print("Semantic Error: cannot add/subtract/mul or div an address") 
-            return
+            raise wrongOperation("add/subtract/mul or div", "an address", "TODO line")
         typeLeft = exprTypeLeft['idType']
         typeRight = exprTypeRight['idType']
         if typeLeft != typeRight:
-            # TODO use an actual error
-            print("Semantic Error: cannot add " + typeLeft + " and " + typeRight)
-            return
+            # TODO maybe more operations than only add?
+            raise wrongType(typeLeft, "add", "TODO fix line here", typeRight)
         return typeLeft
             
     def visitExpressionNode(self, node:ExpressionNode):
@@ -125,16 +116,13 @@ class SemanticVisitor(AstVisitor):
             exprType = self.visit(node.child)
             if exprType['idType'] == "c" and exprType['refCount'] == 0:
                 # TODO use an actual error
-                print("Semantic Error: cannot increment/decrement character")
-                return
+                raise incrementError(exprType['idType'],"TODO add line")
         return exprType
 
     def visitDereferenceExpressionNode(self, node:DereferenceExpressionNode):
         item = self.symbolTable.lookupSymbol(node.child.getID())
         if item.type['refCount'] < node.derefCount:
-            # TODO Raise too many dereferences error
-            print("Semantic Error: Too many dereferences")
-            return 
+            raise deReference("TODO add line")
         # Decrease the reference count of the exprType
         exprType = copy.deepcopy(item.type)
         exprType['refCount'] -= node.derefCount
@@ -154,18 +142,12 @@ class SemanticVisitor(AstVisitor):
         params = item.parameters # List of parameterDeclNode
         args = node.argumentExpressionListNode.argumentExprs
         if len(params) != len(args):
-            # TODO use an actual error
-            print("Semantic Error: expected " + len(params) + " arguments but "
-                + len(args) + " were given.")
-            return 
+            raise parameterError(len(args), len(params), "TODO add line")
         for i in range(len(params)):
             paramType = params[i].getType()
             argType = self.visit(args[i])
             if argType != paramType:
-                 # TODO use an actual error
-                print("Semantic Error: expected argument of type "
-                    + paramType + " but received " + argType)
-                return                
+                 raise parameterTypeError(argType, paramType, "TODO add line")
         return item.type
 
     def visitParameterDeclarationNode(self, node:ParameterDeclarationNode):
