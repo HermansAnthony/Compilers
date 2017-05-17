@@ -27,7 +27,7 @@ class SemanticVisitor(AstVisitor):
         if functionName == "main":
             self.mainFunctionFound = True
         # Visit the function body
-        self.symbolTable.createScope()
+        self.symbolTable.createScope(functionName)
         # Insert parameters into symbol table
         if node.parameterList:
             for paramDecl in node.parameterList.paramDecls:
@@ -62,18 +62,23 @@ class SemanticVisitor(AstVisitor):
             raise wrongType(exprType, declType, "TODO add line")
 
     def visitIfStatementNode(self, node:IfStatementNode):
-        self.visit(node.condition)
+        # Check if expression is boolean
+        exprType = self.visit(node.condition)
+        declType = {'idType': "b", 'refCount': 0}
+        if exprType != declType:     
+            raise wrongType(exprType, declType, "TODO fix line here")
         self.visit(node.ifBody)
         self.visit(node.elseBody)
 
     def visitIterationStatementNode(self, node:IterationStatementNode):
-        if self.left:
-            self.visit(node.left)
-        if self.middle1:
-            self.visit(node.middle1)
-        if self.middle2:
-            self.visit(node.middle2)
-        if self.right:
+        self.statementName = statementName
+        if node.statementName == "While":
+            # Check if while expression is boolean
+            exprType = self.visit(node.left)
+            declType = {'idType': "b", 'refCount': 0}
+            if exprType != declType:     
+                raise wrongType(exprType, declType, "TODO fix line here")
+            # visit function body
             self.visit(node.right)
 
     def visitReturnNode(self, node:ReturnNode):
@@ -94,7 +99,6 @@ class SemanticVisitor(AstVisitor):
         declType = node.getType()
         if exprType != declType:     
             raise wrongType(exprType, declType, "TODO fix line here")
-
         if self.symbolTable.insertSymbol(node.getID(), declType) == None:
             raise declarationException(node.getID(), declType['idType'], False, "TODO line")
 
@@ -106,8 +110,18 @@ class SemanticVisitor(AstVisitor):
             raise wrongOperation("add/subtract/mul or div", "an address", "TODO line")
         typeLeft = exprTypeLeft['idType']
         typeRight = exprTypeRight['idType']
-        if typeLeft != typeRight:
-            raise wrongOperation("add/subtract/mul or div", typeLeft, "TODO fix line here", typeRight)
+        if (node.operator == "&&" and node.operator == "||"):
+            if typeLeft == {'idType': "b", 'refCount': 0}:
+                # TODO && and || do not have a boolean type
+                raise wrongOperation("&& and ||", 
+                    typeLeft, "TODO fix line here", typeRight)
+            if typeLeft != typeRight:
+                # TODO adjusts message: ==, !=, <, >, <=, >=, ||, && also works here!
+                raise wrongOperation("add/subtract/mul or div", 
+                    typeLeft, "TODO fix line here", typeRight)
+        if (node.operator != "+" and node.operator != "-" 
+            and node.operator != "*" and node.operator != "/"):
+            typeLeft = {'idType': "b", 'refCount': 0}
         return typeLeft
             
     def visitExpressionNode(self, node:ExpressionNode):

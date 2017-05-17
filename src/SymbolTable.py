@@ -25,7 +25,7 @@ class functionElement:
 
 class symbolTableLocal:
     """ Symbol table for a local scope / block"""
-    def __init__(self):
+    def __init__(self, functionName):
         self.table = dict()
         # Offset starts at 5 because of organizational cells
         self.currentOffset = 5
@@ -33,6 +33,8 @@ class symbolTableLocal:
         self.currentEP = 0
         # Maximum extreme stack pointer
         self.maxEP = 2
+        # Name corresponding to local table
+        self.functionName = functionName
 
     # Return the symbol table in a readable format
     def __str__(self):
@@ -68,6 +70,9 @@ class symbolTableLocal:
     def getMaxEP(self):
         return self.maxEP
 
+    def getFunctionName(self):
+        return self.functionName
+
 class generalSymbolTable:
     """ Symbol table for the general program (global and local scopes)"""
     def __init__(self):
@@ -84,8 +89,8 @@ class generalSymbolTable:
         return returnValue
 
     # Begin a new scope
-    def createScope(self):
-        newScope = symbolTableLocal()
+    def createScope(self, functionName):
+        newScope = symbolTableLocal(functionName)
         self.localScope.append(newScope)
         self.presentScope += 1
 
@@ -140,4 +145,9 @@ class generalSymbolTable:
 
     def resetScopeCounter(self):
         self.presentScope = -1
+
+    def getFunctionName(self):
+        if self.presentScope != -1:
+            return self.localScope[self.presentScope].getFunctionName()     
+        return ""
 

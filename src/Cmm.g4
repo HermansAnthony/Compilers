@@ -99,7 +99,7 @@ arrayExpression
 ;
 
 binaryOperator
-    : OrOr | AndAnd | Or | Caret | And | Equal | NotEqual | Less | Greater | LessEqual | GreaterEqual | Plus | Minus | Star | Div
+    : OrOr | AndAnd | Equal | NotEqual | Less | Greater | LessEqual | GreaterEqual | Plus | Minus | Star | Div
 ;
 
 argumentExpressionList

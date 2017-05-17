@@ -328,7 +328,7 @@ class DereferenceExpressionNode(ASTNode):
         currentNode = counter()
         returnValue = currentNode + ';\n'
         label = "DerefExpression:\n"
-        label += str(self.pointerCount) + ' dereferences'
+        label += str(self.derefCount) + ' dereferences'
         returnValue += currentNode + ' [ label = "' + label + '"];\n'
         returnValue += currentNode + '->' + str(self.child)
         return returnValue    

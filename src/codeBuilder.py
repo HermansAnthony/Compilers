@@ -14,8 +14,8 @@ class CodeBuilder(AstVisitor):
         self.symbolTable = table
         # Intermediate code being generated
         self.code = Code()
-        # Function body intermediate code
-        self.functionBodyCode = None
+        # Label tracker for unique labels
+        self.currentLabelNo = 0
 
     def visitProgramNode(self, node:ProgramNode):
         # All global variable function declarations first
@@ -62,9 +62,9 @@ class CodeBuilder(AstVisitor):
             # **c = 5
             if declType['refCount'] > node.dereferenceCount:
                 idType = "a"
-            # Put the global address of the identifier on the top of the stack
-            self.code.newline("lda " + nestingDiff + " " + offset)
-            for i in range(node.dereferenceCount):
+            # Put the identifier on top of the stack
+            self.visit(node.identifier)
+            for i in range(node.dereferenceCount-1):
                 # Take the value at the address that is on the top of the stack
                 self.code.newline("ind a")
             # Generate expression
@@ -82,18 +82,29 @@ class CodeBuilder(AstVisitor):
 
     def visitIfStatementNode(self, node:IfStatementNode):
         self.visit(node.condition)
+        label1 = self.symbolTable.getFunctionName() + str(self.currentLabelNo)
+        label2 = self.symbolTable.getFunctionName() + str(self.currentLabelNo+1)
+        self.currentLabelNo += 2
+        self.code.newline("fjp " + label1)
         self.visit(node.ifBody)
+        self.code.newline("ujp " + label2)
+        self.code.newline(label1 + ":")
         self.visit(node.elseBody)
+        self.code.newline(label2 + ":")
 
     def visitIterationStatementNode(self, node:IterationStatementNode):
-        if self.left:
+        self.statementName = statementName
+        if node.statementName == "While":
+            # l1: e, fjp l2, body, ujp l1, l2:   
+            label1 = self.symbolTable.getFunctionName() + str(self.currentLabelNo)
+            label2 = self.symbolTable.getFunctionName() + str(self.currentLabelNo+1)
+            self.currentLabelNo += 2  
+            self.code.newline(label1 + ":")
             self.visit(node.left)
-        if self.middle1:
-            self.visit(node.middle1)
-        if self.middle2:
-            self.visit(node.middle2)
-        if self.right:
+            self.code.newline("fjp " + label2)
             self.visit(node.right)
+            self.code.newline("ujp " + label1)
+            self.code.newline(label2 + ":")
 
     def visitReturnNode(self, node:ReturnNode):
         if node.expressionNode:
@@ -128,18 +139,31 @@ class CodeBuilder(AstVisitor):
         exprLeft = self.visit(node.left)
         self.visit(node.right)
         typeLeft = exprLeft['idType']
-        # Currently add, minus, mul, div only
-        if (node.operator != "+" and node.operator != "-" 
-            and node.operator != "*" and node.operator != "/"):
-            return
-        if node.operator == "+":
-            self.code.newline("add " + typeLeft)   
-        elif node.operator == "-":
-            self.code.newline("sub " + typeLeft)
-        elif node.operator == "*":  
-            self.code.newline("mul " + typeLeft) 
-        elif node.operator == "/":  
-            self.code.newline("div " + typeLeft) 
+        if (node.operator != "&&" and node.operator != "||"):
+            if node.operator == "+":
+                self.code.newline("add " + typeLeft)   
+            elif node.operator == "-":
+                self.code.newline("sub " + typeLeft)
+            elif node.operator == "*":  
+                self.code.newline("mul " + typeLeft) 
+            elif node.operator == "/":  
+                self.code.newline("div " + typeLeft) 
+            elif node.operator == "==":  
+                self.code.newline("equ " + typeLeft) 
+            elif node.operator == "!=":  
+                self.code.newline("neq " + typeLeft) 
+            elif node.operator == "<":  
+                self.code.newline("les " + typeLeft) 
+            elif node.operator == ">":  
+                self.code.newline("grt " + typeLeft) 
+            elif node.operator == "<=":  
+                self.code.newline("leq " + typeLeft) 
+            elif node.operator == ">=":  
+                self.code.newline("geq " + typeLeft)
+            elif node.operator == "&&":  
+                self.code.newline("and")
+            elif node.operator == "||":  
+                self.code.newline("or")
         return typeLeft
             
     def visitExpressionNode(self, node:ExpressionNode):
@@ -165,7 +189,6 @@ class CodeBuilder(AstVisitor):
         return exprType
 
     def visitDereferenceExpressionNode(self, node:DereferenceExpressionNode):
-        # Rule: Star+ expression
         # int *a = *b
         # int a = ***b + 3
         # int a = *b[2] + 3
@@ -173,9 +196,10 @@ class CodeBuilder(AstVisitor):
         idType = "a"
         if item.type['refCount'] == node.derefCount:
             idType = item.type['idType']
+        nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
         offset = item.address
-        # Put the global address of the identifier on the top of the stack
-        self.code.newline("lda " + str(nestingDiff) + " " + str(offset))
+        # Put the identifier on top of the stack
+        self.visit(node.child)
         for i in range(node.derefCount-1):
             # Take the value at the address that is on the top of the stack
             self.code.newline("ind a")
@@ -190,6 +214,8 @@ class CodeBuilder(AstVisitor):
         # int *a = &b[1] + 3
         # Put the global address of the identifier on the top of the stack
         item = self.symbolTable.lookupSymbol(node.child.getID())
+        nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
+        offset = item.address
         self.code.newline("lda " + str(nestingDiff) + " " + str(offset))
         # Increase the reference count of the exprType
         exprType = copy.deepcopy(item.type)
