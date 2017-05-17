@@ -86,14 +86,15 @@ class CodeBuilder(AstVisitor):
         label2 = self.symbolTable.getFunctionName() + str(self.currentLabelNo+1)
         self.currentLabelNo += 2
         self.code.newline("fjp " + label1)
-        self.visit(node.ifBody)
+        for declStat in node.ifBody:
+            self.visit(declStat)
         self.code.newline("ujp " + label2)
         self.code.newline(label1 + ":")
-        self.visit(node.elseBody)
+        for declStat in node.elseBody:
+            self.visit(declStat)
         self.code.newline(label2 + ":")
 
     def visitIterationStatementNode(self, node:IterationStatementNode):
-        self.statementName = statementName
         if node.statementName == "While":
             # l1: e, fjp l2, body, ujp l1, l2:   
             label1 = self.symbolTable.getFunctionName() + str(self.currentLabelNo)
@@ -102,7 +103,8 @@ class CodeBuilder(AstVisitor):
             self.code.newline(label1 + ":")
             self.visit(node.left)
             self.code.newline("fjp " + label2)
-            self.visit(node.right)
+            for declStat in node.right:
+                self.visit(declStat)
             self.code.newline("ujp " + label1)
             self.code.newline(label2 + ":")
 
@@ -139,36 +141,35 @@ class CodeBuilder(AstVisitor):
         exprLeft = self.visit(node.left)
         self.visit(node.right)
         typeLeft = exprLeft['idType']
-        if (node.operator != "&&" and node.operator != "||"):
-            if node.operator == "+":
-                self.code.newline("add " + typeLeft)   
-            elif node.operator == "-":
-                self.code.newline("sub " + typeLeft)
-            elif node.operator == "*":  
-                self.code.newline("mul " + typeLeft) 
-            elif node.operator == "/":  
-                self.code.newline("div " + typeLeft) 
-            elif node.operator == "==":  
-                self.code.newline("equ " + typeLeft) 
-            elif node.operator == "!=":  
-                self.code.newline("neq " + typeLeft) 
-            elif node.operator == "<":  
-                self.code.newline("les " + typeLeft) 
-            elif node.operator == ">":  
-                self.code.newline("grt " + typeLeft) 
-            elif node.operator == "<=":  
-                self.code.newline("leq " + typeLeft) 
-            elif node.operator == ">=":  
-                self.code.newline("geq " + typeLeft)
-            elif node.operator == "&&":  
-                self.code.newline("and")
-            elif node.operator == "||":  
-                self.code.newline("or")
+        if node.operator == "+":
+            self.code.newline("add " + typeLeft)   
+        elif node.operator == "-":
+            self.code.newline("sub " + typeLeft)
+        elif node.operator == "*":  
+            self.code.newline("mul " + typeLeft) 
+        elif node.operator == "/":  
+            self.code.newline("div " + typeLeft) 
+        elif node.operator == "==":  
+            self.code.newline("equ " + typeLeft) 
+        elif node.operator == "!=":  
+            self.code.newline("neq " + typeLeft) 
+        elif node.operator == "<":  
+            self.code.newline("les " + typeLeft) 
+        elif node.operator == ">":  
+            self.code.newline("grt " + typeLeft) 
+        elif node.operator == "<=":  
+            self.code.newline("leq " + typeLeft) 
+        elif node.operator == ">=":  
+            self.code.newline("geq " + typeLeft)
+        elif node.operator == "&&":  
+            self.code.newline("and")
+        elif node.operator == "||":  
+            self.code.newline("or")
         return typeLeft
             
     def visitExpressionNode(self, node:ExpressionNode):
         exprType = None
-        if self.isPostfix():
+        if node.isPostfix:
             # Get the type of the identifier
             self.visit(node.child)
             # Get the address and nesting difference of the identifier
