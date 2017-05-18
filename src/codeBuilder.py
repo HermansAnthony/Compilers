@@ -18,7 +18,17 @@ class CodeBuilder(AstVisitor):
         self.currentLabelNo = 0
 
     def visitProgramNode(self, node:ProgramNode):
-        # All global variable function declarations first
+        # Set the extreme stack pointer for the program itself
+        staticDataLength = 0
+        for child in node.children:
+            if type(child) == DeclarationNode:
+                exprList = child.identifier.arrayExpressionList
+                idSize = 1
+                if len(exprList) == 1:
+                    idSize = int(exprList[0].value)
+                staticDataLength += idSize
+        self.code.newline("sep " + str(staticDataLength))
+        # All global variable declarations first
         for child in node.children:
             if type(child) == DeclarationNode:
                 self.visit(child)
@@ -56,7 +66,7 @@ class CodeBuilder(AstVisitor):
         # Implicit return statement      
         self.code.newline("retp")   
 
-    def visitParameterList(self, node:ParameterListNode):
+    def visitParameterListNode(self, node:ParameterListNode):
         paramDataSize = 0
         for paramDecl in node.paramDecls:
             paramDataSize += self.visit(paramDecl)
@@ -67,7 +77,7 @@ class CodeBuilder(AstVisitor):
         exprList = identifier.arrayExpressionList
         if len(exprList) == 1:
             # Return the size of the array
-            return exprList[0] 
+            return int(exprList[0].value)
         # All basic types have size 1
         return 1
 
@@ -150,20 +160,23 @@ class CodeBuilder(AstVisitor):
         idType = item.type['idType']
         if item.type['refCount'] != 0:
             idType = "a"
+        postFix = ""
+        if idType == "r":
+            postFix = ".0"
         idExprList = node.identifier.arrayExpressionList
         if not node.expression:
             # Implicit initialization
             if len(idExprList) > 0:
                 # Array declaration
                 for i in range(int(idExprList[0].value)):
-                    self.code.newline("ldc " + idType + " 0")
+                    self.code.newline("ldc " + idType + " 0" + postFix)
                     if curNestingDepth != 0:
                         self.code.newline("str " + idType + " " 
                             + str(nestingDiff) + " " + str(offset))
                     offset += 1
             else:
                 # Variable declaration
-                self.code.newline("ldc " + idType + " 0")    
+                self.code.newline("ldc " + idType + " 0" + postFix)    
                 if curNestingDepth != 0:       
                     self.code.newline("str " + idType + " " +
                         str(nestingDiff) + " " + str(offset))
@@ -180,7 +193,7 @@ class CodeBuilder(AstVisitor):
                 offset += 1 
             for i in range(int(idExprList[0].value) - len(initExprList)):
                 # Initialize the rest as 0
-                self.code.newline("ldc " + idType + " 0")
+                self.code.newline("ldc " + idType + " 0" + postFix)
                 if curNestingDepth != 0:
                     self.code.newline("str " + idType + " " 
                         + str(nestingDiff) + " " + str(offset))
@@ -286,17 +299,30 @@ class CodeBuilder(AstVisitor):
         argLength = self.visit(node.argumentExpressionListNode)
         # Call user procedure
         self.code.newline("cup " + str(argLength) + " " + node.getID())
+        return item.type
 
     def visitArgumentExpressionListNode(self, node:ArgumentExpressionListNode):
-        if isinstance(node.argumentExprs, list):
-            for expr in node.argumentExprs:
-                self.visit(expr)    
-            return len(node.argumentExprs)
-        self.visit(node.argumentExprs)
-        return 1
-
-    def visitParameterDeclarationNode(self, node:ParameterDeclarationNode):
-        return 
+        argExprs = node.argumentExprs
+        if not isinstance(argExprs, list):
+            argExprs = [argExprs]
+        argSize = 0
+        for index, expr in enumerate(argExprs):
+            if type(expr) == IdentifierNode:
+                item = self.symbolTable.lookupSymbol(expr.getID())
+                if item.arraySize:
+                    # Pass array by value
+                    nestingDiff = (self.symbolTable.getCurrentNestingDepth() 
+                        - item.nestingDepth)
+                    offset = item.address
+                    # Put the global address of the array on the stack           
+                    self.code.newline("lda " + str(nestingDiff) + " " + str(offset))
+                    # Copy the array on the stack
+                    self.code.newline("movs " + str(item.arraySize)) 
+                    argSize += item.arraySize
+                    continue
+            self.visit(expr)
+            argSize += 1    
+        return argSize
 
     def visitIntegerConstantNode(self, node:IntegerConstantNode):
         self.code.newline("ldc i " + str(node.value))
@@ -327,6 +353,8 @@ class CodeBuilder(AstVisitor):
             self.code.newline("lda " + str(nestingDiff) + " " + str(offset))
             # Put index on the top of the stack            
             self.visit(arrayExpr[0])
+            # Check if the expr is within bounds
+            self.code.newline("chk 0 " + str(item.arraySize))
             # Calculate the global indexed address
             self.code.newline("ixa 1")
             # Put its value on the top of the stack

@@ -18,7 +18,7 @@ class SemanticVisitor(AstVisitor):
 
     def visitFunctionDefinitionNode(self, node:FunctionDefinitionNode):
         # Insert function into symbol table
-        parameters = dict()
+        parameters = list()
         if node.parameterList:
             parameters = node.parameterList.getParams()
         functionName = node.getID()
@@ -51,16 +51,29 @@ class SemanticVisitor(AstVisitor):
     def visitParameterDeclarationNode(self, node:ParameterDeclarationNode):
         identifier = node.declarator
         exprList = identifier.arrayExpressionList
-        if len(exprList) != 0 and len(exprList) != 1:
-            # Raise exception int main(a[5][5]), one dimensional arrays only for now 
-            pass 
-        if self.symbolTable.insertSymbol(node.getID(), node.getType()) == None:
-            raise declarationException(node.getID(), node.getType(), False, "TODO line")
+        arraySize = 0
+        if len(exprList) != 0:
+            arraySize = int(exprList[0].value)
+            if len(exprList) != 1:
+                # TODO Raise exception, one dimensional arrays only for now ex. int main(a[5][5]) 
+                print("one dimensional arrays only")
+        if (self.symbolTable.insertSymbol(node.getID(), 
+            node.getType(), arraySize=arraySize) == None):
+                raise declarationException(node.getID(), 
+                    node.getType(), False, "TODO line")
 
     def visitAssignmentNode(self, node:AssignmentNode):
         # Compare types
         item = self.symbolTable.lookupSymbol(node.getID())
         if item == None: raise unknownVariable(node.getID(), node.getPosition())
+        arrExprList = node.identifier.arrayExpressionList
+        if item.arraySize:
+            if len(arrExprList) == 0:
+                # TODO Raise exception
+                print("Invalid assignment for array")
+            if len(arrExprList) > 1:
+                # TODO Raise exception or warning
+                print("One dimensional arrays only")                
         exprType = self.visit(node.expression)
         # *b = 5
         declType = copy.deepcopy(item.type)
@@ -109,6 +122,16 @@ class SemanticVisitor(AstVisitor):
 
     def visitDeclarationNode(self, node:DeclarationNode):
         declType = node.getType()
+        arrExprList = node.identifier.arrayExpressionList
+        arraySize = 0
+        if len(arrExprList) > 0:
+            arraySize = int(arrExprList[0].value)
+            if len(arrExprList) > 1:
+                # TODO raise error or warning one dimensional arrays only
+                print("One dimensional arrays only")
+            if node.expression and type(node.expression) != InitializerListNode:
+                # TODO Raise error: wrong type in initializer, it has to be an initializerlist 
+                print("Semantic error: attempt to initialize array with wrong type")                
         if node.expression:
             # Compare types
             exprType = self.visit(node.expression)
@@ -123,7 +146,7 @@ class SemanticVisitor(AstVisitor):
                 exprType = curType
             if exprType != declType:   
                 raise wrongType(exprType, declType['idType'], node.getPosition())
-        if self.symbolTable.insertSymbol(node.getID(), declType) == None:
+        if self.symbolTable.insertSymbol(node.getID(), declType, arraySize=arraySize) == None:
             raise declarationException(node.getID(), 
                 declType['idType'], False, node.getPosition())
 
@@ -183,20 +206,31 @@ class SemanticVisitor(AstVisitor):
         item = self.symbolTable.lookupSymbol(node.getID() + "()")
         if item == None: raise unknownVariable(node.getID()+"()", node.getPosition(), True)
         params = item.parameters # List of parameterDeclNode
-        args = node.argumentExpressionListNode.argumentExprs
+        args = []
+        if node.argumentExpressionListNode:
+            args = node.argumentExpressionListNode.argumentExprs
         if len(params) != len(args):
             raise parameterError(len(args), len(params), "TODO add line")
         for i in range(len(params)):
             paramType = params[i].getType()
             argType = self.visit(args[i])
             if argType != paramType:
-                 raise parameterTypeError(argType, paramType, "TODO add line")
-        return item.type
-
-    def visitParameterDeclarationNode(self, node:ParameterDeclarationNode):
-        if self.symbolTable.insertSymbol(node.getID(), node.getType()) == None:
-            raise declarationException(node.getID(), node.getType(), False, "TODO line")
-        # Check if type is array to increase size     
+                 raise parameterTypeError(argType, paramType, "TODO add line1")
+            paramArraySize = int(item.parameters[i].declarator.arrayExpressionList[0].value)
+            argItem = self.symbolTable.lookupSymbol(args[i].getID())
+            if paramArraySize:
+                if (type(args[i]) != IdentifierNode or not argItem.arraySize
+                    or len(args[i].arrayExpressionList) != 0):
+                    # TODO raise exception
+                    print("parameter is of type array but argument is not.")
+            if argItem.arraySize:
+                if not paramArraySize:
+                    # TODO raise exception
+                    print("argument is of type array but parameter is not.")
+            if paramArraySize != argItem.arraySize:
+                # TODO raise exception
+                print("Argument and parameter array sizes don't match.")                
+        return item.type    
 
     def visitIntegerConstantNode(self, node:IntegerConstantNode):
         return {'idType': "i", 'refCount': 0}

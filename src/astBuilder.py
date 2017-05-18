@@ -37,6 +37,7 @@ class AstBuilder(CmmVisitor):
         parameterListNode = None
         if ctx.parameterList():
             parameterListNode = self.visit(ctx.parameterList())
+            parameterListNode.paramDecls = list(reversed(parameterListNode.paramDecls))
         if ctx.compoundStatement():
             functionBody = self.visit(ctx.compoundStatement())
             return FunctionDefinitionNode(declarationSpecifier, identifier, parameterListNode, functionBody, place)
@@ -102,7 +103,7 @@ class AstBuilder(CmmVisitor):
         return self.visit(ctx.constant())                            
 
     def visitIdentifier(self, ctx, place):
-        print(ctx.getSymbol().line)
+        # TODO Use ctx.getSymbol().line
         return IdentifierNode(ctx.getText(), [], place)
 
     def visitConstant(self, ctx:CmmParser.ConstantContext):

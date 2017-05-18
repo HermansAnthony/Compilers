@@ -1,10 +1,11 @@
 # Symbol table for the compiler
 # Based on http://www.newagepublishers.com/samplechapter/001679.pdf
 class simpleElement:
-    def __init__(self, type, address, nestingDepth):
+    def __init__(self, type, address, nestingDepth, arraySize):
         self.type = type
         self.address = address
         self.nestingDepth = nestingDepth
+        self.arraySize = arraySize
 
     def __repr__(self):
         returnValue = '(var) ' + str(self.type)
@@ -41,10 +42,12 @@ class symbolTableLocal:
         return str(self.table)
 
     # Insert a key in the symbol table
-    def insertSymbol(self, key, type):
+    def insertSymbol(self, key, type, arraySize):
         if key in self.table: return None
-        newItem = simpleElement(type, self.currentOffset, self.getNestingDepth())
+        newItem = simpleElement(type, self.currentOffset, self.getNestingDepth(), arraySize)
         self.currentOffset += 1
+        if arraySize:
+            self.currentOffset += (arraySize-1)
         self.table[key] = newItem
         return newItem
 
@@ -99,7 +102,7 @@ class generalSymbolTable:
         self.presentScope += 1  
 
     # Insert a symbol depending on the current scope
-    def insertSymbol(self, key, type, params=None):
+    def insertSymbol(self, key, type, arraySize=0, params=None):
         if self.presentScope == -1:
             if key in self.globalScope: return None
             newItem = None
@@ -108,18 +111,22 @@ class generalSymbolTable:
                 newItem = functionElement(type, params, self.getCurrentNestingDepth())
             else:
                 # Variable declaration
-                newItem = simpleElement(type, self.currentOffset, self.getCurrentNestingDepth())
+                newItem = simpleElement(type, self.currentOffset,
+                    self.getCurrentNestingDepth(), arraySize)
                 self.currentOffset += 1
+                if arraySize:
+                    self.currentOffset += (arraySize-1)
             self.globalScope[key] = newItem
             return newItem
         else:
-            return self.localScope[self.presentScope].insertSymbol(key, type)
+            return self.localScope[self.presentScope].insertSymbol(key, type, arraySize)
 
     # Lookup a key first in the current local scope and then the surrounding scopes
     def lookupSymbol(self, key):
         if self.presentScope != -1:
-            if self.localScope[self.presentScope].lookupSymbol(key) != None:
-                return self.localScope[self.presentScope].lookupSymbol(key)           
+            localItem = self.localScope[self.presentScope].lookupSymbol(key)
+            if localItem != None:
+                return localItem           
         if key not in self.globalScope: return None
         return self.globalScope[key]
 

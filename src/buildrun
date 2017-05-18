@@ -23,5 +23,7 @@ outputPNG=$folder$filename".png"
 inputDotFile=$folder$filename$dot
 dot -Tpng -o $outputPNG $inputDotFile
 
+read -n1 -r -p "Press any key to continue..." key
+
 Pmachine/Pmachine $3.p -s 200
 
