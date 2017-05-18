@@ -329,12 +329,16 @@ class ExpressionNode(ASTNode):
         return returnValue     
 
 class DereferenceExpressionNode(ASTNode):
-    def __init__(self, derefCount, child):
+    def __init__(self, derefCount, child, position):
         self.derefCount = derefCount
         self.child = child
+        self.position = position
 
     def accept(self, visitor):
         return visitor.visitDereferenceExpressionNode(self)
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         currentNode = counter()
