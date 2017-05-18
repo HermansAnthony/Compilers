@@ -126,11 +126,11 @@ class AstBuilder(CmmVisitor):
             # Star+ (Identifier | arrayExpression)
             if ctx.Identifier():
                 identifier =  self.visitIdentifier(ctx.Identifier(), place)
-                return DereferenceExpressionNode(len(ctx.Star()), identifier)
+                return DereferenceExpressionNode(len(ctx.Star()), identifier, place)
             result = self.visit( ctx.arrayExpression() )
             idNode = result[-1]
             idNode.arrayExpressionList = list(reversed(result[:-1]))
-            return DereferenceExpressionNode(len(ctx.Star()), idNode)
+            return DereferenceExpressionNode(len(ctx.Star()), idNode, place)
         if ctx.getChildCount() == 1:
             # arrayExpression | primaryExpression | functionCallExpression
             if ctx.arrayExpression():

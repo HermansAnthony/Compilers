@@ -67,16 +67,18 @@ class SemanticVisitor(AstVisitor):
         if node.dereferenceCount > 0:
             declType['refCount'] -= node.dereferenceCount
         if declType['refCount'] < 0:
-            raise deReference("TODO add line")
-        if exprType != declType:
-            raise wrongType(exprType['idType'], declType['idType'], "TODO add line")
+            raise deReference(node.getPosition())
+        # If exprType is a dict => extract type out of dict
+        if isinstance(exprType, dict): exprType = exprType['idType']
+        if exprType != declType['idType']:
+            raise wrongType(exprType, declType['idType'], node.getPosition())
 
     def visitIfStatementNode(self, node:IfStatementNode):
         # Check if expression is boolean
         exprType = self.visit(node.condition)
         declType = {'idType': "b", 'refCount': 0}
         if exprType != declType:     
-            raise wrongType(exprType['idType'], declType['idType'], "TODO fix line here")
+            raise wrongType(exprType, declType['idType'], "TODO fix line here")
         for declStat in node.ifBody:
             self.visit(declStat)
         for declStat in node.elseBody:
@@ -161,7 +163,7 @@ class SemanticVisitor(AstVisitor):
         item = self.symbolTable.lookupSymbol(node.child.getID())
         if item == None: raise unknownVariable(node.child.getID(), "ADD line")
         if item.type['refCount'] < node.derefCount:
-            raise deReference("TODO add line")
+            raise deReference(node.getPosition())
         # Decrease the reference count of the exprType
         exprType = copy.deepcopy(item.type)
         exprType['refCount'] -= node.derefCount
@@ -220,7 +222,9 @@ class SemanticVisitor(AstVisitor):
         parameters = dict()
         if node.parameterList:
             parameters = node.parameterList.getParams()
+        print(self.symbolTable)
         self.symbolTable.insertSymbol(node.getID()+"()", node.declarationSpecifier.getType(), parameters)
+        print(self.symbolTable)
         if node.declarationSpecifier:
             self.visit(node.declarationSpecifier)
         self.visit(node.identifier)
