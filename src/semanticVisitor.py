@@ -23,7 +23,10 @@ class SemanticVisitor(AstVisitor):
             parameters = node.parameterList.getParams()
         functionName = node.getID()
         functionType = node.getType()
-        if self.symbolTable.insertSymbol(functionName+"()", functionType, parameters) == None: raise declarationException(functionName, functionType, True, node.getPosition())
+        if self.symbolTable.insertSymbol(functionName+"()", 
+            functionType, params=parameters) == None: 
+            raise declarationException(functionName, 
+                functionType, True, node.getPosition())
         if functionName == "main":
             self.mainFunctionFound = True
             if functionType['idType'] != 'i':
