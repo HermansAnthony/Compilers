@@ -40,17 +40,36 @@ class CodeBuilder(AstVisitor):
         # Calculate the length of the static section of the stack frame
         staticLength = 5 # 5 organizational cells after MP
         if node.parameterList:
-            staticLength += len(node.parameterList.paramDecls)
-        for declstat in node.functionBody:
-            if type(declstat) == DeclarationNode:
-                staticLength += 1
+            staticLength += self.visit(node.parameterList)
+        for declStat in node.functionBody:
+            if type(declStat) == DeclarationNode:
+                exprList = declStat.identifier.arrayExpressionList
+                idSize = 1
+                if len(exprList) == 1:
+                    idSize = int(exprList[0].value)
+                staticLength += idSize
         # Set the stack pointer and the EP
         self.code.newline("ent " + str(self.symbolTable.getMaxEP()) + " " + str(staticLength))
         # Generate function body code
-        for declstat in node.functionBody:
-            self.visit(declstat) 
+        for declStat in node.functionBody:
+            self.visit(declStat) 
         # Implicit return statement      
-        self.code.newline("retp")                
+        self.code.newline("retp")   
+
+    def visitParameterList(self, node:ParameterListNode):
+        paramDataSize = 0
+        for paramDecl in node.paramDecls:
+            paramDataSize += self.visit(paramDecl)
+        return paramDataSize        
+
+    def visitParameterDeclarationNode(self, node:ParameterDeclarationNode):
+        identifier = node.declarator
+        exprList = identifier.arrayExpressionList
+        if len(exprList) == 1:
+            # Return the size of the array
+            return exprList[0] 
+        # All basic types have size 1
+        return 1
 
     def visitAssignmentNode(self, node:AssignmentNode):
         # Store the new value
@@ -124,18 +143,54 @@ class CodeBuilder(AstVisitor):
         pass
 
     def visitDeclarationNode(self, node:DeclarationNode):
-        # Generate expression
-        self.visit(node.expression)
-        if self.symbolTable.getCurrentNestingDepth() == 0:
-            # If in global, don't store the identifier
-            return
-        # Store the identifier
         item = self.symbolTable.lookupSymbol(node.getID())
-        offset = item.address
-        nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
+        offset = item.address 
+        curNestingDepth = self.symbolTable.getCurrentNestingDepth()
+        nestingDiff = curNestingDepth - item.nestingDepth
         idType = item.type['idType']
         if item.type['refCount'] != 0:
             idType = "a"
+        idExprList = node.identifier.arrayExpressionList
+        if not node.expression:
+            # Implicit initialization
+            if len(idExprList) > 0:
+                # Array declaration
+                for i in range(int(idExprList[0].value)):
+                    self.code.newline("ldc " + idType + " 0")
+                    if curNestingDepth != 0:
+                        self.code.newline("str " + idType + " " 
+                            + str(nestingDiff) + " " + str(offset))
+                    offset += 1
+            else:
+                # Variable declaration
+                self.code.newline("ldc " + idType + " 0")    
+                if curNestingDepth != 0:       
+                    self.code.newline("str " + idType + " " +
+                        str(nestingDiff) + " " + str(offset))
+            return
+        # Explicit initialization
+        if type(node.expression) == InitializerListNode:
+            # Array with initializer list
+            initExprList = node.expression.expressions[:int(idExprList[0].value)]
+            for expr in initExprList:
+                self.visit(expr)
+                if curNestingDepth != 0:
+                    self.code.newline("str " + idType + " " 
+                        + str(nestingDiff) + " " + str(offset))
+                offset += 1 
+            for i in range(int(idExprList[0].value) - len(initExprList)):
+                # Initialize the rest as 0
+                self.code.newline("ldc " + idType + " 0")
+                if curNestingDepth != 0:
+                    self.code.newline("str " + idType + " " 
+                        + str(nestingDiff) + " " + str(offset))
+                offset += 1  
+            return
+        # Variable with initializer
+        self.visit(node.expression)
+        if curNestingDepth == 0:
+            return
+        # Store the identifier
         self.code.newline("str " + idType + " " + str(nestingDiff) + " " + str(offset))
 
     def visitBinaryOperationNode(self, node:BinaryOperationNode):
@@ -241,8 +296,7 @@ class CodeBuilder(AstVisitor):
         return 1
 
     def visitParameterDeclarationNode(self, node:ParameterDeclarationNode):
-        self.symbolTable.insertSymbol(node.getID(), node.getType())
-        # Check if type is array to increase size     
+        return 
 
     def visitIntegerConstantNode(self, node:IntegerConstantNode):
         self.code.newline("ldc i " + str(node.value))
@@ -262,11 +316,22 @@ class CodeBuilder(AstVisitor):
     def visitIdentifierNode(self, node:IdentifierNode):
         # Put identifier on top of the stack
         item = self.symbolTable.lookupSymbol(node.getID())
-        #for expression in node.arrayExpressionList:
-        #    self.visit(expression)
         idType = item.type['idType']
         if item.type['refCount'] > 0:
             idType = "a"
+        arrayExpr = node.arrayExpressionList
+        if len(arrayExpr) > 0:
+            nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
+            offset = item.address
+            # Put the global address on the top of the stack
+            self.code.newline("lda " + str(nestingDiff) + " " + str(offset))
+            # Put index on the top of the stack            
+            self.visit(arrayExpr[0])
+            # Calculate the global indexed address
+            self.code.newline("ixa 1")
+            # Put its value on the top of the stack
+            self.code.newline("ind " + idType)
+            return item.type
         nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
         self.code.newline("lod " + idType + " " + str(nestingDiff) + " " + str(item.address))
         return item.type

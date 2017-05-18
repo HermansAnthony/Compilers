@@ -106,13 +106,24 @@ class SemanticVisitor(AstVisitor):
         pass
 
     def visitDeclarationNode(self, node:DeclarationNode):
-        # Compare types
-        exprType = self.visit(node.expression)
         declType = node.getType()
-        if exprType != declType:
-            raise wrongType(exprType, declType['idType'], node.getPosition())
+        if node.expression:
+            # Compare types
+            exprType = self.visit(node.expression)
+            if type(node.expression) == InitializerListNode:
+                exprs = node.expression.expressions
+                # Check if initialization list contains the same types
+                curType = self.visit(exprs[0])
+                for i in range(1,len(exprs)):
+                    otherType = self.visit(exprs[i])
+                    if curType != otherType:
+                        raise wrongType(curType, otherType, "TODO fix line here")
+                exprType = curType
+            if exprType != declType:   
+                raise wrongType(exprType, declType['idType'], node.getPosition())
         if self.symbolTable.insertSymbol(node.getID(), declType) == None:
-            raise declarationException(node.getID(), declType['idType'], False, node.getPosition())
+            raise declarationException(node.getID(), 
+                declType['idType'], False, node.getPosition())
 
     def visitBinaryOperationNode(self, node:BinaryOperationNode):
         exprTypeLeft = self.visit(node.left)
@@ -133,7 +144,7 @@ class SemanticVisitor(AstVisitor):
         if (node.operator != "+" and node.operator != "-" 
             and node.operator != "*" and node.operator != "/"):
             typeLeft = {'idType': "b", 'refCount': 0}
-        return typeLeft
+        return exprTypeLeft
             
     def visitExpressionNode(self, node:ExpressionNode):
         exprType = None

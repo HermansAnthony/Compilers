@@ -68,21 +68,31 @@ class AstBuilder(CmmVisitor):
         return DeclarationSpecifierNode(idType, len(ctx.Star()))
 
     def visitInitDeclarator(self, ctx:CmmParser.InitDeclaratorContext):
+        if ctx.Identifier():
+            return [self.visitIdentifier(ctx.Identifier(), ""), self.visit(ctx.expression())]
         result = self.visit( ctx.declarator() )
         idNode = result[-1]
         idNode.arrayExpressionList = list(reversed(result[:-1]))
-        if ctx.expression() == None:
+        if ctx.initializerList() == None:
             return [idNode, None]
-        return [idNode, self.visit(ctx.expression())]
+        return [idNode, self.visit(ctx.initializerList())]
 
     def visitDeclarator(self, ctx:CmmParser.DeclaratorContext):
         # Place is for semantic analysis (line-column position)
         place = str(ctx.start.line) + ", position " + str(ctx.start.column)
         if ctx.getChildCount() == 1:
             return [self.visitIdentifier(ctx.Identifier(), place)]
-        resList = [self.visit( ctx.expression() )]
+        resList = [self.visit( ctx.integerConstant() )]
         resList.extend( self.visit(ctx.declarator()) )
         return resList
+
+    def visitInitializerList(self, ctx:CmmParser.initializerList):
+        exprs = []
+        for expr in ctx.expression():
+            exprs.append(self.visit(expr))
+        if len(exprs) > 0:
+            return InitializerListNode(exprs)
+        return None
 
     def visitPrimaryExpression(self, ctx:CmmParser.PrimaryExpressionContext):
         # Place is for semantic analysis (line-column position)
@@ -92,6 +102,7 @@ class AstBuilder(CmmVisitor):
         return self.visit(ctx.constant())                            
 
     def visitIdentifier(self, ctx, place):
+        print(ctx.getSymbol().line)
         return IdentifierNode(ctx.getText(), [], place)
 
     def visitConstant(self, ctx:CmmParser.ConstantContext):

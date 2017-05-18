@@ -118,6 +118,21 @@ class ParameterDeclarationNode(ASTNode):
         returnValue += currentNode + '->' + str(self.declarator)
         return returnValue
 
+class InitializerListNode(ASTNode):
+    def __init__(self, expressions):
+        self.expressions = expressions
+
+    def accept(self, visitor):
+        return visitor.visitInitializerListNode(self)
+
+    def __str__(self):
+        currentNode = counter()
+        returnValue = currentNode + ';\n'
+        returnValue += currentNode + ' [label = "InitList"];\n'
+        for expr in self.expressions:
+            returnValue += currentNode + '->' + str(expr)
+        return returnValue 
+
 class DeclarationNode(ASTNode):
     def __init__(self, declarationSpecifier, identifier, expression, position):
         self.declarationSpecifier = declarationSpecifier
