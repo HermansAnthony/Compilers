@@ -45,12 +45,17 @@ typeSpecifier
 
 initDeclarator
     : declarator
-    | declarator Assign expression
+    | Identifier Assign expression
+    | declarator Assign initializerList
 ;
 
 declarator
     : Identifier
-    | declarator LeftBracket expression RightBracket
+    | declarator LeftBracket integerConstant RightBracket
+;
+
+initializerList
+    : LeftBrace expression? (Comma expression)* RightBrace
 ;
 
 // Primary expression part of the grammar

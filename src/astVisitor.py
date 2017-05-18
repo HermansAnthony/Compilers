@@ -30,6 +30,10 @@ class AstVisitor():
         self.visit(node.identifier)
         self.visit(node.expression)
 
+    def visitInitializerListNode(self, node:InitializerListNode):
+        for expr in node.expressions:
+            self.visit(expr)
+
     def visitForwardFunctionDeclarationNode(self, node:ForwardFunctionDeclarationNode):
         if node.declarationSpecifier:
             self.visit(node.declarationSpecifier)
