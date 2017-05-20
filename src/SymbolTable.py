@@ -13,10 +13,11 @@ class simpleElement:
         return returnValue
 
 class functionElement:
-    def __init__(self, type, paramlist, nestingDepth):
+    def __init__(self, type, paramlist, nestingDepth, isForwardDecl):
         self.type = type
         self.parameters = paramlist
         self.nestingDepth = nestingDepth
+        self.isForwardDecl = isForwardDecl
 
     def __repr__(self):
         returnValue = '(proc)' + str(self.type) + " - parameters: "
@@ -26,7 +27,7 @@ class functionElement:
 
 class symbolTableLocal:
     """ Symbol table for a local scope / block"""
-    def __init__(self, functionName):
+    def __init__(self, functionName, parent):
         self.table = dict()
         # Offset starts at 5 because of organizational cells
         self.currentOffset = 5
@@ -36,6 +37,8 @@ class symbolTableLocal:
         self.maxEP = 2
         # Name corresponding to local table
         self.functionName = functionName
+        # Global table
+        self.parent = parent
 
     # Return the symbol table in a readable format
     def __str__(self):
@@ -44,6 +47,8 @@ class symbolTableLocal:
     # Insert a key in the symbol table
     def insertSymbol(self, key, type, arraySize):
         if key in self.table: return None
+        if self.parent.lookupSymbol(key):
+            key = self.functionName+"()"+key
         newItem = simpleElement(type, self.currentOffset, self.getNestingDepth(), arraySize)
         self.currentOffset += 1
         if arraySize:
@@ -93,7 +98,7 @@ class generalSymbolTable:
 
     # Begin a new scope
     def createScope(self, functionName):
-        newScope = symbolTableLocal(functionName)
+        newScope = symbolTableLocal(functionName, self)
         self.localScope.append(newScope)
         self.presentScope += 1
 
@@ -102,13 +107,14 @@ class generalSymbolTable:
         self.presentScope += 1  
 
     # Insert a symbol depending on the current scope
-    def insertSymbol(self, key, type, arraySize=0, params=None):
+    def insertSymbol(self, key, type, arraySize=0, params=None, isForwardDecl=False):
         if self.presentScope == -1:
             if key in self.globalScope: return None
             newItem = None
             if params: 
                 # Function declaration
-                newItem = functionElement(type, params, self.getCurrentNestingDepth())
+                newItem = functionElement(type, params, 
+                    self.getCurrentNestingDepth(), isForwardDecl)
             else:
                 # Variable declaration
                 newItem = simpleElement(type, self.currentOffset,
@@ -122,11 +128,15 @@ class generalSymbolTable:
             return self.localScope[self.presentScope].insertSymbol(key, type, arraySize)
 
     # Lookup a key first in the current local scope and then the surrounding scopes
-    def lookupSymbol(self, key):
+    def lookupSymbol(self, key, semantic=None):
         if self.presentScope != -1:
             localItem = self.localScope[self.presentScope].lookupSymbol(key)
             if localItem != None:
-                return localItem           
+                return localItem  
+            if semantic and key in self.globalScope:
+                semantic.identifier += "#" 
+        if "#" in key:
+            key = key[:-1]   
         if key not in self.globalScope: return None
         return self.globalScope[key]
 

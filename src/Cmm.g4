@@ -11,6 +11,7 @@ program
 externalDeclaration
     : functionDeclaration
     | declaration
+    | Include Less Stdio Greater
 ;
 
 functionDeclaration
@@ -84,14 +85,7 @@ floatingConstant
 
 // Expression part of the grammar
 expression
-    : primaryExpression
-    | arrayExpression
-    | functionCallExpression
-    | And (Identifier | arrayExpression)
-    | Star+ (Identifier | arrayExpression)
-    | (Identifier | arrayExpression)  PlusPlus
-    | (Identifier | arrayExpression) MinusMinus
-    | expression binaryOperator expression
+    : binaryExpression
 ;
 
 functionCallExpression
@@ -105,6 +99,40 @@ arrayExpression
 
 binaryOperator
     : OrOr | AndAnd | Equal | NotEqual | Less | Greater | LessEqual | GreaterEqual | Plus | Minus | Star | Div
+;
+
+atomExpression
+    : primaryExpression
+    | arrayExpression
+    | functionCallExpression
+    | (Identifier | arrayExpression)  PlusPlus
+    | (Identifier | arrayExpression) MinusMinus
+    | And (Identifier | arrayExpression)
+    | Star+ (Identifier | arrayExpression)
+;
+
+multiplicativeExpression
+    : atomExpression
+    | multiplicativeExpression Star atomExpression
+    | multiplicativeExpression Div atomExpression
+;
+
+additiveExpression
+    : multiplicativeExpression
+    | additiveExpression Plus multiplicativeExpression
+    | additiveExpression Minus multiplicativeExpression
+;
+
+binaryExpression
+    : additiveExpression
+    | binaryExpression OrOr additiveExpression
+    | binaryExpression AndAnd additiveExpression
+    | binaryExpression Equal additiveExpression
+    | binaryExpression NotEqual additiveExpression
+    | binaryExpression Less additiveExpression
+    | binaryExpression Greater additiveExpression
+    | binaryExpression LessEqual additiveExpression
+    | binaryExpression GreaterEqual additiveExpression
 ;
 
 argumentExpressionList
@@ -168,6 +196,8 @@ LineComment
 Apostrophe : '\'';
 Character : Apostrophe . Apostrophe;
 String : '"' (~('"') | '\\"')* '"';
+Include : '#include';
+Stdio : 'stdio.h';
 Const : 'const';
 Void : 'void';
 Int : 'int';

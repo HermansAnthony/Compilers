@@ -116,12 +116,14 @@ class CodeBuilder(AstVisitor):
         label2 = self.symbolTable.getFunctionName() + str(self.currentLabelNo+1)
         self.currentLabelNo += 2
         self.code.newline("fjp " + label1)
-        for declStat in node.ifBody:
-            self.visit(declStat)
+        if node.ifBody:
+            for declStat in node.ifBody:
+                self.visit(declStat)
         self.code.newline("ujp " + label2)
         self.code.newline(label1 + ":")
-        for declStat in node.elseBody:
-            self.visit(declStat)
+        if node.elseBody:
+            for declStat in node.elseBody:
+                self.visit(declStat)
         self.code.newline(label2 + ":")
 
     def visitIterationStatementNode(self, node:IterationStatementNode):
@@ -234,12 +236,13 @@ class CodeBuilder(AstVisitor):
             self.code.newline("and")
         elif node.operator == "||":  
             self.code.newline("or")
-        return typeLeft
+        return exprLeft
             
     def visitExpressionNode(self, node:ExpressionNode):
         exprType = None
         if node.isPostfix:
-            # Put the identifier on the top of the stack
+            # Put the identifier on the top of the stack 2 times
+            self.visit(node.child)
             self.visit(node.child)
             # Get the address and nesting difference of the identifier
             item = self.symbolTable.lookupSymbol(node.child.getID())
@@ -252,7 +255,7 @@ class CodeBuilder(AstVisitor):
                 self.code.newline("inc " + idType + " 1")
             else:
                 self.code.newline("dec " + idType + " 1")
-            # store lvalue
+            # store the first identifier
             self.code.newline("str " + idType + " " + str(nestingDiff) + " " + str(offset))
         return exprType
 
@@ -291,6 +294,86 @@ class CodeBuilder(AstVisitor):
         return exprType  
 
     def visitFunctionCallNode(self, node:FunctionCallNode):
+        if node.getID() == "printf":
+            # TODO test the printf function thoroughly
+            args = node.argumentExpressionListNode.argumentExprs
+            stringLit = str(args[0].value)
+            argsIndex = 1
+            printCount = 0
+            for index, char in enumerate(stringLit):
+                if index != 0 and stringLit[index-1] == "%":
+                    continue
+                if char == "%" and index+1 < len(stringLit):
+                    nextChar = stringLit[index+1]
+                    item = self.symbolTable.lookupSymbol(args[argsIndex].getID())
+                    idType = item.type['idType']
+                    nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
+                    offset = item.address
+                    if nextChar == "%":
+                        self.code.newline("ldc c %")
+                        self.code.newline("out c ")
+                    elif nextChar == "s":
+                        for i in range(item.arraySize):
+                            self.code.newline("lod " + idType + str(nestingDiff) + " " + str(offset))
+                            self.code.newline("out " + idType)   
+                            offset += 1    
+                        argsIndex += 1                     
+                    else:
+                        self.code.newline("lod " + idType + str(nestingDiff) + " " + str(offset))
+                        self.code.newline("out " + idType)
+                        argsIndex += 1
+                    printCount += 1
+                    continue
+                self.code.newline("out c " + char)
+                printCount += 1
+            # Put the amount of characters printed on top of the stack
+            self.code.newline("ldc i " + str(printCount))
+        if node.getID() == "scanf":
+            # TODO test the scanf function thoroughly
+            args = node.argumentExpressionListNode.argumentExprs
+            stringLit = str(args[0].value)
+            argsIndex = 1
+            inCount = 0
+            for index, char in enumerate(stringLit):
+                if index != 0 and stringLit[index-1] == "%":
+                    continue
+                if char == "%" and index+1 < len(stringLit):
+                    nextChar = stringLit[index+1]
+                    if nextChar == "%":
+                        self.code.newline("ldc c %")
+                        self.code.newline("out c ")
+                        inCount += 1
+                        continue
+                    argExpr = args[argsIndex]
+                    if type(argExpr) == IdentifierNode:
+                        item = self.symbolTable.lookupSymbol(argExpr.getID())
+                        idType = item.type['idType']
+                        nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
+                        offset = item.address
+                        if nextChar == "s" and item.arraySize > 0:
+                            # Argument is an array
+                            for i in range(item.arraySize):
+                                # Put the index address on top of the stack
+                                self.code.newline("ldc " + offset)
+                                # Store the read value
+                                self.code.newline("in " + idType)
+                                self.code.newline("str " + idType + " " + str(nestingDiff) + " " + str(offset))
+                                offset += 1             
+                                inCount += 1
+                            argsIndex += 1     
+                            continue       
+                    # Put the address on top of the stack
+                    self.visit(args[argsIndex])
+                    # Store the read value
+                    self.code.newline("in " + idType)
+                    self.code.newline("sto " + idType)
+                    inCount += 1
+                    argsIndex += 1     
+                    continue
+                self.code.newline("out c " + char)
+                inCount += 1
+            # Put the amount of characters read on top of the stack
+            self.code.newline("ldc i " + str(inCount))            
         item = self.symbolTable.lookupSymbol(node.getID()+"()")
         nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
         # Mark the stack
@@ -336,6 +419,10 @@ class CodeBuilder(AstVisitor):
         self.code.newline("ldc c " + node.value)
         return {'idType': "c", 'refCount': 0}
 
+    def visitStringConstantNode(self, node:StringConstantNode):
+        # String constant only for printf and scanf
+        return {'idType': "c", 'refCount': 0, 'isArray': True}
+
     def visitDeclarationSpecifierNode(self, node:DeclarationSpecifierNode):
         pass   
 
@@ -368,14 +455,5 @@ class CodeBuilder(AstVisitor):
         return self.code.code
 
     def visitForwardFunctionDeclarationNode(self, node:ForwardFunctionDeclarationNode):
-        # Ignore forward function declarations for now
-        parameters = dict()
-        if node.parameterList:
-            parameters = node.parameterList.getParams()
-        self.symbolTable.insertSymbol(node.getID()+"()", node.declarationSpecifier.getType(), parameters)
-        if node.declarationSpecifier:
-            self.visit(node.declarationSpecifier)
-        self.visit(node.identifier)
-        if parameterList:
-            self.visit(node.parameterList)
+        return 
 

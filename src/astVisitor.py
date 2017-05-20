@@ -100,6 +100,9 @@ class AstVisitor():
     def visitCharacterConstantNode(self, node:CharacterConstantNode):
         pass
 
+    def visitStringConstantNode(self, node:StringConstantNode):
+        pass
+
     def visitDeclarationSpecifierNode(self, node:DeclarationSpecifierNode):
         pass
 

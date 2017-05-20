@@ -25,6 +25,8 @@ class AstBuilder(CmmVisitor):
         return ProgramNode(self.visitChildren(ctx))
 
     def visitExternalDeclaration(self, ctx:CmmParser.ExternalDeclarationContext):
+        if ctx.Include():
+            return StdioNode()
         return self.visitChildren(ctx)
 
     def visitFunctionDeclaration(self, ctx:CmmParser.FunctionDeclarationContext):
@@ -110,8 +112,7 @@ class AstBuilder(CmmVisitor):
         if ctx.Character():
             return CharacterConstantNode(ctx.getText())
         if ctx.String():
-            # TODO String is recognized for printf and scanf
-            return CharacterConstantNode(ctx.getText())
+            return StringConstantNode(ctx.getText())
         return self.visitChildren(ctx)
 
     def visitIntegerConstant(self, ctx:CmmParser.IntegerConstantContext):

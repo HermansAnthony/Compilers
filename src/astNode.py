@@ -33,6 +33,18 @@ class ProgramNode(ASTNode):
             returnValue += currentNode + ' -> ' + str(child)
         return returnValue
 
+class StdioNode(ASTNode):
+    def __init__(self):   
+        pass
+
+    def accept(self, visitor):
+        return visitor.visitStdioNode(self) 
+
+    def __str__(self):
+        currentNode = counter()
+        returnValue = currentNode + ' [label="Include Stdio.h"];\n'
+        return returnValue
+
 class FunctionDefinitionNode(ASTNode):
     def __init__(self, declarationSpecifier, identifier, parameterList, functionBody, position):
         self.declarationSpecifier = declarationSpecifier
@@ -240,10 +252,12 @@ class IfStatementNode(ASTNode):
         returnValue += ifNode + ' [label = "ifBody"];\n'
         returnValue += elseNode + ' [label = "elseBody"];\n'
         returnValue += conditionNode + '->' + str(self.condition)
-        for stat in self.ifBody:
-            returnValue += ifNode + '->' + str(stat)
-        for stat in self.elseBody:
-            returnValue += elseNode + '->' + str(stat)
+        if self.ifBody:
+            for stat in self.ifBody:
+                returnValue += ifNode + '->' + str(stat)
+        if self.elseBody:
+            for stat in self.elseBody:
+                returnValue += elseNode + '->' + str(stat)
         return returnValue
 
 class IterationStatementNode(ASTNode):
@@ -461,6 +475,22 @@ class CharacterConstantNode(ASTNode):
         currentNode = counter()
         returnValue = currentNode + ';\n';
         returnValue += currentNode + '[label="Character:\n ' + self.value + '"];\n'
+        return returnValue
+
+class StringConstantNode(ASTNode):
+    def __init__(self, value):
+        self.value = value + '\0'
+
+    def accept(self, visitor):
+        return visitor.visitStringConstantNode(self)
+
+    def __str__(self):
+        if "\"" in self.value:
+            # TODO
+            return ""
+        currentNode = counter()
+        returnValue = currentNode + ';\n';
+        returnValue += currentNode + '[label="CString:\n ' + self.value + '"];\n'
         return returnValue
 
 class DeclarationSpecifierNode(ASTNode):

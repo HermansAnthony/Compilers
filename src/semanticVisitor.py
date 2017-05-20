@@ -16,6 +16,12 @@ class SemanticVisitor(AstVisitor):
             raise mainException()
         self.symbolTable.resetScopeCounter()
 
+    def visitStdioNode(self, node:StdioNode):
+        self.symbolTable.insertSymbol("printf()", 
+            {'idType': "i", 'refCount': 0}, params=[]) 
+        self.symbolTable.insertSymbol("scanf()", 
+            {'idType': "i", 'refCount': 0}, params=[])    
+
     def visitFunctionDefinitionNode(self, node:FunctionDefinitionNode):
         # Insert function into symbol table
         parameters = list()
@@ -23,10 +29,23 @@ class SemanticVisitor(AstVisitor):
             parameters = node.parameterList.getParams()
         functionName = node.getID()
         functionType = node.getType()
-        if self.symbolTable.insertSymbol(functionName+"()", 
-            functionType, params=parameters) == None: 
-            raise declarationException(functionName, 
-                functionType, True, node.getPosition())
+        if not self.symbolTable.insertSymbol(functionName+"()", 
+            functionType, params=parameters): 
+            # Check if there was a forward function declaration
+            item = self.symbolTable.lookupSymbol(functionName+"()")          
+            if not item.isForwardDecl:
+                raise declarationException(functionName, 
+                    functionType, True, node.getPosition())
+            # Check if parameter types match
+            if len(parameters) != len(item.parameters):
+                # TODO Raise exception
+                print("Parameter length of forwarDecl and funcDef don't match.")
+            for index, param in enumerate(parameters):
+                paramType1 = param.getType()
+                paramType2 = item.getType()
+                if paramType1 != paramType2:
+                    # TODO Raise exception
+                    print("Parameter types don't match.")
         if functionName == "main":
             self.mainFunctionFound = True
             if functionType['idType'] != 'i':
@@ -64,7 +83,7 @@ class SemanticVisitor(AstVisitor):
 
     def visitAssignmentNode(self, node:AssignmentNode):
         # Compare types
-        item = self.symbolTable.lookupSymbol(node.getID())
+        item = self.symbolTable.lookupSymbol(node.getID(), node.identifier)
         if item == None: raise unknownVariable(node.getID(), node.getPosition())
         arrExprList = node.identifier.arrayExpressionList
         if item.arraySize:
@@ -91,11 +110,13 @@ class SemanticVisitor(AstVisitor):
         exprType = self.visit(node.condition)
         declType = {'idType': "b", 'refCount': 0}
         if exprType != declType:     
-            raise wrongType(exprType, declType['idType'], "TODO fix line here")
-        for declStat in node.ifBody:
-            self.visit(declStat)
-        for declStat in node.elseBody:
-            self.visit(declStat)
+            raise wrongType(exprType, declType['idType'], "TODO fix line here IF")
+        if node.ifBody:
+            for declStat in node.ifBody:
+                self.visit(declStat)
+        if node.elseBody:
+            for declStat in node.elseBody:
+                self.visit(declStat)
 
     def visitIterationStatementNode(self, node:IterationStatementNode):
         if node.statementName == "While":
@@ -103,7 +124,7 @@ class SemanticVisitor(AstVisitor):
             exprType = self.visit(node.left)
             declType = {'idType': "b", 'refCount': 0}
             if exprType != declType:     
-                raise wrongType(exprType['idType'], declType['idType'], "TODO fix line here")
+                raise wrongType(exprType['idType'], declType['idType'], "TODO fix line here ITER")
             # visit function body
             for declStat in node.right:
                 self.visit(declStat)
@@ -142,7 +163,7 @@ class SemanticVisitor(AstVisitor):
                 for i in range(1,len(exprs)):
                     otherType = self.visit(exprs[i])
                     if curType != otherType:
-                        raise wrongType(curType, otherType, "TODO fix line here")
+                        raise wrongType(curType, otherType, "TODO fix line here INITLIST")
                 exprType = curType
             if exprType != declType:   
                 raise wrongType(exprType, declType['idType'], node.getPosition())
@@ -168,13 +189,16 @@ class SemanticVisitor(AstVisitor):
                     typeLeft, "TODO fix line here", typeRight)
         if (node.operator != "+" and node.operator != "-" 
             and node.operator != "*" and node.operator != "/"):
-            typeLeft = {'idType': "b", 'refCount': 0}
+            exprTypeLeft = {'idType': "b", 'refCount': 0}
         return exprTypeLeft
             
     def visitExpressionNode(self, node:ExpressionNode):
         exprType = None
         if node.isPostfix:
-            # Id++ or Id-- works for all types except for char
+            item = self.symbolTable.lookupSymbol(node.child.getID(), node.child)
+            if item == None: raise unknownVariable(node.child.getID(), "ADD line")
+            # Id++ or Id-- works for all types except for char 
+            # TODO Test if it works for floats/addresses
             # Get the type of the identifier
             exprType = self.visit(node.child)
             if exprType['idType'] == "c" and exprType['refCount'] == 0:
@@ -183,7 +207,7 @@ class SemanticVisitor(AstVisitor):
         return exprType
 
     def visitDereferenceExpressionNode(self, node:DereferenceExpressionNode):
-        item = self.symbolTable.lookupSymbol(node.child.getID())
+        item = self.symbolTable.lookupSymbol(node.child.getID(), node.child)
         if item == None: raise unknownVariable(node.child.getID(), "ADD line")
         if item.type['refCount'] < node.derefCount:
             raise deReference(node.getPosition())
@@ -193,7 +217,7 @@ class SemanticVisitor(AstVisitor):
         return exprType
 
     def visitReferenceExpressionNode(self, node:ReferenceExpressionNode):
-        item = self.symbolTable.lookupSymbol(node.child.getID())
+        item = self.symbolTable.lookupSymbol(node.child.getID(), node.child)
         if item == None: raise unknownVariable(node.child.getID(), "ADD line")
         # Increase the reference count of the exprType
         exprType = copy.deepcopy(item.type)
@@ -201,10 +225,56 @@ class SemanticVisitor(AstVisitor):
         return exprType  
 
     def visitFunctionCallNode(self, node:FunctionCallNode):
-        #self.visit(node.identifier)
-        # self.visit(node.argumentExpressionListNode)
         item = self.symbolTable.lookupSymbol(node.getID() + "()")
         if item == None: raise unknownVariable(node.getID()+"()", node.getPosition(), True)
+        if node.getID() == "printf" or node.getID() == "scanf":
+            # Handle included printf and scanf functions as inline code.
+            args = node.argumentExpressionListNode.argumentExprs
+            if len(args) > 0:
+                argType = self.visit(args[0])
+                # Check if first argument is a Char array
+                if argType['idType'] == "c" and argType['refCount'] == 0:
+                    if type(args[0]) == IdentifierNode:
+                        # TODO Raise exception
+                        print(node.getID() + " does not support Identifiers as format argument.")
+                        # Argument is an identifier
+                        argItem = self.symbolTable.lookupSymbol(args[0].getID(), args[0])
+                        if argItem.arraySize > 0:
+                            return {'idType': "i", 'refCount': 0}
+                    elif argType['isArray']:
+                        # Argument is a string literal
+                        argsIndex = 1
+                        stringLit = str(args[0].value)
+                        for index, char in enumerate(stringLit):
+                            if char == "%" and index+1 < len(stringLit):
+                                if index != 0 and stringLit[index-1] == "%":
+                                    continue
+                                tempType = self.visit(args[argsIndex])
+                                if argsIndex >= len(args):
+                                    # TODO Raise exception
+                                    print(node.getID() + " has not enough arguments for the given format.")
+                                if type(args[argsIndex]) != IdentifierNode:
+                                    if node.getID() == "scanf": 
+                                        if tempType['refCount'] != 1:
+                                            # TODO Raise exception
+                                            print("scanf only accepts pointers to basic type variables in the args list parameter.")                                        
+                                    else:
+                                        # TODO Raise exception
+                                        print("printf only accepts identifiers in the args list parameter.")
+                                nextChar = stringLit[index+1]
+                                if (nextChar == "i" and tempType['idType'] == "i" or
+                                    nextChar == "d" and tempType['idType'] == "r" or
+                                    nextChar == "c" and tempType['idType'] == "c" or
+                                    nextChar == "s" and (tempType['idType'] == "c" and isArray in tempType)
+                                    ):
+                                    argsIndex += 1
+                                    continue
+                                # TODO Raise exception
+                                print(node.getID() + " has incorrect argument type for the given format.")
+                        return {'idType': "i", 'refCount': 0}
+            # TODO Raise exception, I'm using a temp dereference error at the moment
+            print(node.getID() + " requires an array of characters (make better error msg)")
+            raise deReference(0)
         params = item.parameters # List of parameterDeclNode
         args = []
         if node.argumentExpressionListNode:
@@ -217,17 +287,19 @@ class SemanticVisitor(AstVisitor):
             if argType != paramType:
                  raise parameterTypeError(argType, paramType, "TODO add line1")
             paramArraySize = int(item.parameters[i].declarator.arrayExpressionList[0].value)
-            argItem = self.symbolTable.lookupSymbol(args[i].getID())
+            argItem = None
+            if type(args[i]) == IdentifierNode:
+                argItem = self.symbolTable.lookupSymbol(args[i].getID(), args[i])
             if paramArraySize:
                 if (type(args[i]) != IdentifierNode or not argItem.arraySize
                     or len(args[i].arrayExpressionList) != 0):
                     # TODO raise exception
                     print("parameter is of type array but argument is not.")
-            if argItem.arraySize:
+            if argItem and argItem.arraySize:
                 if not paramArraySize:
                     # TODO raise exception
                     print("argument is of type array but parameter is not.")
-            if paramArraySize != argItem.arraySize:
+            if argItem and paramArraySize != argItem.arraySize:
                 # TODO raise exception
                 print("Argument and parameter array sizes don't match.")                
         return item.type    
@@ -241,14 +313,20 @@ class SemanticVisitor(AstVisitor):
     def visitCharacterConstantNode(self, node:CharacterConstantNode):
         return {'idType': "c", 'refCount': 0}
 
+    def visitStringConstantNode(self, node:StringConstantNode):
+        return {'idType': "c", 'refCount': 0, 'isArray': True}
+
     def visitDeclarationSpecifierNode(self, node:DeclarationSpecifierNode):
         pass   
 
     def visitIdentifierNode(self, node:IdentifierNode):
-        item = self.symbolTable.lookupSymbol(node.getID())
+        item = self.symbolTable.lookupSymbol(node.getID(), node)
         if item == None: raise unknownVariable(node.getID(), node.getPosition())
-        #for expression in node.arrayExpressionList:
-        #    self.visit(expression)
+        if len(node.arrayExpressionList) > 0:        
+            exprType = self.visit(node.arrayExpressionList[0])
+            if exprType['idType'] != "i":
+                # TODO Raise exception
+                print("Array index expression is not of type integer.")
         return item.type
 
     def visitForwardFunctionDeclarationNode(self, node:ForwardFunctionDeclarationNode):
@@ -256,12 +334,9 @@ class SemanticVisitor(AstVisitor):
         parameters = dict()
         if node.parameterList:
             parameters = node.parameterList.getParams()
-        print(self.symbolTable)
-        self.symbolTable.insertSymbol(node.getID()+"()", node.declarationSpecifier.getType(), parameters)
-        print(self.symbolTable)
-        if node.declarationSpecifier:
-            self.visit(node.declarationSpecifier)
-        self.visit(node.identifier)
-        if parameterList:
-            self.visit(node.parameterList)
+        if not self.symbolTable.insertSymbol(node.getID()+"()", 
+            node.declarationSpecifier.getType(), 
+            params=parameters, isForwardDecl=True):
+            # TODO raise exception
+            print("Function already declared")
 
