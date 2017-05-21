@@ -221,9 +221,16 @@ class AstBuilder(CmmVisitor):
         return None
 
     def visitMultiplicativeExpression(self, ctx:CmmParser.MultiplicativeExpressionContext):
-        if ctx.atomExpression():
-            return self.visit(ctx.atomExpression())
-        # TODO add more
+        if ctx.atomExpression(): return self.visit(ctx.atomExpression())
+        if ctx.getChildCount() == 3:
+            # multiplicativeExpression Star atomExpression
+            # multiplicativeExpression Div atomExpression
+            # TODO check if right
+            expr0 = self.visit(ctx.multiplicativeExpression())
+            expr1 = self.visit(ctx.atomExpression())
+            print(ctx.Star().getText())
+            if ctx.Star(): return BinaryOperationNode(ctx.Star().getText(), expr0, expr1)
+            return BinaryOperationNode(ctx.Div().getText(), expr0, expr1)
         return None
 
     def visitAtomExpression(self, ctx:CmmParser.AtomExpressionContext):
@@ -244,7 +251,7 @@ class AstBuilder(CmmVisitor):
                 return DereferenceExpressionNode(len(ctx.Star()), idNode, place)
 
             if ctx.And():
-            # And (Identifier | arrayExpression)
+                # And (Identifier | arrayExpression)
                 if ctx.Identifier():
                     identifier =  self.visitIdentifier(ctx.Identifier())
                     return ReferenceExpressionNode(identifier)
@@ -255,6 +262,7 @@ class AstBuilder(CmmVisitor):
 
             # (Identifier | arrayExpression) PlusPlus
             # (Identifier | arrayExpression) MinusMinus
+            # TODO not sure if correct or not
             if ctx.Identifier():
                 return ExpressionNode(ctx.getChild(1).getText(), True, self.visitIdentifier(ctx.Identifier()))
             result = self.visit(ctx.arrayExpression())
