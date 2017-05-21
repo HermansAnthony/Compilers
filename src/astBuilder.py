@@ -217,16 +217,51 @@ class AstBuilder(CmmVisitor):
         print("In additive expr")
         if ctx.multiplicativeExpression():
             return self.visit(ctx.multiplicativeExpression())
+        # TODO add more
         return None
 
     def visitMultiplicativeExpression(self, ctx:CmmParser.MultiplicativeExpressionContext):
         if ctx.atomExpression():
             return self.visit(ctx.atomExpression())
+        # TODO add more
         return None
 
     def visitAtomExpression(self, ctx:CmmParser.AtomExpressionContext):
-        if ctx.primaryExpression():
-            return self.visit(ctx.primaryExpression())
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
+        if ctx.primaryExpression(): return self.visit(ctx.primaryExpression())
+        if ctx.arrayExpression(): return self.visitArrayExpression(ctx.arrayExpression())
+        if ctx.functionCallExpression(): return self.visitFunctionCallExpression(ctx.functionCallExpression())
+        if ctx.getChildCount() == 2:
+            if ctx.Star():
+                # Star+ (Identifier | arrayExpression)
+                if ctx.Identifier():
+                    identifier =  self.visitIdentifier(ctx.Identifier())
+                    return DereferenceExpressionNode(len(ctx.Star()), identifier, place)
+                result = self.visit( ctx.arrayExpression() )
+                idNode = result[-1]
+                idNode.arrayExpressionList = list(reversed(result[:-1]))
+                return DereferenceExpressionNode(len(ctx.Star()), idNode, place)
+
+            if ctx.And():
+            # And (Identifier | arrayExpression)
+                if ctx.Identifier():
+                    identifier =  self.visitIdentifier(ctx.Identifier())
+                    return ReferenceExpressionNode(identifier)
+                result = self.visit( ctx.arrayExpression() )
+                idNode = result[-1]
+                idNode.arrayExpressionList = list(reversed(result[:-1]))
+                return ReferenceExpressionNode(idNode)
+
+            # (Identifier | arrayExpression) PlusPlus
+            # (Identifier | arrayExpression) MinusMinus
+            if ctx.Identifier():
+                return ExpressionNode(ctx.getChild(1).getText(), True, self.visitIdentifier(ctx.Identifier()))
+            result = self.visit(ctx.arrayExpression())
+            idNode = result[-1]
+            idNode.arrayExpressionList = list(reversed(result[:-1]))
+            return ExpressionNode(ctx.getChild(1).getText(), True, idNode)
+
 
     def visitStatement(self, ctx:CmmParser.StatementContext):
         # (Identifier | arrayExpression) PlusPlus 
