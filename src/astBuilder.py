@@ -102,9 +102,11 @@ class AstBuilder(CmmVisitor):
 
     def visitIdentifier(self, ctx):
         # Place is for semantic analysis (line-column position)
-        # place = str(ctx.getText()) + ", position " + str(ctx.column)
-        place = "TODO"
-        if str(type(ctx)) == "<class 'antlr4.tree.Tree.TerminalNodeImpl'>": place = str(ctx.getSymbol().line) + ", position " + str(ctx.getSymbol().column)
+        place = ""
+        if str(type(ctx)) == "<class 'antlr4.tree.Tree.TerminalNodeImpl'>":
+            place += str(ctx.getSymbol().line) + ", position " + str(ctx.getSymbol().column)
+        else:
+            place += str(ctx.start.line) + ", position " + str(ctx.start.column)
         return IdentifierNode(ctx.getText(), [], place)
 
     def visitConstant(self, ctx:CmmParser.ConstantContext):
