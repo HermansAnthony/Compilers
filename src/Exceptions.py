@@ -108,8 +108,17 @@ class parameterTypeError(semanticException):
         self.line = line
 
     def __str__(self):
-        return "Semantic error occurred on line " + str(self.line) + ":\nExpected argument of type " + str(self.correctType) \
-               + " but received argument of type " + str(self.currentType) + " for function " + str(self.name)
+        return "Semantic error occurred on line " + str(self.line) + ":\nExpected argument of type " + getType(str(self.correctType)) \
+               + " but received argument of type " + getType(str(self.currentType)) + " for function " + str(self.name)
+
+class conflictingArgumentLength(semanticException):
+    def __init__(self, name, line):
+        self.name = name
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n"\
+                + 'Argument arraysize is different than the parameter arraysize for function ' + str(self.name)
 
 class conflictingParameterLength(semanticException):
     def __init__(self, name, currentLength, correctLength, line):
@@ -122,6 +131,7 @@ class conflictingParameterLength(semanticException):
         return "Semantic error occurred on line " + str(self.line) + ":\nExpected " + str(self.correctLength) + " parameter(s) " \
                + "but received " + str(self.currentLength) + " parameter(s) for function " + str(self.name)
 
+# Array related exceptions/warnings
 class wrongArrayDimension(semanticException):
     def __init__(self, name, line):
         self.name = name
@@ -131,6 +141,22 @@ class wrongArrayDimension(semanticException):
         return "Warning occurred on line " + str(self.line) + ":\n"\
         "Only support for 1 dimensional arrays. (parameter " + str(self.name) + ")"
 
+class wrongArrayDefinition(semanticException):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+                "Definition of variable with array type needs an explicit size or an initializer"
+
+class wrongArrayIndexType(semanticException):
+    def __init__(self, currentType, line):
+        self.currentType = currentType
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+                "Arrayindex has type " + str(self.currentType) + " while it should be integer"
 # All antlr related errors
 class antlrError(Exception):
     pass

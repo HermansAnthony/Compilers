@@ -154,21 +154,25 @@ class AstBuilder(CmmVisitor):
         return [self.visit(ctx.expression())]
 
     def visitBinaryExpression(self, ctx:CmmParser.BinaryExpressionContext):
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
         if ctx.additiveExpression() and ctx.getChildCount() == 1: return self.visit(ctx.additiveExpression())
         if ctx.getChildCount() == 3:
             expr0 = self.visit(ctx.binaryExpression())
             expr1 = self.visit(ctx.additiveExpression())
-            if ctx.OrOr(): return BinaryOperationNode(ctx.OrOr().getText(), expr0, expr1)
-            if ctx.AndAnd(): return BinaryOperationNode(ctx.AndAnd().getText(), expr0, expr1)
-            if ctx.Equal(): return BinaryOperationNode(ctx.Equal().getText(), expr0, expr1)
-            if ctx.NotEqual(): return BinaryOperationNode(ctx.NotEqual().getText(), expr0, expr1)
-            if ctx.Less(): return BinaryOperationNode(ctx.Less().getText(), expr0, expr1)
-            if ctx.Greater(): return BinaryOperationNode(ctx.Greater().getText(), expr0, expr1)
-            if ctx.LessEqual(): return BinaryOperationNode(ctx.LessEqual().getText(), expr0, expr1)
-            return BinaryOperationNode(ctx.GreaterEqual().getText(), expr0, expr1)
+            if ctx.OrOr(): return BinaryOperationNode(ctx.OrOr().getText(), expr0, expr1, place)
+            if ctx.AndAnd(): return BinaryOperationNode(ctx.AndAnd().getText(), expr0, expr1, place)
+            if ctx.Equal(): return BinaryOperationNode(ctx.Equal().getText(), expr0, expr1, place)
+            if ctx.NotEqual(): return BinaryOperationNode(ctx.NotEqual().getText(), expr0, expr1, place)
+            if ctx.Less(): return BinaryOperationNode(ctx.Less().getText(), expr0, expr1, place)
+            if ctx.Greater(): return BinaryOperationNode(ctx.Greater().getText(), expr0, expr1, place)
+            if ctx.LessEqual(): return BinaryOperationNode(ctx.LessEqual().getText(), expr0, expr1, place)
+            return BinaryOperationNode(ctx.GreaterEqual().getText(), expr0, expr1, place)
         return None
 
     def visitAdditiveExpression(self, ctx:CmmParser.AdditiveExpressionContext):
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
         # multiplicativeExpression
         if ctx.multiplicativeExpression() and ctx.getChildCount() == 1: return self.visit(ctx.multiplicativeExpression())
         if ctx.getChildCount() == 3:
@@ -177,11 +181,13 @@ class AstBuilder(CmmVisitor):
             # TODO check if right
             expr0 = self.visit(ctx.additiveExpression())
             expr1 = self.visit(ctx.multiplicativeExpression())
-            if ctx.Plus(): return BinaryOperationNode(ctx.Plus().getText(), expr0, expr1)
-            return BinaryOperationNode(ctx.Minus().getText(), expr0, expr1)
+            if ctx.Plus(): return BinaryOperationNode(ctx.Plus().getText(), expr0, expr1, place)
+            return BinaryOperationNode(ctx.Minus().getText(), expr0, expr1, place)
         return None
 
     def visitMultiplicativeExpression(self, ctx:CmmParser.MultiplicativeExpressionContext):
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
         if ctx.atomExpression() and ctx.getChildCount() == 1: return self.visit(ctx.atomExpression())
         if ctx.getChildCount() == 3:
             # multiplicativeExpression Star atomExpression
@@ -189,8 +195,8 @@ class AstBuilder(CmmVisitor):
             # TODO check if right
             expr0 = self.visit(ctx.multiplicativeExpression())
             expr1 = self.visit(ctx.atomExpression())
-            if ctx.Star(): return BinaryOperationNode(ctx.Star().getText(), expr0, expr1)
-            return BinaryOperationNode(ctx.Div().getText(), expr0, expr1)
+            if ctx.Star(): return BinaryOperationNode(ctx.Star().getText(), expr0, expr1, place)
+            return BinaryOperationNode(ctx.Div().getText(), expr0, expr1, place)
         return None
 
     def visitAtomExpression(self, ctx:CmmParser.AtomExpressionContext):
@@ -214,11 +220,11 @@ class AstBuilder(CmmVisitor):
                 # And (Identifier | arrayExpression)
                 if ctx.Identifier():
                     identifier =  self.visitIdentifier(ctx.Identifier())
-                    return ReferenceExpressionNode(identifier)
+                    return ReferenceExpressionNode(identifier, place)
                 result = self.visit( ctx.arrayExpression() )
                 idNode = result[-1]
                 idNode.arrayExpressionList = list(reversed(result[:-1]))
-                return ReferenceExpressionNode(idNode)
+                return ReferenceExpressionNode(idNode, place)
 
             # (Identifier | arrayExpression) PlusPlus
             # (Identifier | arrayExpression) MinusMinus

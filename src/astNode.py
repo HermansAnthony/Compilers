@@ -331,13 +331,17 @@ class BreakNode(ASTNode):
         return returnValue
 
 class BinaryOperationNode(ASTNode):
-    def __init__(self, operator, left, right):
+    def __init__(self, operator, left, right, position):
         self.operator = operator
         self.left = left
         self.right = right
+        self.position = position
 
     def accept(self, visitor):
         return visitor.visitBinaryOperationNode(self)
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         currentNode = counter()
@@ -391,11 +395,15 @@ class DereferenceExpressionNode(ASTNode):
         return returnValue    
 
 class ReferenceExpressionNode(ASTNode):
-    def __init__(self, child):
+    def __init__(self, child, position):
         self.child = child
+        self.position = position
 
     def accept(self, visitor):
         return visitor.visitReferenceExpressionNode(self)
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         currentNode = counter()
@@ -454,6 +462,9 @@ class IntegerConstantNode(ASTNode):
     def accept(self, visitor):
         return visitor.visitIntegerConstantNode(self)
 
+    def getType(self):
+        return "integer"
+
     def __str__(self):
         currentNode = counter()
         returnValue = currentNode + ';\n';
@@ -467,6 +478,9 @@ class FloatingConstantNode(ASTNode):
     def accept(self, visitor):
         return visitor.visitFloatingConstantNode(self)
 
+    def getType(self):
+        return "float"
+
     def __str__(self):
         currentNode = counter()
         returnValue = currentNode + ';\n';
@@ -479,6 +493,9 @@ class CharacterConstantNode(ASTNode):
 
     def accept(self, visitor):
         return visitor.visitCharacterConstantNode(self)
+
+    def getType(self):
+        return "character"
 
     def __str__(self):
         if "\"" in self.value:
@@ -495,6 +512,9 @@ class StringConstantNode(ASTNode):
 
     def accept(self, visitor):
         return visitor.visitStringConstantNode(self)
+
+    def getType(self):
+        return "string"
 
     def __str__(self):
         if "\"" in self.value:

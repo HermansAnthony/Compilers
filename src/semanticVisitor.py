@@ -86,8 +86,7 @@ class SemanticVisitor(AstVisitor):
         arrExprList = node.identifier.arrayExpressionList
         if item.arraySize:
             if len(arrExprList) == 0:
-                # TODO Raise exception
-                print("Invalid assignment for array")
+                raise wrongArrayDefinition(node.getPosition())
             if len(arrExprList) > 1:
                 raise wrongArrayDimension(node.getID(), node.getPosition())
         exprType = self.visit(node.expression)
@@ -145,10 +144,10 @@ class SemanticVisitor(AstVisitor):
         if len(arrExprList) > 0:
             arraySize = int(arrExprList[0].value)
             if len(arrExprList) > 1:
-                # TODO raise error or warning one dimensional arrays only
-                print("One dimensional arrays only")
+                raise wrongArrayDimension(node.getID(), node.getPosition())
             if node.expression and type(node.expression) != InitializerListNode:
-                # TODO Raise error: wrong type in initializer, it has to be an initializerlist 
+                # TODO Raise error: wrong type in initializer, it has to be an initializerlist
+                # Error never occurs TODO
                 print("Semantic error: attempt to initialize array with wrong type")                
         if node.expression:
             # Compare types
@@ -160,7 +159,7 @@ class SemanticVisitor(AstVisitor):
                 for i in range(1,len(exprs)):
                     otherType = self.visit(exprs[i])
                     if curType != otherType:
-                        raise wrongType(curType, otherType, "TODO fix line here INITLIST")
+                        raise wrongType(curType['idType'], otherType['idType'],node.getPosition())
                 exprType = curType
             if exprType != declType:   
                 raise wrongType(exprType, declType['idType'], node.getPosition())
@@ -173,17 +172,17 @@ class SemanticVisitor(AstVisitor):
         exprTypeRight = self.visit(node.right)
         if (exprTypeRight['refCount'] > 0 or
             exprTypeLeft['refCount'] > 0):
-            raise wrongOperation("add/subtract/mul or div", "an address", "TODO line")
+            raise wrongOperation("add/subtract/mul or div", "an address", node.getPosition())
         typeLeft = exprTypeLeft['idType']
         typeRight = exprTypeRight['idType']
         if (node.operator == "&&" and node.operator == "||"):
             if typeLeft == {'idType': "b", 'refCount': 0}:
                 # TODO && and || do not have a boolean type
                 raise wrongOperation("&& and ||", 
-                    typeLeft, "TODO fix line here", typeRight)
+                    typeLeft, node.getPosition(), typeRight)
             if typeLeft != typeRight:
                 raise wrongOperation(str(node.operator),
-                    typeLeft, "TODO fix line here", typeRight)
+                    typeLeft, node.getPosition(), typeRight)
         if (node.operator != "+" and node.operator != "-" 
             and node.operator != "*" and node.operator != "/"):
             exprTypeLeft = {'idType': "b", 'refCount': 0}
@@ -193,7 +192,7 @@ class SemanticVisitor(AstVisitor):
         exprType = None
         if node.isPostfix:
             item = self.symbolTable.lookupSymbol(node.child.getID(), node.child)
-            if item == None: raise unknownVariable(node.child.getID(), "ADD line")
+            if item == None: raise unknownVariable(node.child.getID(), node.getPosition())
             # Id++ or Id-- works for all types except for char 
             # TODO Test if it works for floats/addresses
             # Get the type of the identifier
@@ -204,7 +203,7 @@ class SemanticVisitor(AstVisitor):
 
     def visitDereferenceExpressionNode(self, node:DereferenceExpressionNode):
         item = self.symbolTable.lookupSymbol(node.child.getID(), node.child)
-        if item == None: raise unknownVariable(node.child.getID(), "ADD line")
+        if item == None: raise unknownVariable(node.child.getID(), node.getPosition())
         if item.type['refCount'] < node.derefCount:
             raise deReference(node.getPosition())
         # Decrease the reference count of the exprType
@@ -214,7 +213,7 @@ class SemanticVisitor(AstVisitor):
 
     def visitReferenceExpressionNode(self, node:ReferenceExpressionNode):
         item = self.symbolTable.lookupSymbol(node.child.getID(), node.child)
-        if item == None: raise unknownVariable(node.child.getID(), "ADD line")
+        if item == None: raise unknownVariable(node.child.getID(), node.getPosition())
         # Increase the reference count of the exprType
         exprType = copy.deepcopy(item.type)
         exprType['refCount'] += 1
@@ -281,7 +280,10 @@ class SemanticVisitor(AstVisitor):
             paramType = params[i].getType()
             argType = self.visit(args[i])
             if argType != paramType:
-                 raise parameterTypeError(node.getID(), argType, paramType, "TODO add line1")
+                 raise parameterTypeError(node.getID(), argType['idType'], paramType['idType'], node.getPosition())
+            # Type is an array while the parameter is not
+            if len(item.parameters[i].declarator.arrayExpressionList) == 0:
+                raise parameterTypeError(node.getID(), "array", argType['idType'], node.getPosition())
             paramArraySize = int(item.parameters[i].declarator.arrayExpressionList[0].value)
             argItem = None
             if type(args[i]) == IdentifierNode:
@@ -289,15 +291,9 @@ class SemanticVisitor(AstVisitor):
             if paramArraySize:
                 if (type(args[i]) != IdentifierNode or not argItem.arraySize
                     or len(args[i].arrayExpressionList) != 0):
-                    # TODO raise exception
-                    print("parameter is of type array but argument is not.")
-            if argItem and argItem.arraySize:
-                if not paramArraySize:
-                    # TODO raise exception
-                    print("argument is of type array but parameter is not.")
+                    raise parameterTypeError(node.getID(), args[i].getType(), "array", node.getPosition())
             if argItem and paramArraySize != argItem.arraySize:
-                # TODO raise exception
-                print("Argument and parameter array sizes don't match.")                
+                raise conflictingArgumentLength(node.getID(), node.getPosition())
         return item.type    
 
     def visitIntegerConstantNode(self, node:IntegerConstantNode):
@@ -321,8 +317,7 @@ class SemanticVisitor(AstVisitor):
         if len(node.arrayExpressionList) > 0:        
             exprType = self.visit(node.arrayExpressionList[0])
             if exprType['idType'] != "i":
-                # TODO Raise exception
-                print("Array index expression is not of type integer.")
+                raise wrongArrayIndexType(exprType['idType'], node.getPosition())
         return item.type
 
     def visitForwardFunctionDeclarationNode(self, node:ForwardFunctionDeclarationNode):
