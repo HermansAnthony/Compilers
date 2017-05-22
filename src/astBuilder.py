@@ -112,17 +112,23 @@ class AstBuilder(CmmVisitor):
         return IdentifierNode(ctx.getText(), [], place)
 
     def visitConstant(self, ctx:CmmParser.ConstantContext):
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
         if ctx.Character():
-            return CharacterConstantNode(ctx.getText())
+            return CharacterConstantNode(ctx.getText(), place)
         if ctx.String():
-            return StringConstantNode(ctx.getText())
+            return StringConstantNode(ctx.getText(), place)
         return self.visitChildren(ctx)
 
     def visitIntegerConstant(self, ctx:CmmParser.IntegerConstantContext):
-        return IntegerConstantNode(ctx.getText())
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
+        return IntegerConstantNode(ctx.getText(), place)
 
     def visitFloatingConstant(self, ctx:CmmParser.FloatingConstantContext):
-        return FloatingConstantNode(ctx.getText())
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
+        return FloatingConstantNode(ctx.getText(), place)
 
     def visitExpression(self, ctx:CmmParser.ExpressionContext):
         if ctx.binaryExpression(): return self.visit(ctx.binaryExpression())

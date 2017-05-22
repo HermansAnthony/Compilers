@@ -96,17 +96,15 @@ class SemanticVisitor(AstVisitor):
             declType['refCount'] -= node.dereferenceCount
         if declType['refCount'] < 0:
             raise deReference(node.getPosition())
-        # If exprType is a dict => extract type out of dict
-        if isinstance(exprType, dict): exprType = exprType['idType']
-        if exprType != declType['idType']:
-            raise wrongType(exprType, declType['idType'], node.getPosition())
+        if exprType['idType'] != declType['idType']:
+            raise wrongType(exprType['idType'], declType['idType'], node.getPosition())
 
     def visitIfStatementNode(self, node:IfStatementNode):
         # Check if expression is boolean
         exprType = self.visit(node.condition)
         declType = {'idType': "b", 'refCount': 0}
         if exprType != declType:     
-            raise wrongType(exprType, declType['idType'], "TODO fix line here IF")
+            raise wrongType(exprType['idType'], declType['idType'], "TODO fix line here IF")
         if node.ifBody:
             for declStat in node.ifBody:
                 self.visit(declStat)
@@ -151,18 +149,25 @@ class SemanticVisitor(AstVisitor):
                 print("Semantic error: attempt to initialize array with wrong type")                
         if node.expression:
             # Compare types
-            exprType = self.visit(node.expression)
+            if isinstance(node.expression, list):
+                for elem in node.expression:
+                    # Check when index is an identifier:
+                    # No reference to an existing variable => Throw unknownVariable exception
+                    # Identifier has other type than integer => Throw wrongArrayIndexType exception
+                    if type(elem) == IdentifierNode and node.expression.index(elem) != len(node.expression)-1:
+                        if self.symbolTable.lookupSymbol(elem.getID()) == None:
+                            raise unknownVariable(elem.getID(), elem.getPosition())
+                        if self.symbolTable.lookupSymbol(elem.getID()).type['idType'] != 'i':
+                            raise wrongArrayIndexType(self.symbolTable.lookupSymbol(elem.getID()).type['idType'], elem.getPosition())
+                    if type(elem) == FloatingConstantNode or type(elem) == CharacterConstantNode or type(elem) == StringConstantNode:
+                        raise wrongArrayIndexType(elem.getType(), elem.getPosition())
             if type(node.expression) == InitializerListNode:
                 exprs = node.expression.expressions
-                # Check if initialization list contains the same types
-                curType = self.visit(exprs[0])
-                for i in range(1,len(exprs)):
-                    otherType = self.visit(exprs[i])
-                    if curType != otherType:
-                        raise wrongType(curType['idType'], otherType['idType'],node.getPosition())
-                exprType = curType
-            if exprType != declType:   
-                raise wrongType(exprType, declType['idType'], node.getPosition())
+                # Check if all elements in the initializer list are the same type as the declType
+                for expr in exprs:
+                    curType = self.visit(expr)
+                    if curType != declType:
+                        raise wrongType(curType['idType'], declType['idType'], expr.getPosition())
         if self.symbolTable.insertSymbol(node.getID(), declType, arraySize=arraySize) == None:
             raise declarationException(node.getID(), 
                 declType['idType'], False, node.getPosition())

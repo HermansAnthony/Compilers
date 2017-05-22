@@ -456,14 +456,19 @@ class ArgumentExpressionListNode(ASTNode):
         return returnValue 
 
 class IntegerConstantNode(ASTNode):
-    def __init__(self, value):
+    def __init__(self, value, position):
         self.value = value
+        self.position = position
+
 
     def accept(self, visitor):
         return visitor.visitIntegerConstantNode(self)
 
     def getType(self):
         return "integer"
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         currentNode = counter()
@@ -472,14 +477,18 @@ class IntegerConstantNode(ASTNode):
         return returnValue
 
 class FloatingConstantNode(ASTNode):
-    def __init__(self, value):
+    def __init__(self, value, position):
         self.value = value
+        self.position = position
 
     def accept(self, visitor):
         return visitor.visitFloatingConstantNode(self)
 
     def getType(self):
         return "float"
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         currentNode = counter()
@@ -488,14 +497,19 @@ class FloatingConstantNode(ASTNode):
         return returnValue
 
 class CharacterConstantNode(ASTNode):
-    def __init__(self, value):
+    def __init__(self, value, position):
         self.value = value
+        self.position = position
+
 
     def accept(self, visitor):
         return visitor.visitCharacterConstantNode(self)
 
     def getType(self):
         return "character"
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         if "\"" in self.value:
@@ -507,14 +521,18 @@ class CharacterConstantNode(ASTNode):
         return returnValue
 
 class StringConstantNode(ASTNode):
-    def __init__(self, value):
+    def __init__(self, value, position):
         self.value = value + '\0'
+        self.position = position
 
     def accept(self, visitor):
         return visitor.visitStringConstantNode(self)
 
     def getType(self):
         return "string"
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         if "\"" in self.value:

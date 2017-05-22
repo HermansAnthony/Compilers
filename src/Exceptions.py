@@ -56,7 +56,7 @@ class wrongType(semanticException):
 
     def __str__(self):
         returnValue = "Mismatched type error occurred on line " + str(self.line) + ":\n"
-        returnValue += "You declared the variable as " + str(getType(self.type)) + " while it should be " + str(getType(self.correctType))
+        returnValue += "You declared/defined the variable as " + str(getType(self.type)) + " while it should be " + str(getType(self.correctType))
         return returnValue
 
 # The return type and the type of the function don'tmatch
@@ -156,7 +156,7 @@ class wrongArrayIndexType(semanticException):
 
     def __str__(self):
         return "Semantic error occurred on line " + str(self.line) + ":\n" \
-                "Arrayindex has type " + str(self.currentType) + " while it should be integer"
+                "Arrayindex has type " + getType(str(self.currentType)) + " while it should be integer"
 # All antlr related errors
 class antlrError(Exception):
     pass
