@@ -59,6 +59,19 @@ class wrongType(semanticException):
         returnValue += "You declared/defined the variable as " + str(getType(self.type)) + " while it should be " + str(getType(self.correctType))
         return returnValue
 
+    # The type and the expr type mismatch
+class wrongReturnExpression(semanticException):
+    def __init__(self, type, correctType, line):
+        self.type = type
+        self.correctType = correctType
+        self.line = line
+
+    def __str__(self):
+        returnValue = "Semantic error occurred on line " + str(self.line) + ":\n"
+        returnValue += "The expression returned a value of type " + str(getType(self.type)) \
+                       + " while it should be " + str(getType(self.correctType))
+        return returnValue
+
 # The return type and the type of the function don'tmatch
 class wrongReturnType(semanticException):
     def __init__(self, returnType, correctType, line):
@@ -67,7 +80,7 @@ class wrongReturnType(semanticException):
         self.line = line
 
     def __str__(self):
-        returnValue = "Wrong function return type error occurred on line " + str(self.line) + ":\n"
+        returnValue = "Wrong return type error occurred on line " + str(self.line) + ":\n"
         returnValue += "You returned a variable of type " + str(getType(self.returnType)) + " while it should be " + str(getType(self.correctType))
         return returnValue
 

@@ -343,6 +343,14 @@ class BinaryOperationNode(ASTNode):
     def getPosition(self):
         return self.position
 
+    def getType(self):
+        returnValue = list()
+        if isinstance(self.left, BinaryOperationNode): returnValue.extend(self.left.getType())
+        if not isinstance(self.left, BinaryOperationNode): returnValue.append(self.left.getType())
+        returnValue.append(self.right.getType())
+        return returnValue
+
+
     def __str__(self):
         currentNode = counter()
         returnValue = currentNode + ';\n'

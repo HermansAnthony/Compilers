@@ -55,14 +55,29 @@ class SemanticVisitor(AstVisitor):
             for paramDecl in node.parameterList.paramDecls:
                 self.visit(paramDecl)
         for declstat in node.functionBody:
+            if type(declstat) == ReturnNode:
+                if type(declstat.expressionNode) == IdentifierNode:
+                    if self.symbolTable.lookupSymbol(declstat.expressionNode.getID()) == None:
+                        raise unknownVariable(declstat.expressionNode.getID(), declstat.expressionNode.getPosition())
+                    retType = self.symbolTable.lookupSymbol(declstat.expressionNode.getID()).type['idType']
+                    if retType != functionType:
+                        raise wrongReturnType(retType, functionType['idType'], node.getPosition())
+                if type(declstat.expressionNode) != BinaryOperationNode and declstat.expressionNode.getType() != functionType['idType']:
+                    raise wrongReturnType(declstat.expressionNode.getType(), functionType['idType'], node.getPosition())
+
+                # Check if when the return statement is a expression,
+                # If all the types in the expression match the returnType of the function
+                types = declstat.expressionNode.getType()
+                for i in types:
+                    if functionType['idType'] == 'r' and i == "float": continue
+                    if i[0] != functionType['idType']:
+                        raise wrongReturnExpression(i, functionType['idType'], node.getPosition())
+
             # Calculate extreme pointer
             retType = self.visit(declstat)
             # Compare type from return statement
             if retType and 'returnStat' in retType:
                 retType.pop('returnStat')
-                if retType  != functionType:
-                    # TODO Fix this so the error can occur
-                    raise wrongReturnType(retType, functionType, node.getPosition())
                 return
 
     def visitParameterDeclarationNode(self, node:ParameterDeclarationNode):
