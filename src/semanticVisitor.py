@@ -38,14 +38,12 @@ class SemanticVisitor(AstVisitor):
                     functionType, True, node.getPosition())
             # Check if parameter types match
             if len(parameters) != len(item.parameters):
-                # TODO Raise exception
-                print("Parameter length of forwarDecl and funcDef don't match.")
+                raise conflictingParameterLength(functionName, len(parameters), len(item.parameters), node.getPosition())
             for index, param in enumerate(parameters):
                 paramType1 = param.getType()
                 paramType2 = item.getType()
                 if paramType1 != paramType2:
-                    # TODO Raise exception
-                    print("Parameter types don't match.")
+                    raise parameterTypeError(functionName, paramType1, paramType2, node.getPosition())
         if functionName == "main":
             self.mainFunctionFound = True
             if functionType['idType'] != 'i':
@@ -74,12 +72,12 @@ class SemanticVisitor(AstVisitor):
         if len(exprList) != 0:
             arraySize = int(exprList[0].value)
             if len(exprList) != 1:
-                # TODO Raise exception, one dimensional arrays only for now ex. int main(a[5][5]) 
-                print("one dimensional arrays only")
+                raise wrongArrayDimension(node.getID(), node.getPosition())
+
         if (self.symbolTable.insertSymbol(node.getID(), 
             node.getType(), arraySize=arraySize) == None):
                 raise declarationException(node.getID(), 
-                    node.getType(), False, "TODO line")
+                    node.getType(), False, node.getPosition())
 
     def visitAssignmentNode(self, node:AssignmentNode):
         # Compare types
@@ -91,8 +89,7 @@ class SemanticVisitor(AstVisitor):
                 # TODO Raise exception
                 print("Invalid assignment for array")
             if len(arrExprList) > 1:
-                # TODO Raise exception or warning
-                print("One dimensional arrays only")                
+                raise wrongArrayDimension(node.getID(), node.getPosition())
         exprType = self.visit(node.expression)
         # *b = 5
         declType = copy.deepcopy(item.type)
@@ -202,8 +199,7 @@ class SemanticVisitor(AstVisitor):
             # Get the type of the identifier
             exprType = self.visit(node.child)
             if exprType['idType'] == "c" and exprType['refCount'] == 0:
-                # TODO use an actual error
-                raise incrementError(exprType['idType'],"TODO add line")
+                raise incrementError(exprType['idType'],node.getPosition())
         return exprType
 
     def visitDereferenceExpressionNode(self, node:DereferenceExpressionNode):
@@ -280,12 +276,12 @@ class SemanticVisitor(AstVisitor):
         if node.argumentExpressionListNode:
             args = node.argumentExpressionListNode.argumentExprs
         if len(params) != len(args):
-            raise parameterError(len(args), len(params), "TODO add line")
+            raise conflictingParameterLength(node.getID(), len(args), len(params), node.getPosition())
         for i in range(len(params)):
             paramType = params[i].getType()
             argType = self.visit(args[i])
             if argType != paramType:
-                 raise parameterTypeError(argType, paramType, "TODO add line1")
+                 raise parameterTypeError(node.getID(), argType, paramType, "TODO add line1")
             paramArraySize = int(item.parameters[i].declarator.arrayExpressionList[0].value)
             argItem = None
             if type(args[i]) == IdentifierNode:
@@ -337,6 +333,5 @@ class SemanticVisitor(AstVisitor):
         if not self.symbolTable.insertSymbol(node.getID()+"()", 
             node.declarationSpecifier.getType(), 
             params=parameters, isForwardDecl=True):
-            # TODO raise exception
-            print("Function already declared")
-
+            knownType = self.symbolTable.lookupSymbol(node.getID()+"()").type['idType']
+            raise declarationException(node.getID(), knownType, True, node.getPosition())

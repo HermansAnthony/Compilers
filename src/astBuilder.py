@@ -30,11 +30,11 @@ class AstBuilder(CmmVisitor):
         return self.visitChildren(ctx)
 
     def visitFunctionDeclaration(self, ctx:CmmParser.FunctionDeclarationContext):
-        declarationSpecifier = None
         # Place is for semantic analysis (line-column position)
         place = str(ctx.start.line) + ", position " + str(ctx.start.column)
+        declarationSpec = None
         if ctx.declarationSpecifier():
-            declarationSpecifier = self.visit(ctx.declarationSpecifier())
+            declarationSpec = self.visit(ctx.declarationSpecifier())
         identifier = self.visitIdentifier(ctx.Identifier())
         parameterListNode = None
         if ctx.parameterList():
@@ -42,8 +42,8 @@ class AstBuilder(CmmVisitor):
             parameterListNode.paramDecls = list(reversed(parameterListNode.paramDecls))
         if ctx.compoundStatement():
             functionBody = self.visit(ctx.compoundStatement())
-            return FunctionDefinitionNode(declarationSpecifier, identifier, parameterListNode, functionBody, place)
-        return ForwardFunctionDeclarationNode(declarationSpec, identifier, parameterListNode)
+            return FunctionDefinitionNode(declarationSpec, identifier, parameterListNode, functionBody, place)
+        return ForwardFunctionDeclarationNode(declarationSpec, identifier, parameterListNode, place)
 
     def visitParameterList(self, ctx:CmmParser.ParameterListContext):
         paramDecls = [self.visit( ctx.parameterDeclaration() )]
@@ -53,11 +53,13 @@ class AstBuilder(CmmVisitor):
         return ParameterListNode(paramDecls)
 
     def visitParameterDeclaration(self, ctx:CmmParser.ParameterDeclarationContext):
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
         declarationSpecifier = self.visit( ctx.declarationSpecifier() )
         result = self.visit( ctx.declarator() )
         idNode = result[-1]
         idNode.arrayExpressionList = list(reversed(result[:-1]))
-        return ParameterDeclarationNode(declarationSpecifier, idNode)
+        return ParameterDeclarationNode(declarationSpecifier, idNode, place)
 
     def visitDeclaration(self, ctx:CmmParser.DeclarationContext):
         declarationSpec = self.visit(ctx.declarationSpecifier())
@@ -222,11 +224,11 @@ class AstBuilder(CmmVisitor):
             # (Identifier | arrayExpression) MinusMinus
             # TODO not sure if correct or not
             if ctx.Identifier():
-                return ExpressionNode(ctx.getChild(1).getText(), True, self.visitIdentifier(ctx.Identifier()))
+                return ExpressionNode(ctx.getChild(1).getText(), True, self.visitIdentifier(ctx.Identifier()), place)
             result = self.visit(ctx.arrayExpression())
             idNode = result[-1]
             idNode.arrayExpressionList = list(reversed(result[:-1]))
-            return ExpressionNode(ctx.getChild(1).getText(), True, idNode)
+            return ExpressionNode(ctx.getChild(1).getText(), True, idNode, place)
 
 
     def visitStatement(self, ctx:CmmParser.StatementContext):
@@ -236,13 +238,13 @@ class AstBuilder(CmmVisitor):
         place = str(ctx.start.line) + ", position " + str(ctx.start.column)
         if ctx.Identifier():
             return ExpressionNode(ctx.getChild(1).getText(), 
-                True, self.visitIdentifier(ctx.Identifier()))
+                True, self.visitIdentifier(ctx.Identifier()), place)
         if ctx.arrayExpression():
             result = self.visit( ctx.arrayExpression() )
             idNode = result[-1]
             idNode.arrayExpressionList = list(reversed(result[:-1])) 
             return ExpressionNode(ctx.getChild(1).getText(), 
-                True, idNode)          
+                True, idNode, place)
         return self.visitChildren(ctx)
 
     def visitAssignment(self, ctx:CmmParser.AssignmentContext):

@@ -109,9 +109,10 @@ class ParameterListNode(ASTNode):
         return returnValue
 
 class ParameterDeclarationNode(ASTNode):
-    def __init__(self, declarationSpecifier, declarator):
+    def __init__(self, declarationSpecifier, declarator, position):
         self.declarationSpecifier = declarationSpecifier
         self.declarator = declarator
+        self.position = position
 
     def accept(self, visitor):
         return visitor.visitParameterDeclarationNode(self)
@@ -121,6 +122,9 @@ class ParameterDeclarationNode(ASTNode):
 
     def getID(self):
         return self.declarator.getID()
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         currentNode = counter()
@@ -203,10 +207,11 @@ class AssignmentNode(ASTNode):
         return returnValue
 
 class ForwardFunctionDeclarationNode(ASTNode):
-    def __init__(self, declarationSpecifier, identifier, parameterList):
+    def __init__(self, declarationSpecifier, identifier, parameterList, position):
         self.declarationSpecifier = declarationSpecifier
         self.identifier = identifier
         self.parameterList = parameterList
+        self.position = position
 
     def accept(self, visitor):
         return visitor.visitForwardFunctionDeclarationNode(self)
@@ -216,6 +221,9 @@ class ForwardFunctionDeclarationNode(ASTNode):
 
     def getType(self):
         return self.declarationSpecifier.getType()
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         currentNode = counter()
@@ -341,13 +349,17 @@ class BinaryOperationNode(ASTNode):
         return returnValue
 
 class ExpressionNode(ASTNode):
-    def __init__(self, operator, isPostfix, child):
+    def __init__(self, operator, isPostfix, child, position):
         self.operator = operator
         self.isPostfix = isPostfix
         self.child = child
+        self.position = position
 
     def accept(self, visitor):
         return visitor.visitExpressionNode(self)
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         currentNode = counter()

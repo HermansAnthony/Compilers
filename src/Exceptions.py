@@ -100,25 +100,36 @@ class incrementError(semanticException):
         return "Semantic error occurred on line " + str(self.line)+\
                ":\n Impossible to increment/decrement a variable of type " + str(self.operand)
 
-class parameterError(semanticException):
-    def __init__(self, givenParamCount, expectedParamCount, line):
-        self.currentParamCount = givenParamCount
-        self.correctParamCount = expectedParamCount
-        self.line = line
-
-    def __str__(self):
-        return "Semantic error occurred on line " + str(self.line) + ":\nExpected " + str(self.correctParamCount)\
-               + " arguments but " + str(self.currentParamCount) + " were given"
-
 class parameterTypeError(semanticException):
-    def __init__(self, currentType, correctType, line):
+    def __init__(self, name, currentType, correctType, line):
+        self.name = name
         self.currentType = currentType
         self.correctType = correctType
         self.line = line
 
     def __str__(self):
         return "Semantic error occurred on line " + str(self.line) + ":\nExpected argument of type " + str(self.correctType) \
-               + " but received argument of type " + str(self.currentType)
+               + " but received argument of type " + str(self.currentType) + " for function " + str(self.name)
+
+class conflictingParameterLength(semanticException):
+    def __init__(self, name, currentLength, correctLength, line):
+        self.name = name
+        self.currentLength = currentLength
+        self.correctLength = correctLength
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\nExpected " + str(self.correctLength) + " parameter(s) " \
+               + "but received " + str(self.currentLength) + " parameter(s) for function " + str(self.name)
+
+class wrongArrayDimension(semanticException):
+    def __init__(self, name, line):
+        self.name = name
+        self.line = line
+
+    def __str__(self):
+        return "Warning occurred on line " + str(self.line) + ":\n"\
+        "Only support for 1 dimensional arrays. (parameter " + str(self.name) + ")"
 
 # All antlr related errors
 class antlrError(Exception):
