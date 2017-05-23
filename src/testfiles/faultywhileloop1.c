@@ -1,5 +1,5 @@
 int main(){
-  while(i<100){
-    
+  while(5+10){
+
   }
 }

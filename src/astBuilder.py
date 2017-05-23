@@ -279,8 +279,10 @@ class AstBuilder(CmmVisitor):
         return IfStatementNode(self.visit(ctx.expression()), ifBody, elseBody)
 
     def visitIterationStatement(self, ctx:CmmParser.IterationStatementContext):
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
         if ctx.While():
-            return IterationStatementNode("While", self.visit(ctx.expression(0)), None, None, self.visit(ctx.compoundStatement()))
+            return IterationStatementNode("While", self.visit(ctx.expression(0)), None, None, self.visit(ctx.compoundStatement()), place)
         left = None
         middle1 = None
         middle2 = None
@@ -293,7 +295,7 @@ class AstBuilder(CmmVisitor):
             middle1 = self.visit(ctx.expression(0))
         if ctx.expression(1):
             middle2 = self.visit(ctx.expression(1))
-        return IterationStatementNode("For", left, middle1, middle2, right)
+        return IterationStatementNode("For", left, middle1, middle2, right, place)
 
     def visitJumpStatement(self, ctx:CmmParser.JumpStatementContext):
         if ctx.Continue():

@@ -1,6 +1,6 @@
 int f();
 
-f(){
+int f(){
   return 0;
 }
 

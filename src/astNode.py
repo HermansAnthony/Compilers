@@ -269,7 +269,7 @@ class IfStatementNode(ASTNode):
         return returnValue
 
 class IterationStatementNode(ASTNode):
-    def __init__(self, statementName, left, middle1, middle2, right):
+    def __init__(self, statementName, left, middle1, middle2, right, position):
         # condition, body
         # expression1, expression2, expression3, body
         # declaration, expression1, expression2, body
@@ -278,9 +278,13 @@ class IterationStatementNode(ASTNode):
         self.middle1 = middle1
         self.middle2 = middle2
         self.right = right
+        self.position = position
 
     def accept(self, visitor):
         return visitor.visitIterationStatementNode(self)
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         currentNode = counter()
@@ -346,7 +350,9 @@ class BinaryOperationNode(ASTNode):
     def getType(self):
         returnValue = list()
         if isinstance(self.left, BinaryOperationNode): returnValue.extend(self.left.getType())
-        if not isinstance(self.left, BinaryOperationNode): returnValue.append(self.left.getType())
+        if isinstance(self.left, IdentifierNode): returnValue.append(self.left)
+        # Characterconstantnode, integerconstantnode, floatingconstant node etc
+        if not isinstance(self.left, BinaryOperationNode) and not isinstance(self.left, IdentifierNode): returnValue.append(self.left.getType())
         returnValue.append(self.right.getType())
         return returnValue
 

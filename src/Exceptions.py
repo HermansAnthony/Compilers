@@ -9,6 +9,15 @@ def getType(type):
 class semanticException(Exception):
     pass
 
+class conditionException(semanticException):
+    def __init__(self, currentType, line):
+        self.currentType = currentType
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) +":\n"\
+                + "Condition is of type " + getType(str(self.currentType)) + " while it should be of type bool"
+
 # Variable has already been declared
 class declarationException(semanticException):
     def __init__(self, name, type, function, line):
@@ -45,7 +54,7 @@ class mainTypeException(semanticException):
     def __init__(self, position):
         self.position = position
     def __str__(self):
-        return "Semantic error occurred on line " + str(self.position) + ":\nMain function must return int."
+        return "Semantic error occurred on line " + str(self.position) + ":\nMain function must return integer."
 
 # The type and the expr type mismatch
 class wrongType(semanticException):

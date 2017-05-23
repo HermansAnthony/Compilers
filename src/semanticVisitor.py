@@ -60,18 +60,20 @@ class SemanticVisitor(AstVisitor):
                     if self.symbolTable.lookupSymbol(declstat.expressionNode.getID()) == None:
                         raise unknownVariable(declstat.expressionNode.getID(), declstat.expressionNode.getPosition())
                     retType = self.symbolTable.lookupSymbol(declstat.expressionNode.getID()).type['idType']
-                    if retType != functionType:
+                    if retType != functionType['idType']:
                         raise wrongReturnType(retType, functionType['idType'], node.getPosition())
-                if type(declstat.expressionNode) != BinaryOperationNode and declstat.expressionNode.getType() != functionType['idType']:
+                elif type(declstat.expressionNode) != BinaryOperationNode and declstat.expressionNode.getType() != functionType['idType']:
                     raise wrongReturnType(declstat.expressionNode.getType(), functionType['idType'], node.getPosition())
 
                 # Check if when the return statement is a expression,
                 # If all the types in the expression match the returnType of the function
-                types = declstat.expressionNode.getType()
-                for i in types:
-                    if functionType['idType'] == 'r' and i == "float": continue
-                    if i[0] != functionType['idType']:
-                        raise wrongReturnExpression(i, functionType['idType'], node.getPosition())
+                elif type(declstat.expressionNode) == BinaryOperationNode:
+                    types = declstat.expressionNode.getType()
+                    for i in types:
+                        if type(i) == IdentifierNode: i = self.symbolTable.lookupSymbol(i.getID()).type['idType']
+                        if functionType['idType'] == 'r' and i == "float": continue
+                        if i[0] != functionType['idType']:
+                            raise wrongReturnExpression(i, functionType['idType'], node.getPosition())
 
             # Calculate extreme pointer
             retType = self.visit(declstat)
@@ -132,11 +134,12 @@ class SemanticVisitor(AstVisitor):
             # Check if while expression is boolean
             exprType = self.visit(node.left)
             declType = {'idType': "b", 'refCount': 0}
-            if exprType != declType:     
-                raise wrongType(exprType['idType'], declType['idType'], "TODO fix line here ITER")
+            if exprType != declType: raise conditionException(exprType['idType'], node.getPosition())
             # visit function body
             for declStat in node.right:
                 self.visit(declStat)
+        if node.statementName == "For":
+            print("Hello semantic node visitor of for loop")
 
     def visitReturnNode(self, node:ReturnNode):
         if node.expressionNode:
