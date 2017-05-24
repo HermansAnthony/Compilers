@@ -5,16 +5,21 @@ import copy
 
 # Overloaded Ast Visitor for semantic analysis.
 class SemanticVisitor(AstVisitor):
-    def __init__(self, table):
+    def __init__(self, table, code):
         self.symbolTable = table
         self.mainFunctionFound = False
+        self.codeBuilder = code # refers to codeBuilder.py
 
     def visitProgramNode(self, node:ProgramNode):
         for child in node.children:
             self.visit(child)
-        if not self.mainFunctionFound:
-            raise mainException()
-        self.symbolTable.resetScopeCounter()
+            self.symbolTable.resetScopeCounter() # Return to the global scope
+
+        # No main function declared in file
+        if not self.mainFunctionFound: raise mainException()
+
+        # Generate the code (program node)
+        self.codeBuilder.visit(node)
 
     def visitStdioNode(self, node:StdioNode):
         self.symbolTable.insertSymbol("printf()", 
@@ -29,9 +34,8 @@ class SemanticVisitor(AstVisitor):
             parameters = node.parameterList.getParams()
         functionName = node.getID()
         functionType = node.getType()
-        if not self.symbolTable.insertSymbol(functionName+"()", 
-            functionType, params=parameters): 
-            # Check if there was a forward function declaration
+        # Check if there was a forward function declaration
+        if not self.symbolTable.insertSymbol(functionName+"()", functionType, params=parameters):
             item = self.symbolTable.lookupSymbol(functionName+"()")
             if not item.isForwardDecl:
                 raise declarationException(functionName, 
@@ -44,17 +48,24 @@ class SemanticVisitor(AstVisitor):
                 paramType2 = item.getType()
                 if paramType1 != paramType2:
                     raise parameterTypeError(functionName, paramType1, paramType2, node.getPosition())
+
+        # Check for main function and if it has type integer
         if functionName == "main":
             self.mainFunctionFound = True
             if functionType['idType'] != 'i':
                 raise mainTypeException(node.getPosition())
+
         # Visit the function body
         self.symbolTable.createScope(functionName)
+
         # Insert parameters into symbol table
         if node.parameterList:
             for paramDecl in node.parameterList.paramDecls:
                 self.visit(paramDecl)
+
+        # Iterate the statements in the function body
         for declstat in node.functionBody:
+            # Check if the return expression matches the returntype of the function
             if type(declstat) == ReturnNode:
                 if type(declstat.expressionNode) == IdentifierNode:
                     if self.symbolTable.lookupSymbol(declstat.expressionNode.getID()) == None:
@@ -71,10 +82,11 @@ class SemanticVisitor(AstVisitor):
                     if retType != functionType['idType']:
                         raise wrongReturnType(retType, functionType['idType'], node.getPosition())
 
+                # If the return statement is an expression
                 elif type(declstat.expressionNode) != BinaryOperationNode and declstat.expressionNode.getType() != functionType['idType']:
                     raise wrongReturnType(declstat.expressionNode.getType(), functionType['idType'], node.getPosition())
 
-                # Check if when the return statement is a expression,
+                # Check if when the return statement is a binary operation,
                 # If all the types in the expression match the returnType of the function
                 elif type(declstat.expressionNode) == BinaryOperationNode:
                     types = declstat.expressionNode.getType()
@@ -86,10 +98,15 @@ class SemanticVisitor(AstVisitor):
 
             # Calculate extreme pointer
             retType = self.visit(declstat)
+
             # Compare type from return statement
             if retType and 'returnStat' in retType:
                 retType.pop('returnStat')
                 return
+
+        # Generate the code for this function definition
+        print("func def sem")
+        self.codeBuilder.visit(node)
 
     def visitParameterDeclarationNode(self, node:ParameterDeclarationNode):
         identifier = node.declarator

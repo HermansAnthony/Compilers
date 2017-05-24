@@ -31,14 +31,16 @@ def main(argv):
         astBuilder = AstBuilder()
         ast = astBuilder.visit(parseTree)
 
-        # Semantic analysis
+        # Semantic analysis + instant code generation
         symbolTable = generalSymbolTable()
-        semanticVisitor = SemanticVisitor(symbolTable)
-        semanticVisitor.visit(ast)
-        # print(symbolTable)
-        # Code generation
         codeBuilder = CodeBuilder(symbolTable)
-        codeBuilder.visit(ast)
+        semanticVisitor = SemanticVisitor(symbolTable, codeBuilder)
+        semanticVisitor.visit(ast)
+
+        print(symbolTable)
+        # Code generation
+        # codeBuilder = CodeBuilder(symbolTable)
+        # codeBuilder.visit(ast)
         
         # Write the code to the output file
         f = open(argv[2]+".p", 'w')

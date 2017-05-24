@@ -28,23 +28,28 @@ class CodeBuilder(AstVisitor):
                     idSize = int(exprList[0].value)
                 staticDataLength += idSize
         self.code.newline("sep " + str(staticDataLength))
+
         # All global variable declarations first
-        for child in node.children:
-            if type(child) == DeclarationNode:
-                self.visit(child)
+        # for child in node.children:
+        #     if type(child) == DeclarationNode:
+        #         self.visit(child)
+
         # Implicit call for main function before function definitions
         self.code.newline("mst 0")
         self.code.newline("cup 0 main")
         # Halt the machine after executing main
         self.code.newline("hlt")
+
         # Generate function definitions
-        for child in node.children:
-            if type(child) != DeclarationNode:
-                self.visit(child)        
+        # for child in node.children:
+        #     if type(child) != DeclarationNode:
+        #         self.visit(child)
 
     def visitFunctionDefinitionNode(self, node:FunctionDefinitionNode):
         self.currentLabelNo = 0
-        self.symbolTable.nextScope() 
+        print("func def code build")
+        # TODO not necessary
+        # self.symbolTable.nextScope()
         # Generate procedure label
         self.code.newline(node.getID() + ":")
         # Calculate the length of the static section of the stack frame
@@ -141,11 +146,13 @@ class CodeBuilder(AstVisitor):
             self.code.newline(label2 + ":")
 
     def visitReturnNode(self, node:ReturnNode):
+        # Return a value
         if node.expressionNode:
             exprType = self.visit(node.expressionNode)
             self.code.newline("str " + exprType['idType'] + " 0 0" )
             self.code.newline("retf")
         else:
+            # Return no results
             self.code.newline("retp")
 
     def visitBreakNode(self, node:BreakNode):

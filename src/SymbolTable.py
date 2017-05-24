@@ -20,8 +20,9 @@ class functionElement:
         self.isForwardDecl = isForwardDecl
 
     def __repr__(self):
-        returnValue = '(proc)' + str(self.type) + " - parameters: "
+        returnValue = '(proc)' + str(self.type)
         if isinstance(self.parameters, list): return returnValue
+        returnValue += " - parameters: "
         for key in self.parameters.keys():
             returnValue += str(key) + '[' + str(self.parameters[key]) +'] '
         return returnValue
