@@ -21,6 +21,7 @@ class functionElement:
 
     def __repr__(self):
         returnValue = '(proc)' + str(self.type) + " - parameters: "
+        if isinstance(self.parameters, list): return returnValue
         for key in self.parameters.keys():
             returnValue += str(key) + '[' + str(self.parameters[key]) +'] '
         return returnValue
@@ -111,7 +112,7 @@ class generalSymbolTable:
         if self.presentScope == -1:
             if key in self.globalScope: return None
             newItem = None
-            if params: 
+            if params or "()" in key:
                 # Function declaration
                 newItem = functionElement(type, params, 
                     self.getCurrentNestingDepth(), isForwardDecl)
@@ -136,7 +137,7 @@ class generalSymbolTable:
             if semantic and key in self.globalScope:
                 semantic.identifier += "#" 
         if "#" in key:
-            key = key[:-1]   
+            key = key[:-1]
         if key not in self.globalScope: return None
         return self.globalScope[key]
 

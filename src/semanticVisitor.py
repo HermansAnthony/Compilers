@@ -32,7 +32,7 @@ class SemanticVisitor(AstVisitor):
         if not self.symbolTable.insertSymbol(functionName+"()", 
             functionType, params=parameters): 
             # Check if there was a forward function declaration
-            item = self.symbolTable.lookupSymbol(functionName+"()")          
+            item = self.symbolTable.lookupSymbol(functionName+"()")
             if not item.isForwardDecl:
                 raise declarationException(functionName, 
                     functionType, True, node.getPosition())
@@ -62,6 +62,15 @@ class SemanticVisitor(AstVisitor):
                     retType = self.symbolTable.lookupSymbol(declstat.expressionNode.getID()).type['idType']
                     if retType != functionType['idType']:
                         raise wrongReturnType(retType, functionType['idType'], node.getPosition())
+
+                # If return statement contains a function call
+                elif type(declstat.expressionNode) == FunctionCallNode:
+                    if self.symbolTable.lookupSymbol(declstat.expressionNode.getID()+"()") == None:
+                        raise unknownVariable(declstat.expressionNode.getID()+"()", declstat.expressionNode.getPosition())
+                    retType = self.symbolTable.lookupSymbol(declstat.expressionNode.getID()+"()").type['idType']
+                    if retType != functionType['idType']:
+                        raise wrongReturnType(retType, functionType['idType'], node.getPosition())
+
                 elif type(declstat.expressionNode) != BinaryOperationNode and declstat.expressionNode.getType() != functionType['idType']:
                     raise wrongReturnType(declstat.expressionNode.getType(), functionType['idType'], node.getPosition())
 
@@ -71,8 +80,8 @@ class SemanticVisitor(AstVisitor):
                     types = declstat.expressionNode.getType()
                     for i in types:
                         if type(i) == IdentifierNode: i = self.symbolTable.lookupSymbol(i.getID()).type['idType']
-                        if functionType['idType'] == 'r' and i == "float": continue
-                        if i[0] != functionType['idType']:
+                        if type(i) == FunctionCallNode: i = self.symbolTable.lookupSymbol(i.getID()+"()").type['idType']
+                        if i != functionType['idType']:
                             raise wrongReturnExpression(i, functionType['idType'], node.getPosition())
 
             # Calculate extreme pointer
@@ -139,7 +148,14 @@ class SemanticVisitor(AstVisitor):
             for declStat in node.right:
                 self.visit(declStat)
         if node.statementName == "For":
-            print("Hello semantic node visitor of for loop")
+            # TODO deal with semantic errors in for loop here
+            # TODO OPTIONAL implement for loop
+            # Check if for condition is boolean
+            if node.left == None or node.right == None or node.middle1 == None or node.middle2 == None:
+                raise wrongForloop(node.getPosition())
+            part1 = self.visit(node.left)
+            # exprType = self.visit(node.middle1)
+            # print(exprType)
 
     def visitReturnNode(self, node:ReturnNode):
         if node.expressionNode:
@@ -244,6 +260,9 @@ class SemanticVisitor(AstVisitor):
 
     def visitFunctionCallNode(self, node:FunctionCallNode):
         item = self.symbolTable.lookupSymbol(node.getID() + "()")
+        if (node.getID() == "printf" or node.getID() == "scanf") and item == None:
+            # Added specific exception for the inclusion of printf and scanf
+            raise includeException(node.getID(), node.getPosition())
         if item == None: raise unknownVariable(node.getID()+"()", node.getPosition(), True)
         if node.getID() == "printf" or node.getID() == "scanf":
             # Handle included printf and scanf functions as inline code.
@@ -278,6 +297,7 @@ class SemanticVisitor(AstVisitor):
                                             print("scanf only accepts pointers to basic type variables in the args list parameter.")                                        
                                     else:
                                         # TODO Raise exception
+
                                         print("printf only accepts identifiers in the args list parameter.")
                                 nextChar = stringLit[index+1]
                                 if (nextChar == "i" and tempType['idType'] == "i" or
@@ -344,7 +364,6 @@ class SemanticVisitor(AstVisitor):
         return item.type
 
     def visitForwardFunctionDeclarationNode(self, node:ForwardFunctionDeclarationNode):
-        # Ignore forward function declarations for now
         parameters = dict()
         if node.parameterList:
             parameters = node.parameterList.getParams()

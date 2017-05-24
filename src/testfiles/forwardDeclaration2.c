@@ -1,6 +1,6 @@
 char f();
 
-f(){
+char f(){
   return '1';
 }
 

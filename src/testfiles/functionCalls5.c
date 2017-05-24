@@ -1,5 +1,5 @@
-float getInteger(){
-  return 5.12;
+int getInteger(){
+  return 5;
 }
 
 float getFloat(){

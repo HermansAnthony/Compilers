@@ -9,6 +9,13 @@ def getType(type):
 class semanticException(Exception):
     pass
 
+class wrongForloop(semanticException):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) +":\n"\
+                + "Wrong use of for loop "
 class conditionException(semanticException):
     def __init__(self, currentType, line):
         self.currentType = currentType
@@ -179,6 +186,16 @@ class wrongArrayIndexType(semanticException):
     def __str__(self):
         return "Semantic error occurred on line " + str(self.line) + ":\n" \
                 "Arrayindex has type " + getType(str(self.currentType)) + " while it should be integer"
+
+class includeException(semanticException):
+    def __init__(self, function, line):
+        self.function = function
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+                "You need to include <stdio.h> in order to use " + str(self.function)
+
 # All antlr related errors
 class antlrError(Exception):
     pass

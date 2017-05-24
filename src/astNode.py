@@ -38,7 +38,7 @@ class StdioNode(ASTNode):
         pass
 
     def accept(self, visitor):
-        return visitor.visitStdioNode(self) 
+        return visitor.visitStdioNode(self)
 
     def __str__(self):
         currentNode = counter()
@@ -350,9 +350,10 @@ class BinaryOperationNode(ASTNode):
     def getType(self):
         returnValue = list()
         if isinstance(self.left, BinaryOperationNode): returnValue.extend(self.left.getType())
-        if isinstance(self.left, IdentifierNode): returnValue.append(self.left)
+        if isinstance(self.left, IdentifierNode) or isinstance(self.left, FunctionCallNode): returnValue.append(self.left)
         # Characterconstantnode, integerconstantnode, floatingconstant node etc
-        if not isinstance(self.left, BinaryOperationNode) and not isinstance(self.left, IdentifierNode): returnValue.append(self.left.getType())
+        if not isinstance(self.left, BinaryOperationNode) and not isinstance(self.left, IdentifierNode) and not isinstance(self.left, FunctionCallNode):
+            returnValue.append(self.left.getType())
         returnValue.append(self.right.getType())
         return returnValue
 
@@ -479,7 +480,7 @@ class IntegerConstantNode(ASTNode):
         return visitor.visitIntegerConstantNode(self)
 
     def getType(self):
-        return "integer"
+        return "i"
 
     def getPosition(self):
         return self.position
@@ -499,7 +500,7 @@ class FloatingConstantNode(ASTNode):
         return visitor.visitFloatingConstantNode(self)
 
     def getType(self):
-        return "float"
+        return "r"
 
     def getPosition(self):
         return self.position
@@ -520,7 +521,7 @@ class CharacterConstantNode(ASTNode):
         return visitor.visitCharacterConstantNode(self)
 
     def getType(self):
-        return "character"
+        return "c"
 
     def getPosition(self):
         return self.position
@@ -543,7 +544,7 @@ class StringConstantNode(ASTNode):
         return visitor.visitStringConstantNode(self)
 
     def getType(self):
-        return "string"
+        return "s"
 
     def getPosition(self):
         return self.position

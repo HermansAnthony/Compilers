@@ -293,6 +293,9 @@ class CodeBuilder(AstVisitor):
         exprType['refCount'] += 1
         return exprType  
 
+    def visitStdioNode(self, node:StdioNode):
+        pass
+
     def visitFunctionCallNode(self, node:FunctionCallNode):
         if node.getID() == "printf":
             # TODO test the printf function thoroughly
@@ -305,10 +308,22 @@ class CodeBuilder(AstVisitor):
                     continue
                 if char == "%" and index+1 < len(stringLit):
                     nextChar = stringLit[index+1]
-                    item = self.symbolTable.lookupSymbol(args[argsIndex].getID())
-                    idType = item.type['idType']
-                    nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
-                    offset = item.address
+                    item = None
+                    idType = None
+                    nestingDiff = None
+                    offset = None
+                    # Identifier related printf variables
+                    if type(args[argsIndex]) == IdentifierNode:
+                        item = self.symbolTable.lookupSymbol(args[argsIndex].getID())
+                        idType = item.type['idType']
+                        nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
+                        offset = item.address
+                    # Constant related printf variables
+                    if type(args[argsIndex]) != IdentifierNode:
+                        # TODO check if this works (aka constants in printf function)
+                        idType = args[argsIndex].getType()
+                        self.code.newline("ldc " + idType + " " + args[argsIndex].value)
+                        self.code.newline("out " + idType)
                     if nextChar == "%":
                         self.code.newline("ldc c %")
                         self.code.newline("out c ")
@@ -373,13 +388,16 @@ class CodeBuilder(AstVisitor):
                 self.code.newline("out c " + char)
                 inCount += 1
             # Put the amount of characters read on top of the stack
-            self.code.newline("ldc i " + str(inCount))            
+            self.code.newline("ldc i " + str(inCount))
         item = self.symbolTable.lookupSymbol(node.getID()+"()")
         nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
         # Mark the stack
         self.code.newline("mst " + str(nestingDiff))
         # arguments
-        argLength = self.visit(node.argumentExpressionListNode)
+        argLength=""
+        # Check if there are argument provided
+        if node.argumentExpressionListNode != None:
+            argLength = self.visit(node.argumentExpressionListNode)
         # Call user procedure
         self.code.newline("cup " + str(argLength) + " " + node.getID())
         return item.type

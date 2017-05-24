@@ -1,6 +1,6 @@
 float f();
 
-f(){
+float f(){
   return 0.007;
 }
 
