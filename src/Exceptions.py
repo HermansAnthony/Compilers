@@ -196,6 +196,15 @@ class includeException(semanticException):
         return "Semantic error occurred on line " + str(self.line) + ":\n" \
                 "You need to include <stdio.h> in order to use " + str(self.function)
 
+class conversionWarning(semanticException):
+    def __init__(self, function, line):
+        self.function = function
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+            "More '%' conversions than data arguments for function " + str(self.function)
+
 # All antlr related errors
 class antlrError(Exception):
     pass

@@ -270,6 +270,12 @@ class SemanticVisitor(AstVisitor):
         if node.getID() == "printf" or node.getID() == "scanf":
             # Handle included printf and scanf functions as inline code.
             args = node.argumentExpressionListNode.argumentExprs
+            # Check if there are arguments present if the string contains % signs
+            if len(args) == 1:
+                firstArgument = args[0].value
+                if "%c" in firstArgument or "%i" in firstArgument or "%f" in firstArgument or "%d" in firstArgument or "%s" in firstArgument:
+                    raise conversionWarning(node.getID(), node.getPosition())
+
             if len(args) > 0:
                 argType = self.visit(args[0])
                 # Check if first argument is a Char array

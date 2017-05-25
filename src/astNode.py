@@ -469,6 +469,7 @@ class ArgumentExpressionListNode(ASTNode):
         returnValue += currentNode + ' [ label = "ArgExprList"];\n'
         if isinstance(self.argumentExprs, list):
             for expr in self.argumentExprs:
+                print(type(expr))
                 returnValue += currentNode + '->' + str(expr)
         else:
             returnValue += currentNode + '->' + str(self.argumentExprs)
@@ -531,11 +532,8 @@ class CharacterConstantNode(ASTNode):
         return self.position
 
     def __str__(self):
-        if "\"" in self.value:
-            # TODO
-            return ""
         currentNode = counter()
-        returnValue = currentNode + ';\n';
+        returnValue = currentNode + ';\n'
         returnValue += currentNode + '[label="Character:\n ' + self.value + '"];\n'
         return returnValue
 
@@ -554,12 +552,14 @@ class StringConstantNode(ASTNode):
         return self.position
 
     def __str__(self):
-        if "\"" in self.value:
-            # TODO
-            return ""
+        tempValue = ""
+        for character in self.value:
+            if character == '"': continue
+            tempValue+=character
+        # TODO fix this error
         currentNode = counter()
         returnValue = currentNode + ';\n';
-        returnValue += currentNode + '[label="CString:\n ' + self.value + '"];\n'
+        returnValue += currentNode + '[label="CString:\n ' + tempValue + '"];\n'
         return returnValue
 
 class DeclarationSpecifierNode(ASTNode):

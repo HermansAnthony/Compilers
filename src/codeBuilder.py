@@ -356,7 +356,8 @@ class CodeBuilder(AstVisitor):
                     continue
                 # TODO
                 if index != len(stringLit)-1:
-                    self.code.newline("out c " + char)
+                    self.code.newline("ldc c " + str(ord(char)))
+                    self.code.newline("out c")
                     printCount += 1
             # Put the amount of characters printed on top of the stack
             self.code.newline("ldc i " + str(printCount))

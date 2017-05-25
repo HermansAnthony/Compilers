@@ -1,6 +1,6 @@
 #include <stdio.h>
 int a = 5;
-int main(int a, int bz){
+int main(){
   int b = 1;
-  printf("%r",1.123);
+  printf("ik BEN EEN LETTER");
 }
