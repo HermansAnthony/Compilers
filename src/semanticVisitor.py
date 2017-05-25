@@ -268,60 +268,64 @@ class SemanticVisitor(AstVisitor):
             raise includeException(node.getID(), node.getPosition())
         if item == None: raise unknownVariable(node.getID()+"()", node.getPosition(), True)
         if node.getID() == "printf" or node.getID() == "scanf":
+            # No arguments were provided
+            if node.argumentExpressionListNode == None:
+                raise conflictingArgumentLength(node.getID(), 0, 1, node.getPosition())
+
             # Handle included printf and scanf functions as inline code.
             args = node.argumentExpressionListNode.argumentExprs
+
             # Check if there are arguments present if the string contains % signs
             if len(args) == 1:
+                # If first argument isn't a string constant node => raise error
+                if type(args[0]) != StringConstantNode: raise requiredStringConstant(node.getID(), node.getPosition())
                 firstArgument = args[0].value
-                if "%c" in firstArgument or "%i" in firstArgument or "%f" in firstArgument or "%d" in firstArgument or "%s" in firstArgument:
+                if self.countConversions(firstArgument) != 0:
                     raise conversionWarning(node.getID(), node.getPosition())
 
-            if len(args) > 0:
-                argType = self.visit(args[0])
-                # Check if first argument is a Char array
-                if argType['idType'] == "c" and argType['refCount'] == 0:
-                    if type(args[0]) == IdentifierNode:
-                        # TODO Raise exception
-                        print(node.getID() + " does not support Identifiers as format argument.")
-                        # Argument is an identifier
-                        argItem = self.symbolTable.lookupSymbol(args[0].getID(), args[0])
-                        if argItem.arraySize > 0:
-                            return {'idType': "i", 'refCount': 0}
-                    elif argType['isArray']:
-                        # Argument is a string literal
-                        argsIndex = 1
-                        stringLit = str(args[0].value)
-                        for index, char in enumerate(stringLit):
-                            if char == "%" and index+1 < len(stringLit):
-                                if index != 0 and stringLit[index-1] == "%":
-                                    continue
-                                tempType = self.visit(args[argsIndex])
-                                if argsIndex >= len(args):
-                                    # TODO Raise exception
-                                    print(node.getID() + " has not enough arguments for the given format.")
-                                if type(args[argsIndex]) != IdentifierNode:
-                                    if node.getID() == "scanf": 
-                                        if tempType['refCount'] != 1:
-                                            # TODO Raise exception
-                                            print("scanf only accepts pointers to basic type variables in the args list parameter.")                                        
-                                    else:
-                                        # TODO Raise exception
 
-                                        print("printf only accepts identifiers in the args list parameter.")
-                                nextChar = stringLit[index+1]
-                                if (nextChar == "i" and tempType['idType'] == "i" or
-                                    nextChar == "d" and tempType['idType'] == "r" or
-                                    nextChar == "c" and tempType['idType'] == "c" or
-                                    nextChar == "s" and (tempType['idType'] == "c" and isArray in tempType)
-                                    ):
-                                    argsIndex += 1
-                                    continue
-                                # TODO Raise exception
-                                print(node.getID() + " has incorrect argument type for the given format.")
-                        return {'idType': "i", 'refCount': 0}
-            # TODO Raise exception, I'm using a temp dereference error at the moment
-            print(node.getID() + " requires an array of characters (make better error msg)")
-            raise deReference(0)
+            argType = self.visit(args[0])
+            # Check if first argument is a Char array
+            if argType['idType'] != "c" or argType['refCount'] != 0:
+                raise requiredStringConstant(node.getID(), node.getPosition())
+
+            print("ehhe",type(args[0]))
+            if type(args[0]) == IdentifierNode:
+                # TODO Raise exception
+                print(node.getID() + " does not support Identifiers as format argument.")
+                # Argument is an identifier
+                argItem = self.symbolTable.lookupSymbol(args[0].getID(), args[0])
+                if argItem.arraySize > 0:
+                    return {'idType': "i", 'refCount': 0}
+            elif argType['isArray']:
+                # Argument is a string literal
+                argsIndex = 1
+                stringLit = str(args[0].value)
+                print("String: " , stringLit)
+                presentConversions = self.countConversions(stringLit)
+                for index, char in enumerate(stringLit):
+                    if char == "%" and index+1 < len(stringLit):
+                        if index != 0 and stringLit[index-1] == "%":
+                            continue
+                        tempType = self.visit(args[argsIndex])
+                        print("Temp type", tempType)
+                        if len(args) - 1 < presentConversions:
+                            raise conflictingArgumentLength(node.getID(), len(args)-1, presentConversions, node.getPosition())
+                        if type(args[argsIndex]) != IdentifierNode:
+                            if node.getID() == "scanf":
+                                if tempType['refCount'] != 1:
+                                    # TODO Raise exception
+                                    print("scanf only accepts pointers to basic type variables in the args list parameter.")
+                        nextChar = stringLit[index+1]
+                        if (nextChar == "i" and tempType['idType'] == "i" or
+                            nextChar == "d" and tempType['idType'] == "r" or
+                            nextChar == "c" and tempType['idType'] == "c" or
+                            nextChar == "s" and (tempType['idType'] == "c" and isArray in tempType)
+                            ):
+                            argsIndex += 1
+                            continue
+                return {'idType': "i", 'refCount': 0}
+
         params = item.parameters # List of parameterDeclNode
         args = []
         if node.argumentExpressionListNode:
@@ -418,3 +422,13 @@ class SemanticVisitor(AstVisitor):
                     i = self.symbolTable.lookupSymbol(i.getID() + "()").type['idType']
                 if i != correctType:
                     raise wrongReturnExpression(i, correctType, position)
+
+    # Count the % signs in the string literal
+    def countConversions(self, stringLiteral):
+        conversions = 0
+        conversions += stringLiteral.count("%c")
+        conversions += stringLiteral.count("%i")
+        conversions += stringLiteral.count("%f")
+        conversions += stringLiteral.count("%d")
+        conversions += stringLiteral.count("%s")
+        return conversions

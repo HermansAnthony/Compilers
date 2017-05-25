@@ -160,6 +160,18 @@ class conflictingParameterLength(semanticException):
         return "Semantic error occurred on line " + str(self.line) + ":\nExpected " + str(self.correctLength) + " parameter(s) " \
                + "but received " + str(self.currentLength) + " parameter(s) for function " + str(self.name)
 
+class conflictingArgumentLength(semanticException):
+    def __init__(self, name, currentLength, correctLength, line):
+        self.name = name
+        self.currentLength = currentLength
+        self.correctLength = correctLength
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\nExpected " + str(
+            self.correctLength) + " argument(s) " \
+               + "but received " + str(self.currentLength) + " argument(s) for function " + str(self.name)
+
 # Array related exceptions/warnings
 class wrongArrayDimension(semanticException):
     def __init__(self, name, line):
@@ -204,6 +216,15 @@ class conversionWarning(semanticException):
     def __str__(self):
         return "Semantic error occurred on line " + str(self.line) + ":\n" \
             "More '%' conversions than data arguments for function " + str(self.function)
+
+class requiredStringConstant(semanticException):
+    def __init__(self, function, line):
+        self.function = function
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+            "String constant is required as first argument for function " + str(self.function)
 
 # All antlr related errors
 class antlrError(Exception):

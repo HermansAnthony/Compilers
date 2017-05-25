@@ -554,9 +554,8 @@ class StringConstantNode(ASTNode):
     def __str__(self):
         tempValue = ""
         for character in self.value:
-            if character == '"': continue
+            if character == '"' or character == "\0": continue
             tempValue+=character
-        # TODO fix this error
         currentNode = counter()
         returnValue = currentNode + ';\n';
         returnValue += currentNode + '[label="CString:\n ' + tempValue + '"];\n'
