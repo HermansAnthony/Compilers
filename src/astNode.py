@@ -354,7 +354,11 @@ class BinaryOperationNode(ASTNode):
         # Characterconstantnode, integerconstantnode, floatingconstant node etc
         if not isinstance(self.left, BinaryOperationNode) and not isinstance(self.left, IdentifierNode) and not isinstance(self.left, FunctionCallNode):
             returnValue.append(self.left.getType())
-        returnValue.append(self.right.getType())
+        if isinstance(self.right, BinaryOperationNode): returnValue.extend(self.right.getType())
+        if isinstance(self.right, IdentifierNode) or isinstance(self.right, FunctionCallNode): returnValue.append(self.right)
+        # Characterconstantnode, integerconstantnode, floatingconstant node etc
+        if not isinstance(self.right, BinaryOperationNode) and not isinstance(self.right, IdentifierNode) and not isinstance(self.right, FunctionCallNode):
+            returnValue.append(self.right.getType())
         return returnValue
 
 

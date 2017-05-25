@@ -19,20 +19,21 @@ class CodeBuilder(AstVisitor):
 
     def visitProgramNode(self, node:ProgramNode):
         # Set the extreme stack pointer for the program itself
-        staticDataLength = 0
-        for child in node.children:
-            if type(child) == DeclarationNode:
-                exprList = child.identifier.arrayExpressionList
-                idSize = 1
-                if len(exprList) == 1:
-                    idSize = int(exprList[0].value)
-                staticDataLength += idSize
-        self.code.newline("sep " + str(staticDataLength))
-
-        # All global variable declarations first
+        # TODO not necessary?
+        # staticDataLength = 0
         # for child in node.children:
         #     if type(child) == DeclarationNode:
-        #         self.visit(child)
+        #         exprList = child.identifier.arrayExpressionList
+        #         idSize = 1
+        #         if len(exprList) == 1:
+        #             idSize = int(exprList[0].value)
+        #         staticDataLength += idSize
+        # self.code.newline("sep " + str(staticDataLength))
+
+        # All global variable declarations first
+        for child in node.children:
+            if type(child) == DeclarationNode:
+                self.visit(child)
 
         # Implicit call for main function before function definitions
         self.code.newline("mst 0")
@@ -47,9 +48,8 @@ class CodeBuilder(AstVisitor):
 
     def visitFunctionDefinitionNode(self, node:FunctionDefinitionNode):
         self.currentLabelNo = 0
-        print("func def code build")
-        # TODO not necessary
-        # self.symbolTable.nextScope()
+        # TODO not necessary self.symbolTable.nextScope()
+
         # Generate procedure label
         self.code.newline(node.getID() + ":")
         # Calculate the length of the static section of the stack frame
@@ -64,7 +64,8 @@ class CodeBuilder(AstVisitor):
                     idSize = int(exprList[0].value)
                 staticLength += idSize
         # Set the stack pointer and the EP
-        self.code.newline("ent " + str(self.symbolTable.getMaxEP()) + " " + str(staticLength))
+        # self.code.newline("ent " + str(self.symbolTable.getMaxEP()) + " " + str(staticLength))
+        self.code.newline("ssp " + str(staticLength))
         # Generate function body code
         for declStat in node.functionBody:
             self.visit(declStat) 
@@ -300,6 +301,7 @@ class CodeBuilder(AstVisitor):
         exprType['refCount'] += 1
         return exprType  
 
+    # The scanf and printf are generated at the functioncall node
     def visitStdioNode(self, node:StdioNode):
         pass
 

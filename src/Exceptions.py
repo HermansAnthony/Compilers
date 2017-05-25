@@ -96,7 +96,7 @@ class wrongReturnType(semanticException):
         self.line = line
 
     def __str__(self):
-        returnValue = "Wrong return type error occurred on line " + str(self.line) + ":\n"
+        returnValue = "Semantic error occurred on line " + str(self.line) + ":\n"
         returnValue += "You returned a variable of type " + str(getType(self.returnType)) + " while it should be " + str(getType(self.correctType))
         return returnValue
 

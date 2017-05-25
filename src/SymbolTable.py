@@ -49,8 +49,9 @@ class symbolTableLocal:
     # Insert a key in the symbol table
     def insertSymbol(self, key, type, arraySize):
         if key in self.table: return None
-        if self.parent.lookupSymbol(key):
-            key = self.functionName+"()"+key
+        # TODO may be deleted? int main(int b) {int b = 0;} => must throw error and with this it doesn't
+        # if self.parent.lookupSymbol(key):
+        #     key = self.functionName+"()"+key
         newItem = simpleElement(type, self.currentOffset, self.getNestingDepth(), arraySize)
         self.currentOffset += 1
         if arraySize:

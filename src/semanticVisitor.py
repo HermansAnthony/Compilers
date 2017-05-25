@@ -11,15 +11,25 @@ class SemanticVisitor(AstVisitor):
         self.codeBuilder = code # refers to codeBuilder.py
 
     def visitProgramNode(self, node:ProgramNode):
+        # Check all global variables first (semantically)
         for child in node.children:
-            self.visit(child)
-            self.symbolTable.resetScopeCounter() # Return to the global scope
+            if type(child) == DeclarationNode:
+                self.visit(child)
+
+        # Generate the main function and the global variables (code generation)
+        self.codeBuilder.visit(node)
+
+        # Further semantic analysis (non declaration nodes)
+        for child in node.children:
+            if type(child) != DeclarationNode:
+                self.visit(child)
+                self.symbolTable.resetScopeCounter() # Return to global scope
 
         # No main function declared in file
         if not self.mainFunctionFound: raise mainException()
 
         # Generate the code (program node)
-        self.codeBuilder.visit(node)
+        # self.codeBuilder.visit(node)
 
     def visitStdioNode(self, node:StdioNode):
         self.symbolTable.insertSymbol("printf()", 
@@ -67,36 +77,10 @@ class SemanticVisitor(AstVisitor):
         for declstat in node.functionBody:
             # Check if the return expression matches the returntype of the function
             if type(declstat) == ReturnNode:
-                if type(declstat.expressionNode) == IdentifierNode:
-                    if self.symbolTable.lookupSymbol(declstat.expressionNode.getID()) == None:
-                        raise unknownVariable(declstat.expressionNode.getID(), declstat.expressionNode.getPosition())
-                    retType = self.symbolTable.lookupSymbol(declstat.expressionNode.getID()).type['idType']
-                    if retType != functionType['idType']:
-                        raise wrongReturnType(retType, functionType['idType'], node.getPosition())
-
-                # If return statement contains a function call
-                elif type(declstat.expressionNode) == FunctionCallNode:
-                    if self.symbolTable.lookupSymbol(declstat.expressionNode.getID()+"()") == None:
-                        raise unknownVariable(declstat.expressionNode.getID()+"()", declstat.expressionNode.getPosition())
-                    retType = self.symbolTable.lookupSymbol(declstat.expressionNode.getID()+"()").type['idType']
-                    if retType != functionType['idType']:
-                        raise wrongReturnType(retType, functionType['idType'], node.getPosition())
-
-                # If the return statement is an expression
-                elif type(declstat.expressionNode) != BinaryOperationNode and declstat.expressionNode.getType() != functionType['idType']:
-                    raise wrongReturnType(declstat.expressionNode.getType(), functionType['idType'], node.getPosition())
-
-                # Check if when the return statement is a binary operation,
-                # If all the types in the expression match the returnType of the function
-                elif type(declstat.expressionNode) == BinaryOperationNode:
-                    types = declstat.expressionNode.getType()
-                    for i in types:
-                        if type(i) == IdentifierNode: i = self.symbolTable.lookupSymbol(i.getID()).type['idType']
-                        if type(i) == FunctionCallNode: i = self.symbolTable.lookupSymbol(i.getID()+"()").type['idType']
-                        if i != functionType['idType']:
-                            raise wrongReturnExpression(i, functionType['idType'], node.getPosition())
+                self.checkType(declstat.expressionNode, functionType['idType'], node.getPosition())
 
             # Calculate extreme pointer
+            print(type(declstat))
             retType = self.visit(declstat)
 
             # Compare type from return statement
@@ -105,7 +89,6 @@ class SemanticVisitor(AstVisitor):
                 return
 
         # Generate the code for this function definition
-        print("func def sem")
         self.codeBuilder.visit(node)
 
     def visitParameterDeclarationNode(self, node:ParameterDeclarationNode):
@@ -124,6 +107,7 @@ class SemanticVisitor(AstVisitor):
 
     def visitAssignmentNode(self, node:AssignmentNode):
         # Compare types
+        print("test")
         item = self.symbolTable.lookupSymbol(node.getID(), node.identifier)
         if item == None: raise unknownVariable(node.getID(), node.getPosition())
         arrExprList = node.identifier.arrayExpressionList
@@ -175,9 +159,11 @@ class SemanticVisitor(AstVisitor):
             # print(exprType)
 
     def visitReturnNode(self, node:ReturnNode):
+        # Return a expression(identifier, functioncall, binary operation etc)
         if node.expressionNode:
             exprType = self.visit(node.expressionNode)
             return exprType
+        # Return nothing
         return {'returnStat': True, 'idType': None, 'refCount': 0}
 
     def visitBreakNode(self, node:BreakNode):
@@ -219,6 +205,7 @@ class SemanticVisitor(AstVisitor):
                     curType = self.visit(expr)
                     if curType != declType:
                         raise wrongType(curType['idType'], declType['idType'], expr.getPosition())
+            self.checkType(node.expression, declType['idType'], node.getPosition())
         if self.symbolTable.insertSymbol(node.getID(), declType, arraySize=arraySize) == None:
             raise declarationException(node.getID(), 
                 declType['idType'], False, node.getPosition())
@@ -389,3 +376,40 @@ class SemanticVisitor(AstVisitor):
             params=parameters, isForwardDecl=True):
             knownType = self.symbolTable.lookupSymbol(node.getID()+"()").type['idType']
             raise declarationException(node.getID(), knownType, True, node.getPosition())
+
+    # Check if expression has the same type as the correctType
+    def checkType(self, declStat, correctType, position):
+        if type(declStat) == IdentifierNode:
+            if self.symbolTable.lookupSymbol(declStat.getID()) == None:
+                raise unknownVariable(declStat.getID(), declStat.getPosition())
+            retType = self.symbolTable.lookupSymbol(declStat.getID()).type['idType']
+            if retType != correctType:
+                raise wrongReturnType(retType, correctType, position)
+
+        # If statement contains a function call
+        elif type(declStat) == FunctionCallNode:
+            if self.symbolTable.lookupSymbol(declStat.getID() + "()") == None:
+                raise unknownVariable(declStat.getID() + "()", declStat.getPosition())
+            retType = self.symbolTable.lookupSymbol(declStat.getID() + "()").type['idType']
+            if retType != correctType:
+                raise wrongReturnType(retType, correctType, position)
+
+        # If statement is an expression
+        elif type(declStat) != BinaryOperationNode and declStat.getType() != correctType:
+            raise wrongReturnType(declStat.getType(), correctType, position)
+
+        # Check if when the statement is a binary operation,
+        # If all the types in the expression match the type
+        elif type(declStat) == BinaryOperationNode:
+            types = declStat.getType()
+            for i in types:
+                if type(i) == IdentifierNode:
+                    if self.symbolTable.lookupSymbol(i.getID()) == None:
+                        raise unknownVariable(i.getID(), i.getPosition())
+                    i = self.symbolTable.lookupSymbol(i.getID()).type['idType']
+                if type(i) == FunctionCallNode:
+                    if self.symbolTable.lookupSymbol(i.getID()+"()") == None:
+                        raise unknownVariable(i.getID()+"()", i.getPosition(), True)
+                    i = self.symbolTable.lookupSymbol(i.getID() + "()").type['idType']
+                if i != correctType:
+                    raise wrongReturnExpression(i, correctType, position)
