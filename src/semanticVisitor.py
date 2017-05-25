@@ -80,7 +80,6 @@ class SemanticVisitor(AstVisitor):
                 self.checkType(declstat.expressionNode, functionType['idType'], node.getPosition())
 
             # Calculate extreme pointer
-            print(type(declstat))
             retType = self.visit(declstat)
 
             # Compare type from return statement
@@ -395,7 +394,7 @@ class SemanticVisitor(AstVisitor):
                 raise wrongReturnType(retType, correctType, position)
 
         # If statement is an expression
-        elif type(declStat) != BinaryOperationNode and declStat.getType() != correctType:
+        elif type(declStat) == ExpressionNode and declStat.getType() != correctType:
             raise wrongReturnType(declStat.getType(), correctType, position)
 
         # Check if when the statement is a binary operation,
