@@ -548,7 +548,7 @@ class StringConstantNode(ASTNode):
         return visitor.visitStringConstantNode(self)
 
     def getType(self):
-        return "s"
+        return "c"
 
     def getPosition(self):
         return self.position

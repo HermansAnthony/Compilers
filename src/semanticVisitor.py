@@ -376,7 +376,7 @@ class SemanticVisitor(AstVisitor):
             knownType = self.symbolTable.lookupSymbol(node.getID()+"()").type['idType']
             raise declarationException(node.getID(), knownType, True, node.getPosition())
 
-    # Check if expression has the same type as the correctType
+    # Check if declstat has the same type as correctType
     def checkType(self, declStat, correctType, position):
         if type(declStat) == IdentifierNode:
             if self.symbolTable.lookupSymbol(declStat.getID()) == None:

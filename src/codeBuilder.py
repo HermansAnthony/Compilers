@@ -301,7 +301,7 @@ class CodeBuilder(AstVisitor):
         exprType['refCount'] += 1
         return exprType  
 
-    # The scanf and printf are generated at the functioncall node
+    # The scanf and printf are generated at the function call node
     def visitStdioNode(self, node:StdioNode):
         pass
 
@@ -312,9 +312,10 @@ class CodeBuilder(AstVisitor):
             stringLit = str(args[0].value)
             argsIndex = 1
             printCount = 0
+
             for index, char in enumerate(stringLit):
-                if index != 0 and stringLit[index-1] == "%":
-                    continue
+                if index != 0 and stringLit[index-1] == "%": continue
+                if index == 0 or index == len(stringLit)-2: continue
                 if char == "%" and index+1 < len(stringLit):
                     nextChar = stringLit[index+1]
                     item = None
@@ -323,8 +324,10 @@ class CodeBuilder(AstVisitor):
                     offset = None
                     # Identifier related printf variables
                     if type(args[argsIndex]) == IdentifierNode:
+                        print("ID")
                         item = self.symbolTable.lookupSymbol(args[argsIndex].getID())
                         idType = item.type['idType']
+                        print(idType)
                         nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
                         offset = item.address
                     # Constant related printf variables
@@ -333,6 +336,8 @@ class CodeBuilder(AstVisitor):
                         idType = args[argsIndex].getType()
                         self.code.newline("ldc " + idType + " " + args[argsIndex].value)
                         self.code.newline("out " + idType)
+                        argsIndex+=1
+                        continue
                     if nextChar == "%":
                         self.code.newline("ldc c %")
                         self.code.newline("out c ")
@@ -343,15 +348,19 @@ class CodeBuilder(AstVisitor):
                             offset += 1    
                         argsIndex += 1                     
                     else:
-                        self.code.newline("lod " + idType + str(nestingDiff) + " " + str(offset))
-                        self.code.newline("out " + idType)
+                        print("hehe" , idType, "-",str(nestingDiff), "-",str(offset))
+                        self.code.newline("lod " + idType + " " + str(nestingDiff) + " " + str(offset))
+                        self.code.newline("out " + idType + " ")
                         argsIndex += 1
                     printCount += 1
                     continue
-                self.code.newline("out c " + char)
-                printCount += 1
+                # TODO
+                if index != len(stringLit)-1:
+                    self.code.newline("out c " + char)
+                    printCount += 1
             # Put the amount of characters printed on top of the stack
             self.code.newline("ldc i " + str(printCount))
+            return
         if node.getID() == "scanf":
             # TODO test the scanf function thoroughly
             args = node.argumentExpressionListNode.argumentExprs
@@ -404,7 +413,7 @@ class CodeBuilder(AstVisitor):
         self.code.newline("mst " + str(nestingDiff))
         # arguments
         argLength=""
-        # Check if there are argument provided
+        # Check if there are arguments provided
         if node.argumentExpressionListNode != None:
             argLength = self.visit(node.argumentExpressionListNode)
         # Call user procedure
