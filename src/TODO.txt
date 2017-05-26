@@ -1,2 +1,3 @@
 int a[5-3]; doesnt work
 int a['c'] must not give syntax error
+can you printf and scanf an array?

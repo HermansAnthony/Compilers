@@ -59,6 +59,9 @@ class SemanticVisitor(AstVisitor):
                 if paramType1 != paramType2:
                     raise parameterTypeError(functionName, paramType1, paramType2, node.getPosition())
 
+        # Don't allow redefinition of printf and scanf function
+        if node.getID() == "printf" or node.getID() == "scanf": raise builtinLibraryFunction(node.getID(), node.getPosition())
+
         # Check for main function and if it has type integer
         if functionName == "main":
             self.mainFunctionFound = True
@@ -289,9 +292,9 @@ class SemanticVisitor(AstVisitor):
             if argType['idType'] != "c" or argType['refCount'] != 0:
                 raise requiredStringConstant(node.getID(), node.getPosition())
 
-            print("ehhe",type(args[0]))
+            print(node.getID(),":",type(args[0]))
             if type(args[0]) == IdentifierNode:
-                # TODO Raise exception
+                # TODO Raise exception Never occurs??
                 print(node.getID() + " does not support Identifiers as format argument.")
                 # Argument is an identifier
                 argItem = self.symbolTable.lookupSymbol(args[0].getID(), args[0])
@@ -301,29 +304,39 @@ class SemanticVisitor(AstVisitor):
                 # Argument is a string literal
                 argsIndex = 1
                 stringLit = str(args[0].value)
-                print("String: " , stringLit)
                 presentConversions = self.countConversions(stringLit)
                 for index, char in enumerate(stringLit):
                     if char == "%" and index+1 < len(stringLit):
                         if index != 0 and stringLit[index-1] == "%":
                             continue
                         tempType = self.visit(args[argsIndex])
-                        print("Temp type", tempType)
-                        if len(args) - 1 < presentConversions:
+                        if len(args) - 1 != presentConversions:
                             raise conflictingArgumentLength(node.getID(), len(args)-1, presentConversions, node.getPosition())
+
+
+                        if node.getID() == "printf":
+                            if type(args[argsIndex]) == IdentifierNode or \
+                                type(args[argsIndex]) == StringConstantNode or \
+                                type(args[argsIndex]) == FloatingConstantNode or \
+                                type(args[argsIndex]) == CharacterConstantNode or \
+                                type(args[argsIndex]) == IntegerConstantNode: continue
+                            raise printfTypes(node.getPosition())
+
                         if type(args[argsIndex]) != IdentifierNode:
                             if node.getID() == "scanf":
-                                if tempType['refCount'] != 1:
-                                    # TODO Raise exception
-                                    print("scanf only accepts pointers to basic type variables in the args list parameter.")
+                                if tempType['refCount'] != 1: raise onlyBasicTypes(node.getPosition())
+
                         nextChar = stringLit[index+1]
                         if (nextChar == "i" and tempType['idType'] == "i" or
-                            nextChar == "d" and tempType['idType'] == "r" or
+                            nextChar == "d" and tempType['idType'] == "i" or
+                            nextChar == "f" and tempType['idType'] == "r" or
                             nextChar == "c" and tempType['idType'] == "c" or
-                            nextChar == "s" and (tempType['idType'] == "c" and isArray in tempType)
-                            ):
-                            argsIndex += 1
-                            continue
+                            nextChar == "s" and (tempType['idType'] == "c" and "isArray" in tempType)):
+                                if (nextChar == "s" and type(args[argsIndex]) != IdentifierNode): raise stringScanError(node.getPosition())
+                                argsIndex += 1
+                                continue
+                        else:
+                            raise wrongTypeCode(tempType['idType'], nextChar, node.getPosition())
                 return {'idType': "i", 'refCount': 0}
 
         params = item.parameters # List of parameterDeclNode

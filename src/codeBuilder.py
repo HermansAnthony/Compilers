@@ -306,15 +306,15 @@ class CodeBuilder(AstVisitor):
         pass
 
     def visitFunctionCallNode(self, node:FunctionCallNode):
+        # Printf related code generation
         if node.getID() == "printf":
-            # TODO test the printf function thoroughly
             args = node.argumentExpressionListNode.argumentExprs
             stringLit = str(args[0].value)
             argsIndex = 1
             printCount = 0
-
             for index, char in enumerate(stringLit):
                 if index != 0 and stringLit[index-1] == "%": continue
+                if index != 0 and stringLit[index-1] == "\\" and char == "n": continue # Newline related if statement
                 if index == 0 or index == len(stringLit)-2: continue
                 if char == "%" and index+1 < len(stringLit):
                     nextChar = stringLit[index+1]
@@ -324,12 +324,24 @@ class CodeBuilder(AstVisitor):
                     offset = None
                     # Identifier related printf variables
                     if type(args[argsIndex]) == IdentifierNode:
-                        print("ID")
                         item = self.symbolTable.lookupSymbol(args[argsIndex].getID())
                         idType = item.type['idType']
                         print(idType)
                         nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
                         offset = item.address
+                    if type(args[argsIndex]) == StringConstantNode:
+                        tempIndex = 0
+                        prevChar = None
+                        for i in args[argsIndex].value:
+                            tempIndex+=1
+                            nextChar = None
+                            if tempIndex < len(args[argsIndex].value) - 1: nextChar = args[argsIndex].value[tempIndex]
+                            if i == '"' or i == "\0" or (prevChar == "\\" and i == "n"): continue
+                            self.toAscii(i, nextChar)
+                            prevChar = i
+                        argsIndex+=1
+                        continue
+
                     # Constant related printf variables
                     if type(args[argsIndex]) != IdentifierNode:
                         # TODO check if this works (aka constants in printf function)
@@ -341,61 +353,69 @@ class CodeBuilder(AstVisitor):
                     if nextChar == "%":
                         self.code.newline("ldc c %")
                         self.code.newline("out c ")
-                    elif nextChar == "s":
-                        for i in range(item.arraySize):
-                            self.code.newline("lod " + idType + str(nestingDiff) + " " + str(offset))
-                            self.code.newline("out " + idType)   
-                            offset += 1    
-                        argsIndex += 1                     
                     else:
-                        print("hehe" , idType, "-",str(nestingDiff), "-",str(offset))
                         self.code.newline("lod " + idType + " " + str(nestingDiff) + " " + str(offset))
-                        self.code.newline("out " + idType + " ")
+                        self.code.newline("out " + idType)
                         argsIndex += 1
                     printCount += 1
                     continue
-                # TODO
                 if index != len(stringLit)-1:
-                    self.code.newline("ldc c " + str(ord(char)))
-                    self.code.newline("out c")
+                    self.toAscii(char, stringLit[index+1])
                     printCount += 1
             # Put the amount of characters printed on top of the stack
             self.code.newline("ldc i " + str(printCount))
             return
+
+        # Scanf related code generation
         if node.getID() == "scanf":
             # TODO test the scanf function thoroughly
             args = node.argumentExpressionListNode.argumentExprs
             stringLit = str(args[0].value)
+            print("Input ", stringLit)
             argsIndex = 1
             inCount = 0
             for index, char in enumerate(stringLit):
-                if index != 0 and stringLit[index-1] == "%":
-                    continue
+                print("Index:", index, " with char ", char,"|")
+                if char == '"': continue
+                if index != 0 and stringLit[index-1] == "%": continue
                 if char == "%" and index+1 < len(stringLit):
                     nextChar = stringLit[index+1]
                     if nextChar == "%":
                         self.code.newline("ldc c %")
-                        self.code.newline("out c ")
+                        self.code.newline("out c")
                         inCount += 1
                         continue
                     argExpr = args[argsIndex]
+                    print("Hello it is me",type(argExpr))
+                    idType = None
+                    # Scanf function with char array as argument
                     if type(argExpr) == IdentifierNode:
                         item = self.symbolTable.lookupSymbol(argExpr.getID())
                         idType = item.type['idType']
                         nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
                         offset = item.address
-                        if nextChar == "s" and item.arraySize > 0:
+                        if nextChar == "s" and item.type['size'] > 0:
                             # Argument is an array
-                            for i in range(item.arraySize):
+                            # TODO what if given string goes out of char array bounds?
+                            for i in range(item.type['size']):
                                 # Put the index address on top of the stack
-                                self.code.newline("ldc " + offset)
+                                self.code.newline("ldc " + str(idType) + " " +str(offset))
                                 # Store the read value
                                 self.code.newline("in " + idType)
                                 self.code.newline("str " + idType + " " + str(nestingDiff) + " " + str(offset))
-                                offset += 1             
+                                offset += 1
                                 inCount += 1
-                            argsIndex += 1     
-                            continue       
+                            argsIndex += 1
+                            continue
+
+                    # Standard scanf function with &a as argument
+                    if type(argExpr) == ReferenceExpressionNode:
+                        item = self.symbolTable.lookupSymbol(argExpr.getID())
+                        idType = item.type['idType']
+                        nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
+                        offset = item.address
+                        print(item)
+
                     # Put the address on top of the stack
                     self.visit(args[argsIndex])
                     # Store the read value
@@ -404,10 +424,17 @@ class CodeBuilder(AstVisitor):
                     inCount += 1
                     argsIndex += 1     
                     continue
-                self.code.newline("out c " + char)
-                inCount += 1
+
+                if index != len(stringLit)-1:
+                    if stringLit[index-1] == "\\" and char == "n": continue
+                    self.toAscii(char, stringLit[index+1])
+                    inCount += 1
+
             # Put the amount of characters read on top of the stack
             self.code.newline("ldc i " + str(inCount))
+            return
+
+        # Just regular function calls (Not printf and not scanf)
         item = self.symbolTable.lookupSymbol(node.getID()+"()")
         nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
         # Mark the stack
@@ -490,6 +517,14 @@ class CodeBuilder(AstVisitor):
 
     def getCode(self):
         return self.code.code
+
+    def toAscii(self, char, nextChar):
+        asciiValue = ord(char)
+        if char == "\\" and nextChar == "n":
+            asciiValue = 10
+        self.code.newline("ldc c " + str(asciiValue))
+        self.code.newline("out c")
+        return
 
     def visitForwardFunctionDeclarationNode(self, node:ForwardFunctionDeclarationNode):
         return 

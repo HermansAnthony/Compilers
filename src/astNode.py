@@ -421,6 +421,9 @@ class ReferenceExpressionNode(ASTNode):
     def accept(self, visitor):
         return visitor.visitReferenceExpressionNode(self)
 
+    def getID(self):
+        return self.child.getID()
+
     def getPosition(self):
         return self.position
 

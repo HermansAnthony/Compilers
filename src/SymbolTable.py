@@ -6,6 +6,9 @@ class simpleElement:
         self.address = address
         self.nestingDepth = nestingDepth
         self.arraySize = arraySize
+        if self.arraySize != 0:
+            self.type['isArray'] = True
+            self.type['size'] = arraySize
 
     def __repr__(self):
         returnValue = '(var) ' + str(self.type)

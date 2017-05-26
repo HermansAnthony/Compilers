@@ -199,6 +199,7 @@ class wrongArrayIndexType(semanticException):
         return "Semantic error occurred on line " + str(self.line) + ":\n" \
                 "Arrayindex has type " + getType(str(self.currentType)) + " while it should be integer"
 
+# All printf and scanf related exceptions
 class includeException(semanticException):
     def __init__(self, function, line):
         self.function = function
@@ -225,6 +226,49 @@ class requiredStringConstant(semanticException):
     def __str__(self):
         return "Semantic error occurred on line " + str(self.line) + ":\n" \
             "String constant is required as first argument for function " + str(self.function)
+
+class wrongTypeCode(semanticException):
+    def __init__(self, currentType, formatType, line):
+        self.currentType = currentType
+        self.formatType = formatType
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+            "You used type code " + str(self.formatType) + " while it should be " + str(self.currentType)
+
+class onlyBasicTypes(semanticException):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+            + "Scanf only accepts pointers to basic type variables in the args list parameter"
+
+class printfTypes(semanticException):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+               + "Printf only accepts identifiers and constants as arguments"
+
+class stringScanError(semanticException):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+               + "Scanf only accepts char array as argument when using the %s conversion"
+
+class builtinLibraryFunction(semanticException):
+    def __init__(self, function, line):
+        self.function = function
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+            + "Redeclaration of builtin function " + str(self.function)
 
 # All antlr related errors
 class antlrError(Exception):
