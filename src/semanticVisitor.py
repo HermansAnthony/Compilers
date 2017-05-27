@@ -23,7 +23,7 @@ class SemanticVisitor(AstVisitor):
         for child in node.children:
             if type(child) != DeclarationNode:
                 self.visit(child)
-                self.symbolTable.resetScopeCounter() # Return to global scope
+                # self.symbolTable.resetScopeCounter() # Return to global scope
 
         # No main function declared in file
         if not self.mainFunctionFound: raise mainException()
@@ -76,11 +76,16 @@ class SemanticVisitor(AstVisitor):
             for paramDecl in node.parameterList.paramDecls:
                 self.visit(paramDecl)
 
+        # Check if function has a return statement
+        hasReturnStatement = False
+
         # Iterate the statements in the function body
         for declstat in node.functionBody:
             # Check if the return expression matches the returntype of the function
             if type(declstat) == ReturnNode:
+                print(declstat.expressionNode)
                 self.checkType(declstat.expressionNode, functionType['idType'], node.getPosition())
+                hasReturnStatement = True
 
             # Calculate extreme pointer
             retType = self.visit(declstat)
@@ -90,8 +95,15 @@ class SemanticVisitor(AstVisitor):
                 retType.pop('returnStat')
                 return
 
+        if functionType['idType'] != '' and hasReturnStatement == False and functionName != "main":
+            raise noReturnStatement(node.getPosition())
+
         # Generate the code for this function definition
         self.codeBuilder.visit(node)
+
+        # End the function scope
+        # TODO check scopes better
+        self.symbolTable.endScope()
 
     def visitParameterDeclarationNode(self, node:ParameterDeclarationNode):
         identifier = node.declarator
@@ -109,7 +121,6 @@ class SemanticVisitor(AstVisitor):
 
     def visitAssignmentNode(self, node:AssignmentNode):
         # Compare types
-        print("test")
         item = self.symbolTable.lookupSymbol(node.getID(), node.identifier)
         if item == None: raise unknownVariable(node.getID(), node.getPosition())
         arrExprList = node.identifier.arrayExpressionList
@@ -188,6 +199,7 @@ class SemanticVisitor(AstVisitor):
                 print("Semantic error: attempt to initialize array with wrong type")                
         if node.expression:
             # Compare types
+            print("he")
             if isinstance(node.expression, list):
                 for elem in node.expression:
                     # Check when index is an identifier:
@@ -207,6 +219,7 @@ class SemanticVisitor(AstVisitor):
                     curType = self.visit(expr)
                     if curType != declType:
                         raise wrongType(curType['idType'], declType['idType'], expr.getPosition())
+            if type(node.expression) == FunctionCallNode: self.visit(node.expression)
             self.checkType(node.expression, declType['idType'], node.getPosition())
         if self.symbolTable.insertSymbol(node.getID(), declType, arraySize=arraySize) == None:
             raise declarationException(node.getID(), 
@@ -265,6 +278,7 @@ class SemanticVisitor(AstVisitor):
         return exprType  
 
     def visitFunctionCallNode(self, node:FunctionCallNode):
+        print("a")
         item = self.symbolTable.lookupSymbol(node.getID() + "()")
         if (node.getID() == "printf" or node.getID() == "scanf") and item == None:
             # Added specific exception for the inclusion of printf and scanf
@@ -343,6 +357,9 @@ class SemanticVisitor(AstVisitor):
         args = []
         if node.argumentExpressionListNode:
             args = node.argumentExpressionListNode.argumentExprs
+
+        print(len(args))
+        print(len(params))
         if len(params) != len(args):
             raise conflictingParameterLength(node.getID(), len(args), len(params), node.getPosition())
         for i in range(len(params)):
@@ -419,6 +436,12 @@ class SemanticVisitor(AstVisitor):
         # If statement is an expression
         elif type(declStat) == ExpressionNode and declStat.getType() != correctType:
             raise wrongReturnType(declStat.getType(), correctType, position)
+
+        # If statement is a constant
+        elif type(declStat) == CharacterConstantNode or type(declStat) == FloatingConstantNode or type(declStat) == IntegerConstantNode:
+            if declStat.getType() != correctType:
+                raise wrongReturnType(declStat.getType(), correctType, position)
+
 
         # Check if when the statement is a binary operation,
         # If all the types in the expression match the type

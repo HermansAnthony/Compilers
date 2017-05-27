@@ -100,6 +100,16 @@ class wrongReturnType(semanticException):
         returnValue += "You returned a variable of type " + str(getType(self.returnType)) + " while it should be " + str(getType(self.correctType))
         return returnValue
 
+# The function is non void and has no return statement
+class noReturnStatement(semanticException):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        returnValue = "Warning occurred on line " + str(self.line) + ":\n"
+        returnValue += "Control reaches end of non-void function"
+        return returnValue
+
 # Exception that will be throwed when you dereference too many times
 class deReference(semanticException):
     def __init__(self, line):

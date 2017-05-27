@@ -241,7 +241,9 @@ class AstBuilder(CmmVisitor):
             idNode = result[-1]
             idNode.arrayExpressionList = list(reversed(result[:-1]))
             return ExpressionNode(ctx.getChild(1).getText(), True, idNode, place)
-
+        if ctx.getChildCount() == 3:
+            # LeftParen expression RightParen
+            return self.visitExpression(ctx.getChild(1))
 
     def visitStatement(self, ctx:CmmParser.StatementContext):
         # (Identifier | arrayExpression) PlusPlus 

@@ -109,9 +109,9 @@ class generalSymbolTable:
         self.presentScope += 1
 
     # Enter the next scope
-    # TODO delete this
-    # def nextScope(self):
-    #     self.presentScope += 1
+    def endScope(self):
+        self.localScope.pop()
+        self.presentScope -= 1
 
     # Insert a symbol depending on the current scope
     def insertSymbol(self, key, type, arraySize=0, params=None, isForwardDecl=False):

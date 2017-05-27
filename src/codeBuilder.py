@@ -37,7 +37,7 @@ class CodeBuilder(AstVisitor):
 
         # Implicit call for main function before function definitions
         self.code.newline("mst 0")
-        self.code.newline("cup 0 main")
+        self.code.newline("cup 0 mainFunc")
         # Halt the machine after executing main
         self.code.newline("hlt")
 
@@ -51,7 +51,7 @@ class CodeBuilder(AstVisitor):
         # TODO not necessary self.symbolTable.nextScope()
 
         # Generate procedure label
-        self.code.newline(node.getID() + ":")
+        self.code.newline(node.getID() + "Func:")
         # Calculate the length of the static section of the stack frame
         staticLength = 5 # 5 organizational cells after MP
         if node.parameterList:
@@ -440,12 +440,12 @@ class CodeBuilder(AstVisitor):
         # Mark the stack
         self.code.newline("mst " + str(nestingDiff))
         # arguments
-        argLength=""
+        argLength=0
         # Check if there are arguments provided
         if node.argumentExpressionListNode != None:
             argLength = self.visit(node.argumentExpressionListNode)
         # Call user procedure
-        self.code.newline("cup " + str(argLength) + " " + node.getID())
+        self.code.newline("cup " + str(argLength) + " " + node.getID()+"Func")
         return item.type
 
     def visitArgumentExpressionListNode(self, node:ArgumentExpressionListNode):

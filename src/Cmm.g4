@@ -109,6 +109,7 @@ atomExpression
     | (Identifier | arrayExpression) MinusMinus
     | And (Identifier | arrayExpression)
     | Star+ (Identifier | arrayExpression)
+    | LeftParen expression RightParen
 ;
 
 multiplicativeExpression
