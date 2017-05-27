@@ -16,6 +16,10 @@ class CodeBuilder(AstVisitor):
         self.code = Code()
         # Label tracker for unique labels
         self.currentLabelNo = 0
+        # Label tracker for breaknodes
+        self.breakNodes = list()
+        # Label tracker for continue nodes
+        self.continueNodes = list()
 
     def visitProgramNode(self, node:ProgramNode):
         # Set the extreme stack pointer for the program itself
@@ -137,6 +141,9 @@ class CodeBuilder(AstVisitor):
             # l1: e, fjp l2, body, ujp l1, l2:   
             label1 = self.symbolTable.getFunctionName() + str(self.currentLabelNo)
             label2 = self.symbolTable.getFunctionName() + str(self.currentLabelNo+1)
+            self.continueNodes.append(label1)
+            self.breakNodes.append(label2)
+            print(self.breakNodes)
             self.currentLabelNo += 2  
             self.code.newline(label1 + ":")
             self.visit(node.left)
@@ -145,6 +152,8 @@ class CodeBuilder(AstVisitor):
                 self.visit(declStat)
             self.code.newline("ujp " + label1)
             self.code.newline(label2 + ":")
+            self.continueNodes = self.continueNodes[:-1]
+            self.breakNodes = self.breakNodes[:-1]
 
     def visitReturnNode(self, node:ReturnNode):
         # Return a value
@@ -157,10 +166,12 @@ class CodeBuilder(AstVisitor):
             self.code.newline("retp")
 
     def visitBreakNode(self, node:BreakNode):
-        pass
+        label = self.breakNodes[-1]
+        self.code.newline("ujp " + label)
 
     def visitContinueNode(self, node:ContinueNode):
-        pass
+        label = self.continueNodes[-1]
+        self.code.newline("ujp " + label)
 
     def visitDeclarationNode(self, node:DeclarationNode):
         item = self.symbolTable.lookupSymbol(node.getID())
