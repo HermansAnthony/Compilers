@@ -300,10 +300,12 @@ class AstBuilder(CmmVisitor):
         return IterationStatementNode("For", left, middle1, middle2, right, place)
 
     def visitJumpStatement(self, ctx:CmmParser.JumpStatementContext):
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
         if ctx.Continue():
-            return ContinueNode()
+            return ContinueNode(place)
         if ctx.Break():
-            return BreakNode()
+            return BreakNode(place)
         if ctx.expression():
             return ReturnNode(self.visit(ctx.expression()))    
         return ReturnNode(None)

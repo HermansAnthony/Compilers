@@ -8,7 +8,8 @@ class SemanticVisitor(AstVisitor):
     def __init__(self, table, code):
         self.symbolTable = table
         self.mainFunctionFound = False
-        self.codeBuilder = code # refers to codeBuilder.py
+        self.codeBuilder = code # refers to codeBuilder
+        self.isInLoop = False
 
     def visitProgramNode(self, node:ProgramNode):
         # Check all global variables first (semantically)
@@ -153,6 +154,7 @@ class SemanticVisitor(AstVisitor):
                 self.visit(declStat)
 
     def visitIterationStatementNode(self, node:IterationStatementNode):
+        self.isInLoop = True
         if node.statementName == "While":
             # Check if while expression is boolean
             exprType = self.visit(node.left)
@@ -170,6 +172,7 @@ class SemanticVisitor(AstVisitor):
             part1 = self.visit(node.left)
             # exprType = self.visit(node.middle1)
             # print(exprType)
+        self.isInLoop = False
 
     def visitReturnNode(self, node:ReturnNode):
         # Return a expression(identifier, functioncall, binary operation etc)
@@ -180,10 +183,10 @@ class SemanticVisitor(AstVisitor):
         return {'returnStat': True, 'idType': None, 'refCount': 0}
 
     def visitBreakNode(self, node:BreakNode):
-        pass
+        if not self.isInLoop: raise outsideLoopException("break", node.getPosition())
 
     def visitContinueNode(self, node:ContinueNode):
-        pass
+        if not self.isInLoop: raise outsideLoopException("continue", node.getPosition())
 
     def visitDeclarationNode(self, node:DeclarationNode):
         declType = node.getType()

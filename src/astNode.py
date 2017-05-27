@@ -315,6 +315,12 @@ class ReturnNode(ASTNode):
         return returnValue
 
 class ContinueNode(ASTNode):
+    def __init__(self, position):
+        self.position = position
+
+    def getPosition(self):
+        return self.position
+
     def accept(self, visitor):
         return visitor.visitContinueNode(self)
 
@@ -325,8 +331,14 @@ class ContinueNode(ASTNode):
         return returnValue
 
 class BreakNode(ASTNode):
+    def __init__(self, position):
+        self.position = position
+
     def accept(self, visitor):
         return visitor.visitBreakNode(self)
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         currentNode = counter()

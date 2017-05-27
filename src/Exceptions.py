@@ -25,6 +25,15 @@ class conditionException(semanticException):
         return "Semantic error occurred on line " + str(self.line) +":\n"\
                 + "Condition is of type " + getType(str(self.currentType)) + " while it should be of type bool"
 
+class outsideLoopException(semanticException):
+    def __init__(self, keyword, line):
+        self.keyword = keyword
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) +":\n"\
+                + str(self.keyword) + " statement not in loop statement"
+
 # Variable has already been declared
 class declarationException(semanticException):
     def __init__(self, name, type, function, line):
