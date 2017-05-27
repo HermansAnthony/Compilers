@@ -195,11 +195,7 @@ class SemanticVisitor(AstVisitor):
         if len(arrExprList) > 0:
             arraySize = int(arrExprList[0].value)
             if len(arrExprList) > 1:
-                raise wrongArrayDimension(node.getID(), node.getPosition())
-            if node.expression and type(node.expression) != InitializerListNode:
-                # TODO Raise error: wrong type in initializer, it has to be an initializerlist
-                # Error never occurs TODO
-                print("Semantic error: attempt to initialize array with wrong type")                
+                raise wrongArrayDimension(node.getID(), node.getPosition())           
         if node.expression:
             # Compare types
             print("he")
@@ -236,13 +232,10 @@ class SemanticVisitor(AstVisitor):
             raise wrongOperation("add/subtract/mul or div", "an address", node.getPosition())
         typeLeft = exprTypeLeft['idType']
         typeRight = exprTypeRight['idType']
-        if (node.operator == "&&" and node.operator == "||"):
-            if typeLeft == {'idType': "b", 'refCount': 0}:
-                # TODO && and || do not have a boolean type
+        if (node.operator == "&&" or node.operator == "||"):
+            if (typeLeft != {'idType': "b", 'refCount': 0} or 
+                typeRight != {'idType': "b", 'refCount': 0}):
                 raise wrongOperation("&& and ||", 
-                    typeLeft, node.getPosition(), typeRight)
-            if typeLeft != typeRight:
-                raise wrongOperation(str(node.operator),
                     typeLeft, node.getPosition(), typeRight)
         if (node.operator != "+" and node.operator != "-" 
             and node.operator != "*" and node.operator != "/"):
@@ -306,55 +299,47 @@ class SemanticVisitor(AstVisitor):
 
             argType = self.visit(args[0])
             # Check if first argument is a Char array
-            if argType['idType'] != "c" or argType['refCount'] != 0:
+            if type(args[0]) != StringConstantNode:
                 raise requiredStringConstant(node.getID(), node.getPosition())
 
             print(node.getID(),":",type(args[0]))
-            if type(args[0]) == IdentifierNode:
-                # TODO Raise exception Never occurs??
-                print(node.getID() + " does not support Identifiers as format argument.")
-                # Argument is an identifier
-                argItem = self.symbolTable.lookupSymbol(args[0].getID(), args[0])
-                if argItem.arraySize > 0:
-                    return {'idType': "i", 'refCount': 0}
-            elif argType['isArray']:
-                # Argument is a string literal
-                argsIndex = 1
-                stringLit = str(args[0].value)
-                presentConversions = self.countConversions(stringLit)
-                for index, char in enumerate(stringLit):
-                    if char == "%" and index+1 < len(stringLit):
-                        if index != 0 and stringLit[index-1] == "%":
+            # First Argument is a string literal
+            argsIndex = 1
+            stringLit = str(args[0].value)
+            presentConversions = self.countConversions(stringLit)
+            for index, char in enumerate(stringLit):
+                if char == "%" and index+1 < len(stringLit):
+                    if index != 0 and stringLit[index-1] == "%":
+                        continue
+                    tempType = self.visit(args[argsIndex])
+                    if len(args) - 1 != presentConversions:
+                        raise conflictingArgumentLength(node.getID(), len(args)-1, presentConversions, node.getPosition())
+
+
+                    if node.getID() == "printf":
+                        if type(args[argsIndex]) == IdentifierNode or \
+                            type(args[argsIndex]) == StringConstantNode or \
+                            type(args[argsIndex]) == FloatingConstantNode or \
+                            type(args[argsIndex]) == CharacterConstantNode or \
+                            type(args[argsIndex]) == IntegerConstantNode: continue
+                        raise printfTypes(node.getPosition())
+
+                    if type(args[argsIndex]) != IdentifierNode:
+                        if node.getID() == "scanf":
+                            if tempType['refCount'] != 1: raise onlyBasicTypes(node.getPosition())
+
+                    nextChar = stringLit[index+1]
+                    if (nextChar == "i" and tempType['idType'] == "i" or
+                        nextChar == "d" and tempType['idType'] == "i" or
+                        nextChar == "f" and tempType['idType'] == "r" or
+                        nextChar == "c" and tempType['idType'] == "c" or
+                        nextChar == "s" and (tempType['idType'] == "c" and "isArray" in tempType)):
+                            if (nextChar == "s" and type(args[argsIndex]) != IdentifierNode): raise stringScanError(node.getPosition())
+                            argsIndex += 1
                             continue
-                        tempType = self.visit(args[argsIndex])
-                        if len(args) - 1 != presentConversions:
-                            raise conflictingArgumentLength(node.getID(), len(args)-1, presentConversions, node.getPosition())
-
-
-                        if node.getID() == "printf":
-                            if type(args[argsIndex]) == IdentifierNode or \
-                                type(args[argsIndex]) == StringConstantNode or \
-                                type(args[argsIndex]) == FloatingConstantNode or \
-                                type(args[argsIndex]) == CharacterConstantNode or \
-                                type(args[argsIndex]) == IntegerConstantNode: continue
-                            raise printfTypes(node.getPosition())
-
-                        if type(args[argsIndex]) != IdentifierNode:
-                            if node.getID() == "scanf":
-                                if tempType['refCount'] != 1: raise onlyBasicTypes(node.getPosition())
-
-                        nextChar = stringLit[index+1]
-                        if (nextChar == "i" and tempType['idType'] == "i" or
-                            nextChar == "d" and tempType['idType'] == "i" or
-                            nextChar == "f" and tempType['idType'] == "r" or
-                            nextChar == "c" and tempType['idType'] == "c" or
-                            nextChar == "s" and (tempType['idType'] == "c" and "isArray" in tempType)):
-                                if (nextChar == "s" and type(args[argsIndex]) != IdentifierNode): raise stringScanError(node.getPosition())
-                                argsIndex += 1
-                                continue
-                        else:
-                            raise wrongTypeCode(tempType['idType'], nextChar, node.getPosition())
-                return {'idType': "i", 'refCount': 0}
+                    else:
+                        raise wrongTypeCode(tempType['idType'], nextChar, node.getPosition())
+            return {'idType': "i", 'refCount': 0}
 
         params = item.parameters # List of parameterDeclNode
         args = []

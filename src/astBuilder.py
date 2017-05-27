@@ -180,11 +180,10 @@ class AstBuilder(CmmVisitor):
         # Place is for semantic analysis (line-column position)
         place = str(ctx.start.line) + ", position " + str(ctx.start.column)
         # multiplicativeExpression
-        if ctx.multiplicativeExpression() and ctx.getChildCount() == 1: return self.visit(ctx.multiplicativeExpression())
+        if ctx.getChildCount() == 1: return self.visit(ctx.multiplicativeExpression())
         if ctx.getChildCount() == 3:
             # additiveExpression Plus multiplicativeExpression
             # additiveExpression Minus multiplicativeExpression
-            # TODO check if right
             expr0 = self.visit(ctx.additiveExpression())
             expr1 = self.visit(ctx.multiplicativeExpression())
             if ctx.Plus(): return BinaryOperationNode(ctx.Plus().getText(), expr0, expr1, place)
@@ -194,11 +193,10 @@ class AstBuilder(CmmVisitor):
     def visitMultiplicativeExpression(self, ctx:CmmParser.MultiplicativeExpressionContext):
         # Place is for semantic analysis (line-column position)
         place = str(ctx.start.line) + ", position " + str(ctx.start.column)
-        if ctx.atomExpression() and ctx.getChildCount() == 1: return self.visit(ctx.atomExpression())
+        if ctx.getChildCount() == 1: return self.visit(ctx.atomExpression())
         if ctx.getChildCount() == 3:
             # multiplicativeExpression Star atomExpression
             # multiplicativeExpression Div atomExpression
-            # TODO check if right
             expr0 = self.visit(ctx.multiplicativeExpression())
             expr1 = self.visit(ctx.atomExpression())
             if ctx.Star(): return BinaryOperationNode(ctx.Star().getText(), expr0, expr1, place)
@@ -208,9 +206,10 @@ class AstBuilder(CmmVisitor):
     def visitAtomExpression(self, ctx:CmmParser.AtomExpressionContext):
         # Place is for semantic analysis (line-column position)
         place = str(ctx.start.line) + ", position " + str(ctx.start.column)
-        if ctx.primaryExpression(): return self.visit(ctx.primaryExpression())
-        if ctx.arrayExpression(): return self.visitArrayExpression(ctx.arrayExpression())
-        if ctx.functionCallExpression(): return self.visitFunctionCallExpression(ctx.functionCallExpression())
+        if ctx.getChildCount() == 1:
+            if ctx.primaryExpression(): return self.visit(ctx.primaryExpression())
+            if ctx.arrayExpression(): return self.visitArrayExpression(ctx.arrayExpression())
+            if ctx.functionCallExpression(): return self.visitFunctionCallExpression(ctx.functionCallExpression())
         if ctx.getChildCount() == 2:
             if ctx.Star():
                 # Star+ (Identifier | arrayExpression)
@@ -234,7 +233,6 @@ class AstBuilder(CmmVisitor):
 
             # (Identifier | arrayExpression) PlusPlus
             # (Identifier | arrayExpression) MinusMinus
-            # TODO not sure if correct or not
             if ctx.Identifier():
                 return ExpressionNode(ctx.getChild(1).getText(), True, self.visitIdentifier(ctx.Identifier()), place)
             result = self.visit(ctx.arrayExpression())
