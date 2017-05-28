@@ -65,6 +65,9 @@ class CodeBuilder(AstVisitor):
                 if len(exprList) == 1:
                     idSize = int(exprList[0].value)
                 staticLength += idSize
+            if type(declStat) == IfStatementNode or type(declStat) == IterationStatementNode:
+                staticLength += self.getStaticLength(declStat)
+
         # Set the stack pointer and the EP
         # self.code.newline("ent " + str(self.symbolTable.getMaxEP()) + " " + str(staticLength))
         self.code.newline("ssp " + str(staticLength))
@@ -429,7 +432,7 @@ class CodeBuilder(AstVisitor):
                             # TODO what if given string goes out of char array bounds?
                             for i in range(item.type['size']):
                                 # Put the index address on top of the stack
-                                self.code.newline("ldc " + str(idType) + " " +str(offset))
+                                self.code.newline("ldc " + str(idType) + " " + str(offset))
                                 # Store the read value
                                 self.code.newline("in " + idType)
                                 self.code.newline("str " + idType + " " + str(nestingDiff) + " " + str(offset))
@@ -563,4 +566,33 @@ class CodeBuilder(AstVisitor):
     def implicitReturn(self):
         # Implicit return statement
         self.code.newline("retp")
+
+    # Get the static length of the statements through recursion
+    def getStaticLength(self, node):
+        length = 0
+        if type(node) == IfStatementNode:
+            if node.ifBody:
+                for stat in node.ifBody:
+                    if type(stat) == DeclarationNode:
+                        exprList = stat.identifier.arrayExpressionList
+                        idSize = 1
+                        if len(exprList) == 1:
+                            idSize = int(exprList[0].value)
+                        length += idSize
+                    if type(stat) == IfStatementNode or type(stat) == IterationStatementNode:
+                        print("Recursion")
+                        length += self.getStaticLength(stat)
+            if node.elseBody:
+                for stat in node.elseBody:
+                    if type(stat) == DeclarationNode:
+                        exprList = stat.identifier.arrayExpressionList
+                        idSize = 1
+                        if len(exprList) == 1:
+                            idSize = int(exprList[0].value)
+                        length += idSize
+                    if type(stat) == IfStatementNode or type(stat) == IterationStatementNode:
+                        length + self.getStaticLength(stat)
+
+        # TODO integrate with iteration statement
+        return length
 

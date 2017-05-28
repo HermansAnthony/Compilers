@@ -130,7 +130,7 @@ class SemanticVisitor(AstVisitor):
 
     def visitAssignmentNode(self, node:AssignmentNode):
         # Compare types
-        item = self.symbolTable.lookupSymbol(node.getID(), node.identifier)
+        item = self.symbolTable.lookupSymbol(node.getID())
         if item == None: raise unknownVariable(node.getID(), node.getPosition())
         arrExprList = node.identifier.arrayExpressionList
         if item.arraySize:
@@ -160,14 +160,17 @@ class SemanticVisitor(AstVisitor):
         labels = self.codeBuilder.visit(node)
 
         # If scope
+        print("Before", self.symbolTable)
         self.symbolTable.createScope(labels[0])
         if node.ifBody != None: #Sem analysis
             for declStat in node.ifBody:
+                print(type(declStat))
                 self.visit(declStat)
-        print("test",self.symbolTable)
+        print("After",self.symbolTable)
         # Code generation
         self.codeBuilder.visitIfBody(node.ifBody, labels[0], labels[1])
         self.symbolTable.endScope()
+        print("After last", self.symbolTable)
 
         # Else scope
         self.symbolTable.createScope(labels[1])
@@ -275,9 +278,11 @@ class SemanticVisitor(AstVisitor):
                         raise wrongType(curType['idType'], declType['idType'], expr.getPosition())
             if type(node.expression) == FunctionCallNode: self.visit(node.expression)
             self.checkType(node.expression, declType['idType'], node.getPosition())
+        print('here')
         if self.symbolTable.insertSymbol(node.getID(), declType, arraySize=arraySize) == None:
             raise declarationException(node.getID(), 
                 declType['idType'], False, node.getPosition())
+        print("HALOO",self.symbolTable)
 
     def visitBinaryOperationNode(self, node:BinaryOperationNode):
         exprTypeLeft = self.visit(node.left)
@@ -438,7 +443,7 @@ class SemanticVisitor(AstVisitor):
         pass   
 
     def visitIdentifierNode(self, node:IdentifierNode):
-        item = self.symbolTable.lookupSymbol(node.getID(), node)
+        item = self.symbolTable.lookupSymbol(node.getID())
         if item == None: raise unknownVariable(node.getID(), node.getPosition())
         if len(node.arrayExpressionList) > 0:        
             exprType = self.visit(node.arrayExpressionList[0])
