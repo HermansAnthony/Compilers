@@ -52,8 +52,6 @@ class CodeBuilder(AstVisitor):
 
     def visitFunctionDefinitionNode(self, node:FunctionDefinitionNode):
         self.currentLabelNo = 0
-        # TODO not necessary self.symbolTable.nextScope()
-
         # Generate procedure label
         self.code.newline(node.getID() + "Func:")
         # Calculate the length of the static section of the stack frame
@@ -70,11 +68,13 @@ class CodeBuilder(AstVisitor):
         # Set the stack pointer and the EP
         # self.code.newline("ent " + str(self.symbolTable.getMaxEP()) + " " + str(staticLength))
         self.code.newline("ssp " + str(staticLength))
+
         # Generate function body code
-        for declStat in node.functionBody:
-            self.visit(declStat) 
-        # Implicit return statement      
-        self.code.newline("retp")   
+        # TODO
+        # for declStat in node.functionBody:
+        #     self.visit(declStat)
+        # # Implicit return statement
+        # self.code.newline("retp")
 
     def visitParameterListNode(self, node:ParameterListNode):
         paramDataSize = 0
@@ -108,7 +108,7 @@ class CodeBuilder(AstVisitor):
                 # Take the value at the address that is on the top of the stack
                 self.code.newline("ind a")
             # Generate expression
-            self.visit(node.expression) 
+            self.visit(node.expression)
             # Store the value at the top of the stack at the address that's on SP-1       
             self.code.newline("sto " + idType)
         else:
@@ -126,15 +126,31 @@ class CodeBuilder(AstVisitor):
         label2 = self.symbolTable.getFunctionName() + str(self.currentLabelNo+1)
         self.currentLabelNo += 2
         self.code.newline("fjp " + label1)
-        if node.ifBody:
-            for declStat in node.ifBody:
+        print([label1, label2])
+        return [label1, label2]
+        # if node.ifBody:
+        #     for declStat in node.ifBody:
+        #         self.visit(declStat)
+        # self.code.newline("ujp " + label2)
+        # self.code.newline(label1 + ":")
+        # if node.elseBody:
+        #     for declStat in node.elseBody:
+        #         self.visit(declStat)
+        # self.code.newline(label2 + ":")
+
+    def visitIfBody(self, node, label1, label2):
+        if node:
+            for declStat in node:
                 self.visit(declStat)
         self.code.newline("ujp " + label2)
         self.code.newline(label1 + ":")
-        if node.elseBody:
-            for declStat in node.elseBody:
+
+    def visitElseBody(self, node, label1, label2):
+        if node:
+            for declStat in node:
                 self.visit(declStat)
         self.code.newline(label2 + ":")
+
 
     def visitIterationStatementNode(self, node:IterationStatementNode):
         if node.statementName == "While":
@@ -143,7 +159,6 @@ class CodeBuilder(AstVisitor):
             label2 = self.symbolTable.getFunctionName() + str(self.currentLabelNo+1)
             self.continueNodes.append(label1)
             self.breakNodes.append(label2)
-            print(self.breakNodes)
             self.currentLabelNo += 2  
             self.code.newline(label1 + ":")
             self.visit(node.left)
@@ -154,6 +169,9 @@ class CodeBuilder(AstVisitor):
             self.code.newline(label2 + ":")
             self.continueNodes = self.continueNodes[:-1]
             self.breakNodes = self.breakNodes[:-1]
+        if node.statementName == "For":
+            # TODO implement for functionality here
+            pass
 
     def visitReturnNode(self, node:ReturnNode):
         # Return a value
@@ -313,6 +331,7 @@ class CodeBuilder(AstVisitor):
         return exprType  
 
     # The scanf and printf are generated at the function call node
+
     def visitStdioNode(self, node:StdioNode):
         pass
 
@@ -526,6 +545,10 @@ class CodeBuilder(AstVisitor):
         self.code.newline("lod " + idType + " " + str(nestingDiff) + " " + str(item.address))
         return item.type
 
+    def visitForwardFunctionDeclarationNode(self, node:ForwardFunctionDeclarationNode):
+        return
+
+#====[Helper methods]====
     def getCode(self):
         return self.code.code
 
@@ -537,6 +560,7 @@ class CodeBuilder(AstVisitor):
         self.code.newline("out c")
         return
 
-    def visitForwardFunctionDeclarationNode(self, node:ForwardFunctionDeclarationNode):
-        return 
+    def implicitReturn(self):
+        # Implicit return statement
+        self.code.newline("retp")
 

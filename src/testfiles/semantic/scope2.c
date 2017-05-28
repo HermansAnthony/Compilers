@@ -3,12 +3,12 @@
 int glob = 0;
 
 int func(int glob) {
-    glob = 2;
-    int glob = 1;
+    // glob = 2;
+    glob = 1;
     if ( glob == 1 ) {
         int glob = 3;
         printf("Glob should be 3: %i\n", glob);
-    } 
+    }
     else {
         printf("I should not be here.\n");
     }
@@ -16,6 +16,6 @@ int func(int glob) {
 }
 
 int main(){
-    func();
+    func(glob);
     printf("Glob should be 2: %i\n", glob);
 }

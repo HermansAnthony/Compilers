@@ -10,12 +10,13 @@ class semanticException(Exception):
     pass
 
 class wrongForloop(semanticException):
-    def __init__(self, line):
+    def __init__(self, operator, line):
+        self.operator = operator
         self.line = line
 
     def __str__(self):
         return "Semantic error occurred on line " + str(self.line) +":\n"\
-                + "Wrong use of for loop "
+                + "Update part of for must not be operator " + str(self.operator)
 class conditionException(semanticException):
     def __init__(self, currentType, line):
         self.currentType = currentType

@@ -238,13 +238,17 @@ class ForwardFunctionDeclarationNode(ASTNode):
         return returnValue
 
 class IfStatementNode(ASTNode):
-    def __init__(self, condition, ifBody, elseBody):
+    def __init__(self, condition, ifBody, elseBody, position):
         self.condition = condition
         self.ifBody = ifBody
         self.elseBody = elseBody
+        self.position = position
 
     def accept(self, visitor):
         return visitor.visitIfStatementNode(self)
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         currentNode = counter()
@@ -358,6 +362,9 @@ class BinaryOperationNode(ASTNode):
 
     def getPosition(self):
         return self.position
+
+    def getOperator(self):
+        return str(self.operator)
 
     def getType(self):
         returnValue = list()

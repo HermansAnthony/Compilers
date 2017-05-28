@@ -29,9 +29,6 @@ class SemanticVisitor(AstVisitor):
         # No main function declared in file
         if not self.mainFunctionFound: raise mainException()
 
-        # Generate the code (program node)
-        # self.codeBuilder.visit(node)
-
     def visitStdioNode(self, node:StdioNode):
         self.symbolTable.insertSymbol("printf()", 
             {'idType': "i", 'refCount': 0}, params=[]) 
@@ -77,6 +74,9 @@ class SemanticVisitor(AstVisitor):
             for paramDecl in node.parameterList.paramDecls:
                 self.visit(paramDecl)
 
+        # Generate the setup code for this function definition
+        self.codeBuilder.visit(node)
+
         # Check if function has a return statement
         hasReturnStatement = False
 
@@ -84,12 +84,21 @@ class SemanticVisitor(AstVisitor):
         for declstat in node.functionBody:
             # Check if the return expression matches the returntype of the function
             if type(declstat) == ReturnNode:
-                print(declstat.expressionNode)
                 self.checkType(declstat.expressionNode, functionType['idType'], node.getPosition())
                 hasReturnStatement = True
 
+            print("Got class:",type(declstat))
+            retType = None
+            if type(declstat) == IfStatementNode or type(declstat) == IterationStatementNode:
+                print("in here")
+                retType = self.visit(declstat)
+
+            if type(declstat) != IfStatementNode and type(declstat) != IterationStatementNode:
+                retType = self.visit(declstat)
+                self.codeBuilder.visit(declstat)
+
             # Calculate extreme pointer
-            retType = self.visit(declstat)
+            # retType = self.visit(declstat)
 
             # Compare type from return statement
             if retType and 'returnStat' in retType:
@@ -99,11 +108,10 @@ class SemanticVisitor(AstVisitor):
         if functionType['idType'] != '' and hasReturnStatement == False and functionName != "main":
             raise noReturnStatement(node.getPosition())
 
-        # Generate the code for this function definition
-        self.codeBuilder.visit(node)
+        # Implicit return statement for the function
+        self.codeBuilder.implicitReturn()
 
         # End the function scope
-        # TODO check scopes better
         self.symbolTable.endScope()
 
     def visitParameterDeclarationNode(self, node:ParameterDeclarationNode):
@@ -130,7 +138,9 @@ class SemanticVisitor(AstVisitor):
                 raise wrongArrayDefinition(node.getPosition())
             if len(arrExprList) > 1:
                 raise wrongArrayDimension(node.getID(), node.getPosition())
+
         exprType = self.visit(node.expression)
+
         # *b = 5
         declType = copy.deepcopy(item.type)
         if node.dereferenceCount > 0:
@@ -145,18 +155,34 @@ class SemanticVisitor(AstVisitor):
         exprType = self.visit(node.condition)
         declType = {'idType': "b", 'refCount': 0}
         if exprType != declType:     
-            raise wrongType(exprType['idType'], declType['idType'], "TODO fix line here IF")
-        if node.ifBody:
+            raise wrongType(exprType['idType'], declType['idType'], node.getPosition())
+        # Code building for if-else
+        labels = self.codeBuilder.visit(node)
+
+        # If scope
+        self.symbolTable.createScope(labels[0])
+        if node.ifBody != None: #Sem analysis
             for declStat in node.ifBody:
                 self.visit(declStat)
-        if node.elseBody:
+        print("test",self.symbolTable)
+        # Code generation
+        self.codeBuilder.visitIfBody(node.ifBody, labels[0], labels[1])
+        self.symbolTable.endScope()
+
+        # Else scope
+        self.symbolTable.createScope(labels[1])
+        if node.elseBody != None:  # Sem analysis
             for declStat in node.elseBody:
                 self.visit(declStat)
+        # Code generation
+        self.codeBuilder.visitElseBody(node.elseBody, labels[0], labels[1])
+        self.symbolTable.endScope()
 
     def visitIterationStatementNode(self, node:IterationStatementNode):
         self.isInLoop = True
         declType = {'idType': "b", 'refCount': 0}
         if node.statementName == "While":
+            self.symbolTable.createScope("While_scope")
             # Check if while expression is boolean
             exprType = self.visit(node.left)
             if exprType != declType: raise conditionException(exprType['idType'], node.getPosition())
@@ -164,6 +190,8 @@ class SemanticVisitor(AstVisitor):
             for declStat in node.right:
                 self.visit(declStat)
         if node.statementName == "For":
+            self.symbolTable.createScope("For_scope")
+            # TODO forloop semantic checks
             # Check for loop
             if node.left == None and node.middle1 == None and node.middle2 == None:
                 # For loop with no statements in the body
@@ -194,6 +222,11 @@ class SemanticVisitor(AstVisitor):
                 for declStat in node.right:
                     self.visit(declStat)
 
+        # Code generation
+        self.codeBuilder.visit(node)
+
+        # End scope of loop
+        self.symbolTable.endScope()
         self.isInLoop = False
 
     def visitReturnNode(self, node:ReturnNode):
@@ -296,7 +329,6 @@ class SemanticVisitor(AstVisitor):
         return exprType  
 
     def visitFunctionCallNode(self, node:FunctionCallNode):
-        print("a")
         item = self.symbolTable.lookupSymbol(node.getID() + "()")
         if (node.getID() == "printf" or node.getID() == "scanf") and item == None:
             # Added specific exception for the inclusion of printf and scanf
@@ -368,8 +400,6 @@ class SemanticVisitor(AstVisitor):
         if node.argumentExpressionListNode:
             args = node.argumentExpressionListNode.argumentExprs
 
-        print(len(args))
-        print(len(params))
         if len(params) != len(args):
             raise conflictingParameterLength(node.getID(), len(args), len(params), node.getPosition())
         for i in range(len(params)):
@@ -425,6 +455,8 @@ class SemanticVisitor(AstVisitor):
             params=parameters, isForwardDecl=True):
             knownType = self.symbolTable.lookupSymbol(node.getID()+"()").type['idType']
             raise declarationException(node.getID(), knownType, True, node.getPosition())
+
+# ====[Helper methods]====
 
     # Check if declstat has the same type as correctType
     def checkType(self, declStat, correctType, position):
