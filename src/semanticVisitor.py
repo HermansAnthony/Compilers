@@ -305,7 +305,7 @@ class SemanticVisitor(AstVisitor):
     def visitExpressionNode(self, node:ExpressionNode):
         exprType = None
         if node.isPostfix:
-            item = self.symbolTable.lookupSymbol(node.child.getID(), node.child)
+            item = self.symbolTable.lookupSymbol(node.child.getID())
             if item == None: raise unknownVariable(node.child.getID(), node.getPosition())
             # Id++ or Id-- works for all types except for char 
             # TODO Test if it works for floats/addresses
@@ -326,7 +326,7 @@ class SemanticVisitor(AstVisitor):
         return exprType
 
     def visitReferenceExpressionNode(self, node:ReferenceExpressionNode):
-        item = self.symbolTable.lookupSymbol(node.child.getID(), node.child)
+        item = self.symbolTable.lookupSymbol(node.child.getID())
         if item == None: raise unknownVariable(node.child.getID(), node.getPosition())
         # Increase the reference count of the exprType
         exprType = copy.deepcopy(item.type)
@@ -418,7 +418,7 @@ class SemanticVisitor(AstVisitor):
             paramArraySize = int(item.parameters[i].declarator.arrayExpressionList[0].value)
             argItem = None
             if type(args[i]) == IdentifierNode:
-                argItem = self.symbolTable.lookupSymbol(args[i].getID(), args[i])
+                argItem = self.symbolTable.lookupSymbol(args[i].getID())
             if paramArraySize:
                 if (type(args[i]) != IdentifierNode or not argItem.arraySize
                     or len(args[i].arrayExpressionList) != 0):

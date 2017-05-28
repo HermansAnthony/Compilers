@@ -291,12 +291,16 @@ class AstBuilder(CmmVisitor):
         right = self.visit(ctx.compoundStatement())
         if ctx.declaration():
             left = self.visit(ctx.declaration())
-        if ctx.assignment():
-            left = self.visit(ctx.assignment())
-        if ctx.expression(0):
-            middle1 = self.visit(ctx.expression(0))
-        if ctx.expression(1):
-            middle2 = self.visit(ctx.expression(1))
+            if ctx.expression(0): middle1 = self.visit(ctx.expression(0))
+            if ctx.expression(1): middle2 = self.visit(ctx.expression(1))
+            if ctx.assignment(): middle2 = self.visit(ctx.assignment())
+
+        if not ctx.declaration():
+            if ctx.expression(0): left = self.visit(ctx.expression(0))
+            if ctx.expression(1): middle1 = self.visit(ctx.expression(1))
+            if ctx.expression(2): middle2 = self.visit(ctx.expression(2))
+            if ctx.assignment(): middle2 = self.visit(ctx.assignment())
+
         return IterationStatementNode("For", left, middle1, middle2, right, place)
 
     def visitJumpStatement(self, ctx:CmmParser.JumpStatementContext):
