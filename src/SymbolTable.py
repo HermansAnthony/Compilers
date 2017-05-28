@@ -32,16 +32,10 @@ class functionElement:
 
 class symbolTableLocal:
     """ Symbol table for a local scope / block"""
-    def __init__(self, functionName, parent):
+    def __init__(self, scopeName, parent):
         self.table = dict()
-        # Offset starts at 5 because of organizational cells
-        self.currentOffset = 5
-        # Current extreme stack pointer
-        self.currentEP = 0
-        # Maximum extreme stack pointer
-        self.maxEP = 2
         # Name corresponding to local table
-        self.functionName = functionName
+        self.scopeName = scopeName
         # Global table
         self.parent = parent
 
@@ -50,18 +44,11 @@ class symbolTableLocal:
         return str(self.table)
 
     # Insert a key in the symbol table
-    def insertSymbol(self, key, type, arraySize):
-        print(key, " has address", self.currentOffset, " and type ", type)
+    def insertSymbol(self, key, type, arraySize, currentOffset):
+        print(key, " has address", currentOffset, " and type ", type)
         if key in self.table:
             return None
-        # TODO may be deleted? int main(int b) {int b = 0;} => must throw error and with this it doesn't
-        # if self.parent.lookupSymbol(key):
-        #     key = self.functionName+"()"+key
-        newItem = simpleElement(type, self.currentOffset, self.getNestingDepth(), arraySize)
-        self.currentOffset += 1
-        print("offset",self.currentOffset)
-        if arraySize:
-            self.currentOffset += (arraySize-1)
+        newItem = simpleElement(type, currentOffset, self.getNestingDepth(), arraySize)
         self.table[key] = newItem
         return newItem
 
@@ -75,20 +62,14 @@ class symbolTableLocal:
     def getNestingDepth(self):
         return 1 
 
-    def resetCurrentEP(self):
-        self.currentEP = 2
+    def setCurrentOffset(offset):
+        self.currentOffset = offset
+    
+    def getCurrentOffset(offset):
+        return self.currentOffset
 
-    # Increase the current EP
-    def increaseCurrentEP(self, val):
-        self.currentEP += val
-        if self.currentEP > self.maxEP:
-            self.maxEP = self.currentEP
-
-    def getMaxEP(self):
-        return self.maxEP
-
-    def getFunctionName(self):
-        return self.functionName
+    def getScopeName(self):
+        return self.scopeName
 
 class generalSymbolTable:
     """ Symbol table for the general program (global and local scopes)"""
@@ -96,7 +77,8 @@ class generalSymbolTable:
         self.globalScope = dict()
         self.localScope = list()
         self.presentScope = -1
-        self.currentOffset = 0
+        # Offset starts at 5 because of organizational cells
+        self.currentOffset = 5
 
     # Print the symbol table
     def __repr__(self):
@@ -106,8 +88,11 @@ class generalSymbolTable:
         return returnValue
 
     # Begin a new scope
-    def createScope(self, functionName):
-        newScope = symbolTableLocal(functionName, self)
+    def createScope(self, scopeName, isFunc=False):
+        if isFunc:
+            # Reset current offset
+            self.currentOffset = 5
+        newScope = symbolTableLocal(scopeName, self)
         self.localScope.append(newScope)
         self.presentScope += 1
 
@@ -134,7 +119,10 @@ class generalSymbolTable:
             self.globalScope[key] = newItem
             return newItem
         # Local scopes
-        return self.localScope[-1].insertSymbol(key, type, arraySize)
+        newItem = self.localScope[-1].insertSymbol(key, type, arraySize, currentOffset)
+        self.currentOffset += 1
+        if arraySize:
+            self.currentOffset += (arraySize-1)
 
     # Lookup a key first in the current local scope and then the surrounding scopes
     def lookupSymbol(self, key):
@@ -152,26 +140,12 @@ class generalSymbolTable:
             return 0
         return self.localScope[self.presentScope].getNestingDepth()
 
-    def resetCurrentEP(self):
-        if self.presentScope != -1:
-            self.localScope[self.presentScope].resetCurrentEP(EpVal)        
-
-    # Increase the current EP
-    def increaseCurrentEP(self, val):
-        if self.presentScope != -1:
-            self.localScope[self.presentScope].increaseCurrentEP(EpVal)
-
-    def getMaxEP(self):
-        if self.presentScope != -1:
-            return self.localScope[self.presentScope].getMaxEP()     
-        return 0
-
     def resetScopeCounter(self):
         self.presentScope = -1
 
-    def getFunctionName(self):
+    def getscopeName(self):
         if self.presentScope != -1:
-            return self.localScope[self.presentScope].getFunctionName()     
+            return self.localScope[self.presentScope].getscopeName()     
         return ""
 
 

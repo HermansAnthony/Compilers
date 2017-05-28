@@ -67,7 +67,7 @@ class SemanticVisitor(AstVisitor):
                 raise mainTypeException(node.getPosition())
 
         # Visit the function body
-        self.symbolTable.createScope(functionName)
+        self.symbolTable.createScope(functionName, True)
 
         # Insert parameters into symbol table
         if node.parameterList:
@@ -97,7 +97,6 @@ class SemanticVisitor(AstVisitor):
                 retType = self.visit(declstat)
                 self.codeBuilder.visit(declstat)
 
-            # Calculate extreme pointer
             # retType = self.visit(declstat)
 
             # Compare type from return statement

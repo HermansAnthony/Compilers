@@ -22,18 +22,6 @@ class CodeBuilder(AstVisitor):
         self.continueNodes = list()
 
     def visitProgramNode(self, node:ProgramNode):
-        # Set the extreme stack pointer for the program itself
-        # TODO not necessary?
-        # staticDataLength = 0
-        # for child in node.children:
-        #     if type(child) == DeclarationNode:
-        #         exprList = child.identifier.arrayExpressionList
-        #         idSize = 1
-        #         if len(exprList) == 1:
-        #             idSize = int(exprList[0].value)
-        #         staticDataLength += idSize
-        # self.code.newline("sep " + str(staticDataLength))
-
         # All global variable declarations first
         for child in node.children:
             if type(child) == DeclarationNode:
@@ -62,7 +50,7 @@ class CodeBuilder(AstVisitor):
             if type(declStat) == DeclarationNode:
                 exprList = declStat.identifier.arrayExpressionList
                 idSize = 1
-                if len(exprList) == 1:
+                if len(exprList) >= 1:
                     idSize = int(exprList[0].value)
                 staticLength += idSize
             if type(declStat) == IfStatementNode or type(declStat) == IterationStatementNode:
@@ -125,8 +113,8 @@ class CodeBuilder(AstVisitor):
 
     def visitIfStatementNode(self, node:IfStatementNode):
         self.visit(node.condition)
-        label1 = self.symbolTable.getFunctionName() + str(self.currentLabelNo)
-        label2 = self.symbolTable.getFunctionName() + str(self.currentLabelNo+1)
+        label1 = self.symbolTable.getScopeName() + str(self.currentLabelNo)
+        label2 = self.symbolTable.getScopeName() + str(self.currentLabelNo+1)
         self.currentLabelNo += 2
         self.code.newline("fjp " + label1)
         print([label1, label2])
@@ -158,8 +146,8 @@ class CodeBuilder(AstVisitor):
     def visitIterationStatementNode(self, node:IterationStatementNode):
         if node.statementName == "While":
             # l1: e, fjp l2, body, ujp l1, l2:   
-            label1 = self.symbolTable.getFunctionName() + str(self.currentLabelNo)
-            label2 = self.symbolTable.getFunctionName() + str(self.currentLabelNo+1)
+            label1 = self.symbolTable.getScopeName() + str(self.currentLabelNo)
+            label2 = self.symbolTable.getScopeName() + str(self.currentLabelNo+1)
             self.continueNodes.append(label1)
             self.breakNodes.append(label2)
             self.currentLabelNo += 2  
@@ -174,8 +162,8 @@ class CodeBuilder(AstVisitor):
             self.breakNodes = self.breakNodes[:-1]
         if node.statementName == "For":
             # l1: e, fjp l2, body, ujp l1, l2:
-            label1 = self.symbolTable.getFunctionName() + str(self.currentLabelNo)
-            label2 = self.symbolTable.getFunctionName() + str(self.currentLabelNo+1)
+            label1 = self.symbolTable.getScopeName() + str(self.currentLabelNo)
+            label2 = self.symbolTable.getScopeName() + str(self.currentLabelNo+1)
             self.continueNodes.append(label1)
             self.breakNodes.append(label2)
             self.currentLabelNo += 2
