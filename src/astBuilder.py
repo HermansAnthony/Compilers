@@ -290,9 +290,12 @@ class AstBuilder(CmmVisitor):
         middle2 = None
         right = self.visit(ctx.compoundStatement())
         if ctx.declaration():
+            print("decl")
             left = self.visit(ctx.declaration())
         if ctx.assignment():
+            print("assign")
             left = self.visit(ctx.assignment())
+            print("lef",left)
         if ctx.expression(0):
             middle1 = self.visit(ctx.expression(0))
         if ctx.expression(1):

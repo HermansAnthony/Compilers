@@ -155,23 +155,45 @@ class SemanticVisitor(AstVisitor):
 
     def visitIterationStatementNode(self, node:IterationStatementNode):
         self.isInLoop = True
+        declType = {'idType': "b", 'refCount': 0}
         if node.statementName == "While":
             # Check if while expression is boolean
             exprType = self.visit(node.left)
-            declType = {'idType': "b", 'refCount': 0}
             if exprType != declType: raise conditionException(exprType['idType'], node.getPosition())
             # visit function body
             for declStat in node.right:
                 self.visit(declStat)
         if node.statementName == "For":
-            # TODO deal with semantic errors in for loop here
-            # TODO OPTIONAL implement for loop
-            # Check if for condition is boolean
-            if node.left == None or node.right == None or node.middle1 == None or node.middle2 == None:
-                raise wrongForloop(node.getPosition())
-            part1 = self.visit(node.left)
-            # exprType = self.visit(node.middle1)
-            # print(exprType)
+            # Check for loop
+            if node.left == None and node.middle1 == None and node.middle2 == None:
+                # For loop with no statements in the body
+                if node.right == []:
+                    self.isInLoop = False
+                    return
+                for declStat in node.right:
+                    self.visit(declStat)
+            # Check if initialization is valid
+            if node.left != None:
+                self.visit(node.left)
+
+            # Check if condition is valid
+            if node.middle1 != None:
+                exprType = self.visit(node.middle1)
+                if exprType != declType: raise conditionException(exprType['idType'], node.middle1.getPosition())
+
+            # Check if updation is valid
+            if node.middle2 != None:
+                if type(node.middle2) == BinaryOperationNode:
+                    if (node.middle2.getOperator() not in ["/","*","+","++","-","--","="]):
+                        raise wrongForloop(node.middle2.getOperator(), node.middle2.getPosition())
+                print(type(node.middle2))
+                self.visit(node.middle2)
+
+            # Execute body
+            if node.right != None:
+                for declStat in node.right:
+                    self.visit(declStat)
+
         self.isInLoop = False
 
     def visitReturnNode(self, node:ReturnNode):
