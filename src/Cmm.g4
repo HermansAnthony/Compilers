@@ -52,7 +52,7 @@ initDeclarator
 
 declarator
     : Identifier
-    | declarator LeftBracket integerConstant RightBracket
+    | Identifier LeftBracket integerConstant RightBracket
 ;
 
 initializerList
@@ -101,8 +101,7 @@ functionCallExpression
 ;
 
 arrayExpression
-    : Identifier
-    | arrayExpression LeftBracket expression RightBracket
+    : Identifier LeftBracket expression RightBracket
 ;
 
 binaryOperator

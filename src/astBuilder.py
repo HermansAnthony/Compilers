@@ -75,19 +75,16 @@ class AstBuilder(CmmVisitor):
     def visitInitDeclarator(self, ctx:CmmParser.InitDeclaratorContext):
         if ctx.Identifier():
             return [self.visitIdentifier(ctx.Identifier()), self.visit(ctx.expression())]
-        result = self.visit( ctx.declarator() )
-        idNode = result[-1]
-        idNode.arrayExpressionList = list(reversed(result[:-1]))
+        idNode = self.visit( ctx.declarator() )
         if ctx.initializerList() == None:
             return [idNode, None]
         return [idNode, self.visit(ctx.initializerList())]
 
     def visitDeclarator(self, ctx:CmmParser.DeclaratorContext):
-        if ctx.getChildCount() == 1:
-            return [self.visitIdentifier(ctx.Identifier())]
-        resList = [self.visit( ctx.integerConstant() )]
-        resList.extend( self.visit(ctx.declarator()) )
-        return resList
+        idNode = self.visitIdentifier(ctx.Identifier())
+        if ctx.getChildCount() == 4:
+        	idNode.arrayExpressionList = [self.visit( ctx.integerConstant() )]
+        return idNode
 
     def visitInitializerList(self, ctx:CmmParser.initializerList):
         exprs = []
@@ -158,12 +155,10 @@ class AstBuilder(CmmVisitor):
         return FunctionCallNode(identifier, argExprNode, place)
       
     def visitArrayExpression(self, ctx:CmmParser.ArrayExpressionContext):
-        if ctx.Identifier() != None:
-            idNode = self.visitIdentifier(ctx.Identifier())
-            return [idNode]
-        resList = [self.visit(ctx.expression())]
-        resList.extend(self.visit(ctx.arrayExpression()))
-        return resList
+        idNode = self.visitIdentifier(ctx.Identifier())
+        if ctx.getChildCount() == 4:
+            idNode.arrayExpressionList = [self.visit(ctx.expression())]
+        return idNode
 
     def visitArgumentExpressionList(self, ctx:CmmParser.ArgumentExpressionListContext):
         if ctx.argumentExpressionList():
