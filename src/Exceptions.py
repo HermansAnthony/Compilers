@@ -160,15 +160,6 @@ class parameterTypeError(semanticException):
         return "Semantic error occurred on line " + str(self.line) + ":\nExpected argument of type " + getType(str(self.correctType)) \
                + " but received argument of type " + getType(str(self.currentType)) + " for function " + str(self.name)
 
-class conflictingArgumentLength(semanticException):
-    def __init__(self, name, line):
-        self.name = name
-        self.line = line
-
-    def __str__(self):
-        return "Semantic error occurred on line " + str(self.line) + ":\n"\
-                + 'Argument arraysize is different than the parameter arraysize for function ' + str(self.name)
-
 class conflictingParameterLength(semanticException):
     def __init__(self, name, currentLength, correctLength, line):
         self.name = name
@@ -218,6 +209,17 @@ class wrongArrayIndexType(semanticException):
     def __str__(self):
         return "Semantic error occurred on line " + str(self.line) + ":\n" \
                 "Arrayindex has type " + getType(str(self.currentType)) + " while it should be integer"
+
+class wrongArrayArgument(semanticException):
+    def __init__(self, name, currentSize,  paramArraySize, line):
+        self.name = name
+        self.currentSize = currentSize
+        self.paramArraySize = paramArraySize
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+                "Argument array has size " + str(self.currentSize) + " while it should be size " + str(self.paramArraySize) + " for function " + str(self.name)
 
 # All printf and scanf related exceptions
 class includeException(semanticException):

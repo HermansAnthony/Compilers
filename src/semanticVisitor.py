@@ -40,6 +40,7 @@ class SemanticVisitor(AstVisitor):
         parameters = list()
         if node.parameterList:
             parameters = node.parameterList.getParams()
+
         functionName = node.getID()
         functionType = node.getType()
         # Check if there was a forward function declaration
@@ -418,8 +419,12 @@ class SemanticVisitor(AstVisitor):
         for i in range(len(params)):
             paramType = params[i].getType()
             argType = self.visit(args[i])
-            if argType != paramType:
+            print("1",argType)
+            print("2", paramType)
+            # Check if argument and param have the same type
+            if argType['idType'] != paramType['idType']:
                  raise parameterTypeError(node.getID(), argType['idType'], paramType['idType'], node.getPosition())
+
             # Type is an array while the parameter is not
             if len(item.parameters[i].declarator.arrayExpressionList) == 0:
                 raise parameterTypeError(node.getID(), "array", argType['idType'], node.getPosition())
@@ -428,11 +433,10 @@ class SemanticVisitor(AstVisitor):
             if type(args[i]) == IdentifierNode:
                 argItem = self.symbolTable.lookupSymbol(args[i].getID())
             if paramArraySize:
-                if (type(args[i]) != IdentifierNode or not argItem.arraySize
-                    or len(args[i].arrayExpressionList) != 0):
+                if (type(args[i]) != IdentifierNode or not argItem.arraySize or len(args[i].arrayExpressionList) != 0):
                     raise parameterTypeError(node.getID(), args[i].getType(), "array", node.getPosition())
             if argItem and paramArraySize != argItem.arraySize:
-                raise conflictingArgumentLength(node.getID(), node.getPosition())
+                raise wrongArrayArgument(node.getID(), argItem.arraySize, paramArraySize, node.getPosition())
         return item.type    
 
     def visitIntegerConstantNode(self, node:IntegerConstantNode):

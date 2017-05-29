@@ -491,7 +491,6 @@ class ArgumentExpressionListNode(ASTNode):
         returnValue += currentNode + ' [ label = "ArgExprList"];\n'
         if isinstance(self.argumentExprs, list):
             for expr in self.argumentExprs:
-                print(type(expr))
                 returnValue += currentNode + '->' + str(expr)
         else:
             returnValue += currentNode + '->' + str(self.argumentExprs)
