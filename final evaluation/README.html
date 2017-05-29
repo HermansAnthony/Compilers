@@ -1,0 +1,180 @@
+<html>
+
+<head>
+<title>Compilers</title>
+<style>
+
+@import url(http://fonts.googleapis.com/css?family=Roboto:400,100);
+
+body {
+  background: rgba(245,245,245,1);
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  text-align: center;
+}
+
+h1 {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 100;
+  font-size: 50px;
+  margin-top: 50px;
+}
+
+h2 {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 100;
+  font-size: 40px;
+  margin-top: 20px;
+}
+
+h3 {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  font-size: 30px;
+  margin-top: 20px;
+}
+
+.content {
+  border: 1px solid rgba(0,0,0,0.2);
+  border-radius: 2px;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.5);
+  background: white;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+
+  padding: 20px;
+  text-align: left;
+
+  margin-bottom: 20px;
+}
+
+.note {
+  font-weight: 100;
+  font-size: 15px;
+  color: rgba(0,0,0,0.7);
+  text-align: center;
+
+  margin-top: 25px;
+  margin-bottom: 25px;
+}
+</style>
+</head>
+
+<body>
+
+<h1><b>Readme</b></h1>
+<div class="content">
+  <h2>Algemeen</h2>
+  <ul>
+  <li><b>Naam:</b> <i>Anthony Hermans</i><br />
+  <b>Studentennummer:</b> <i>20144509</i><br />
+  <b>Email adres:</b> <i>anthony.hermans@student.uantwerpen.be</i>
+  </li>
+  <li><b>Naam:</b> <i>Jeroen Verstraelen</i><br />
+  <b>Studentennummer:</b> <i>20143652</i><br />
+  <b>Email adres:</b> <i>jeroen.verstraelen@student.uantwerpen.be</i>
+  </li>
+  </ul>
+</div>
+
+<div class="content">
+  <h2>Commando's</h2>
+    <div class="note">
+      Het is mogelijk dat de scripts nog permissie vereisen, dit doe je aan de hand van het volgende commando:</br>
+      <b> chmod +x [script file]</b>
+    </div>
+    <h3>Algemeen</h3>
+      Het algemene commando is van de volgende structuur:</br>
+      <div class="note">
+        <b> ./build [ANTLR-file] [C program file] [P program file] </b></br>
+      </div>
+      Dit commando zal eerst met behulp van ANTLR en onze grammatica de benodigde listener, visitor, parser etc. genereren.</br>
+      Daarna zal het de AST boom opbouwen op basis van de gegeven C file en uitschrijven naar een AST dot bestand.
+      Later zal dan P code gegenereerd worden en uitgeschreven naar het P programma bestand.</br>
+    <h3>AST</h3>
+      Het commando om van het bekomen dot bestand een PNG bestand te maken is van de volgende structuur:
+      <div class="note">
+        <b> ./toPNG [PNG output file] [AST dot file] </b></br>
+      </div>
+      Dit scriptje laat ons toe om de AST overzichtelijk en duidelijk weer te geven.
+</div>
+
+<div class="content">
+  <h2>Progress</h2>
+    <h3>Grammatica</h3>
+      <div class="note">
+        <b> Zie bestand Cmm.g4 </b></br>
+      </div>
+      Oorspronkelijk was onze grammatica te ingewikkeld dus deze hebben we aangepast.</br>
+      Nu is de grammatica veel overzichtelijker en dus zal ook de generatie van de AST boom vlotter verlopen.</br>
+      Mits een paar kleine aanpassingen is deze voor het grootste deel klaar.</br>
+    <h3>AST</h3>
+      De AST heeft ongeveer dezelfde structuur als de ParserRuleContext uit antlr met custom AST nodes en de ProgramNode als root.
+      We kunnen de boom overlopen met de AstVisitor. Meerdere subklassen van deze visitor laten ons toe om de verschillende passes te implementeren.</br></br>
+
+      De generatie van het dot formaat was in het algemeen niet zo moeilijk.</br>
+      Behalve het feit dat we rekening moesten houden met de ID's van de nodes.</br>
+      Dit hebben we opgelost aan de hand van een globale counter in het astNode.py bestand.</br>
+
+    <h3>Symbol table</h3>
+      <!-- Scopes -->
+      Onze symbol table bevat een dictionary voor de globale scope. Voor de lokale scopes hebben we gebruikt gemaakt
+      van een lijst methode. Als we een lokale scope tegenkomen, creeren we een symbolTableLocal en voegen we deze toe aan de lijst.
+      Als we deze scope verlaten, poppen we deze van de lijst.</br></br>
+      <!-- Opzoeken -->
+      Voor het opzoeken van een bepaalde key gaan we eerst in de recentste local scope kijken. Indien deze hier niet aanwezig is, wordt de lijst afgegaan om
+      uiteindelijk in de globale scope te zoeken. Als deze dan nog niet is gevonden, vindt er een exception plaats.
+
+    <h3>Basic error listener</h3>
+      De basic error listener zorgt er op dit moment voor dat het compilatie proces tijdig stopt bij een parse error.</br>
+      We gebruiken hiervoor de error messages van antlr zelf.</br>
+
+    <h3> Testbestanden </h3>
+    De C bestanden voor het testen van de compiler bevinden zich in de submap testfiles.</br>
+    De naam van het bestand legt uit wat er juist getest wordt en er is ook documentatie in het bestand zelf voorzien.</br>
+    <ul>
+    <li><b>char.c</b></br>
+    <li><b>ifelse.c</b></br>
+    <li><b>faultyassignment.c</b></br>
+    <li><b>forloop.c</b></br>
+    <li><b>pointer.c</b></br>
+    <li><b>forloop_alreadydeclarediterator.c</b></br>
+    <li><b>simple.c</b></br>
+    <li><b>function.c</b></br>
+    <li><b>while.c</b></br>
+    </li>
+    </ul>
+
+</div>
+
+<div class="content">
+  <h2>Optionele features</h2>
+  <ul>
+  <li><b>Import</b></br>
+    <ul>
+    <li>Ondersteuning van %f</br>
+    <li>Ondersteuning van \n</br>
+    </li>
+    </ul>
+  <li><b>Reserved words</b></br>
+    <ul>
+    <li>Ondersteuning van for loops</br>
+    <li>Ondersteuning van break</br>
+    <li>Ondersteuning van continue</br>
+    </li>
+    </ul>
+  <li><b>Functions</b></br>
+    <ul>
+    <li>Check if function contains a return statement</br>
+    </li>
+    </ul>
+  </li>
+  </ul>
+
+</div>
+
+</body>
+
+</html>

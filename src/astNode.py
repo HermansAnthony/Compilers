@@ -238,13 +238,17 @@ class ForwardFunctionDeclarationNode(ASTNode):
         return returnValue
 
 class IfStatementNode(ASTNode):
-    def __init__(self, condition, ifBody, elseBody):
+    def __init__(self, condition, ifBody, elseBody, position):
         self.condition = condition
         self.ifBody = ifBody
         self.elseBody = elseBody
+        self.position = position
 
     def accept(self, visitor):
         return visitor.visitIfStatementNode(self)
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         currentNode = counter()
@@ -315,6 +319,12 @@ class ReturnNode(ASTNode):
         return returnValue
 
 class ContinueNode(ASTNode):
+    def __init__(self, position):
+        self.position = position
+
+    def getPosition(self):
+        return self.position
+
     def accept(self, visitor):
         return visitor.visitContinueNode(self)
 
@@ -325,8 +335,14 @@ class ContinueNode(ASTNode):
         return returnValue
 
 class BreakNode(ASTNode):
+    def __init__(self, position):
+        self.position = position
+
     def accept(self, visitor):
         return visitor.visitBreakNode(self)
+
+    def getPosition(self):
+        return self.position
 
     def __str__(self):
         currentNode = counter()
@@ -347,6 +363,9 @@ class BinaryOperationNode(ASTNode):
     def getPosition(self):
         return self.position
 
+    def getOperator(self):
+        return str(self.operator)
+
     def getType(self):
         returnValue = list()
         if isinstance(self.left, BinaryOperationNode): returnValue.extend(self.left.getType())
@@ -354,7 +373,11 @@ class BinaryOperationNode(ASTNode):
         # Characterconstantnode, integerconstantnode, floatingconstant node etc
         if not isinstance(self.left, BinaryOperationNode) and not isinstance(self.left, IdentifierNode) and not isinstance(self.left, FunctionCallNode):
             returnValue.append(self.left.getType())
-        returnValue.append(self.right.getType())
+        if isinstance(self.right, BinaryOperationNode): returnValue.extend(self.right.getType())
+        if isinstance(self.right, IdentifierNode) or isinstance(self.right, FunctionCallNode): returnValue.append(self.right)
+        # Characterconstantnode, integerconstantnode, floatingconstant node etc
+        if not isinstance(self.right, BinaryOperationNode) and not isinstance(self.right, IdentifierNode) and not isinstance(self.right, FunctionCallNode):
+            returnValue.append(self.right.getType())
         return returnValue
 
 
@@ -417,6 +440,9 @@ class ReferenceExpressionNode(ASTNode):
     def accept(self, visitor):
         return visitor.visitReferenceExpressionNode(self)
 
+    def getID(self):
+        return self.child.getID()
+
     def getPosition(self):
         return self.position
 
@@ -465,6 +491,7 @@ class ArgumentExpressionListNode(ASTNode):
         returnValue += currentNode + ' [ label = "ArgExprList"];\n'
         if isinstance(self.argumentExprs, list):
             for expr in self.argumentExprs:
+                print(type(expr))
                 returnValue += currentNode + '->' + str(expr)
         else:
             returnValue += currentNode + '->' + str(self.argumentExprs)
@@ -527,11 +554,8 @@ class CharacterConstantNode(ASTNode):
         return self.position
 
     def __str__(self):
-        if "\"" in self.value:
-            # TODO
-            return ""
         currentNode = counter()
-        returnValue = currentNode + ';\n';
+        returnValue = currentNode + ';\n'
         returnValue += currentNode + '[label="Character:\n ' + self.value + '"];\n'
         return returnValue
 
@@ -544,18 +568,19 @@ class StringConstantNode(ASTNode):
         return visitor.visitStringConstantNode(self)
 
     def getType(self):
-        return "s"
+        return "c"
 
     def getPosition(self):
         return self.position
 
     def __str__(self):
-        if "\"" in self.value:
-            # TODO
-            return ""
+        tempValue = ""
+        for character in self.value:
+            if character == '"' or character == "\0": continue
+            tempValue+=character
         currentNode = counter()
         returnValue = currentNode + ';\n';
-        returnValue += currentNode + '[label="CString:\n ' + self.value + '"];\n'
+        returnValue += currentNode + '[label="CString:\n ' + tempValue + '"];\n'
         return returnValue
 
 class DeclarationSpecifierNode(ASTNode):

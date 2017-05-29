@@ -85,7 +85,15 @@ floatingConstant
 
 // Expression part of the grammar
 expression
-    : binaryExpression
+    : additiveExpression
+    | expression OrOr additiveExpression
+    | expression AndAnd additiveExpression
+    | expression Equal additiveExpression
+    | expression NotEqual additiveExpression
+    | expression Less additiveExpression
+    | expression Greater additiveExpression
+    | expression LessEqual additiveExpression
+    | expression GreaterEqual additiveExpression
 ;
 
 functionCallExpression
@@ -109,6 +117,7 @@ atomExpression
     | (Identifier | arrayExpression) MinusMinus
     | And (Identifier | arrayExpression)
     | Star+ (Identifier | arrayExpression)
+    | LeftParen expression RightParen
 ;
 
 multiplicativeExpression
@@ -121,18 +130,6 @@ additiveExpression
     : multiplicativeExpression
     | additiveExpression Plus multiplicativeExpression
     | additiveExpression Minus multiplicativeExpression
-;
-
-binaryExpression
-    : additiveExpression
-    | binaryExpression OrOr additiveExpression
-    | binaryExpression AndAnd additiveExpression
-    | binaryExpression Equal additiveExpression
-    | binaryExpression NotEqual additiveExpression
-    | binaryExpression Less additiveExpression
-    | binaryExpression Greater additiveExpression
-    | binaryExpression LessEqual additiveExpression
-    | binaryExpression GreaterEqual additiveExpression
 ;
 
 argumentExpressionList
@@ -166,7 +163,8 @@ ifStatement
 
 iterationStatement
     : While LeftParen expression RightParen compoundStatement
-    | For LeftParen (declaration|assignment)? Semicolon expression? Semicolon expression? RightParen compoundStatement
+    | For LeftParen declaration expression? Semicolon (expression|assignment)? RightParen compoundStatement
+    | For LeftParen expression? Semicolon expression? Semicolon (expression|assignment)? RightParen compoundStatement
 ;
 
 jumpStatement

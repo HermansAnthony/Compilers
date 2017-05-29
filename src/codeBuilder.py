@@ -16,37 +16,32 @@ class CodeBuilder(AstVisitor):
         self.code = Code()
         # Label tracker for unique labels
         self.currentLabelNo = 0
+        # Label tracker for breaknodes
+        self.breakNodes = list()
+        # Label tracker for continue nodes
+        self.continueNodes = list()
 
     def visitProgramNode(self, node:ProgramNode):
-        # Set the extreme stack pointer for the program itself
-        staticDataLength = 0
-        for child in node.children:
-            if type(child) == DeclarationNode:
-                exprList = child.identifier.arrayExpressionList
-                idSize = 1
-                if len(exprList) == 1:
-                    idSize = int(exprList[0].value)
-                staticDataLength += idSize
-        self.code.newline("sep " + str(staticDataLength))
         # All global variable declarations first
         for child in node.children:
             if type(child) == DeclarationNode:
                 self.visit(child)
+
         # Implicit call for main function before function definitions
         self.code.newline("mst 0")
-        self.code.newline("cup 0 main")
+        self.code.newline("cup 0 mainFunc")
         # Halt the machine after executing main
         self.code.newline("hlt")
+
         # Generate function definitions
-        for child in node.children:
-            if type(child) != DeclarationNode:
-                self.visit(child)        
+        # for child in node.children:
+        #     if type(child) != DeclarationNode:
+        #         self.visit(child)
 
     def visitFunctionDefinitionNode(self, node:FunctionDefinitionNode):
         self.currentLabelNo = 0
-        self.symbolTable.nextScope() 
         # Generate procedure label
-        self.code.newline(node.getID() + ":")
+        self.code.newline(node.getID() + "Func:")
         # Calculate the length of the static section of the stack frame
         staticLength = 5 # 5 organizational cells after MP
         if node.parameterList:
@@ -55,16 +50,22 @@ class CodeBuilder(AstVisitor):
             if type(declStat) == DeclarationNode:
                 exprList = declStat.identifier.arrayExpressionList
                 idSize = 1
-                if len(exprList) == 1:
+                if len(exprList) >= 1:
                     idSize = int(exprList[0].value)
                 staticLength += idSize
+            if type(declStat) == IfStatementNode or type(declStat) == IterationStatementNode:
+                staticLength += self.getStaticLength(declStat)
+
         # Set the stack pointer and the EP
-        self.code.newline("ent " + str(self.symbolTable.getMaxEP()) + " " + str(staticLength))
+        # self.code.newline("ent " + str(self.symbolTable.getMaxEP()) + " " + str(staticLength))
+        self.code.newline("ssp " + str(staticLength))
+
         # Generate function body code
-        for declStat in node.functionBody:
-            self.visit(declStat) 
-        # Implicit return statement      
-        self.code.newline("retp")   
+        # TODO
+        # for declStat in node.functionBody:
+        #     self.visit(declStat)
+        # # Implicit return statement
+        # self.code.newline("retp")
 
     def visitParameterListNode(self, node:ParameterListNode):
         paramDataSize = 0
@@ -98,7 +99,7 @@ class CodeBuilder(AstVisitor):
                 # Take the value at the address that is on the top of the stack
                 self.code.newline("ind a")
             # Generate expression
-            self.visit(node.expression) 
+            self.visit(node.expression)
             # Store the value at the top of the stack at the address that's on SP-1       
             self.code.newline("sto " + idType)
         else:
@@ -112,47 +113,66 @@ class CodeBuilder(AstVisitor):
 
     def visitIfStatementNode(self, node:IfStatementNode):
         self.visit(node.condition)
-        label1 = self.symbolTable.getFunctionName() + str(self.currentLabelNo)
-        label2 = self.symbolTable.getFunctionName() + str(self.currentLabelNo+1)
+        label1 = self.symbolTable.getScopeName() + str(self.currentLabelNo)
+        label2 = self.symbolTable.getScopeName() + str(self.currentLabelNo+1)
         self.currentLabelNo += 2
         self.code.newline("fjp " + label1)
-        if node.ifBody:
-            for declStat in node.ifBody:
-                self.visit(declStat)
-        self.code.newline("ujp " + label2)
-        self.code.newline(label1 + ":")
-        if node.elseBody:
-            for declStat in node.elseBody:
-                self.visit(declStat)
-        self.code.newline(label2 + ":")
+        print([label1, label2])
+        return [label1, label2]
+
 
     def visitIterationStatementNode(self, node:IterationStatementNode):
         if node.statementName == "While":
             # l1: e, fjp l2, body, ujp l1, l2:   
-            label1 = self.symbolTable.getFunctionName() + str(self.currentLabelNo)
-            label2 = self.symbolTable.getFunctionName() + str(self.currentLabelNo+1)
+            label1 = self.symbolTable.getScopeName() + str(self.currentLabelNo)
+            label2 = self.symbolTable.getScopeName() + str(self.currentLabelNo+1)
+            self.continueNodes.append(label1)
+            self.breakNodes.append(label2)
             self.currentLabelNo += 2  
             self.code.newline(label1 + ":")
             self.visit(node.left)
             self.code.newline("fjp " + label2)
-            for declStat in node.right:
-                self.visit(declStat)
-            self.code.newline("ujp " + label1)
-            self.code.newline(label2 + ":")
+            return [label1, label2]
+
+        if node.statementName == "For":
+            # l1: e, fjp l2, body, ujp l1, l2:
+            label1 = self.symbolTable.getScopeName() + str(self.currentLabelNo)
+            label2 = self.symbolTable.getScopeName() + str(self.currentLabelNo+1)
+            self.continueNodes.append(label1)
+            self.breakNodes.append(label2)
+            self.currentLabelNo += 2
+            # Visit initialization
+            if node.left: self.visit(node.left)
+
+            # Visit condition
+            self.code.newline(label1 + ":")
+            if node.middle1:
+                self.visit(node.middle1)
+                self.code.newline("fjp " + label2)
+            return [label1, label2]
+
+
+            # # Visit updation
+            # if node.middle2: self.visit(node.middle2)
 
     def visitReturnNode(self, node:ReturnNode):
+        # Return a value
         if node.expressionNode:
             exprType = self.visit(node.expressionNode)
             self.code.newline("str " + exprType['idType'] + " 0 0" )
             self.code.newline("retf")
         else:
+            # Return no results
             self.code.newline("retp")
 
     def visitBreakNode(self, node:BreakNode):
-        pass
+        print("Got break labels:",self.breakNodes)
+        label = self.breakNodes[-1]
+        self.code.newline("ujp " + label)
 
     def visitContinueNode(self, node:ContinueNode):
-        pass
+        label = self.continueNodes[-1]
+        self.code.newline("ujp " + label)
 
     def visitDeclarationNode(self, node:DeclarationNode):
         item = self.symbolTable.lookupSymbol(node.getID())
@@ -293,19 +313,22 @@ class CodeBuilder(AstVisitor):
         exprType['refCount'] += 1
         return exprType  
 
+    # The scanf and printf are generated at the function call node
+
     def visitStdioNode(self, node:StdioNode):
         pass
 
     def visitFunctionCallNode(self, node:FunctionCallNode):
+        # Printf related code generation
         if node.getID() == "printf":
-            # TODO test the printf function thoroughly
             args = node.argumentExpressionListNode.argumentExprs
             stringLit = str(args[0].value)
             argsIndex = 1
             printCount = 0
             for index, char in enumerate(stringLit):
-                if index != 0 and stringLit[index-1] == "%":
-                    continue
+                if index != 0 and stringLit[index-1] == "%": continue
+                if index != 0 and stringLit[index-1] == "\\" and char == "n": continue # Newline related if statement
+                if index == 0 or index == len(stringLit)-2: continue
                 if char == "%" and index+1 < len(stringLit):
                     nextChar = stringLit[index+1]
                     item = None
@@ -316,67 +339,96 @@ class CodeBuilder(AstVisitor):
                     if type(args[argsIndex]) == IdentifierNode:
                         item = self.symbolTable.lookupSymbol(args[argsIndex].getID())
                         idType = item.type['idType']
+                        print(idType)
                         nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
                         offset = item.address
+                    if type(args[argsIndex]) == StringConstantNode:
+                        tempIndex = 0
+                        prevChar = None
+                        for i in args[argsIndex].value:
+                            tempIndex+=1
+                            nextChar = None
+                            if tempIndex < len(args[argsIndex].value) - 1: nextChar = args[argsIndex].value[tempIndex]
+                            if i == '"' or i == "\0" or (prevChar == "\\" and i == "n"): continue
+                            self.toAscii(i, nextChar)
+                            prevChar = i
+                        argsIndex+=1
+                        continue
+
                     # Constant related printf variables
                     if type(args[argsIndex]) != IdentifierNode:
                         # TODO check if this works (aka constants in printf function)
                         idType = args[argsIndex].getType()
                         self.code.newline("ldc " + idType + " " + args[argsIndex].value)
                         self.code.newline("out " + idType)
+                        argsIndex+=1
+                        continue
                     if nextChar == "%":
                         self.code.newline("ldc c %")
                         self.code.newline("out c ")
-                    elif nextChar == "s":
-                        for i in range(item.arraySize):
-                            self.code.newline("lod " + idType + str(nestingDiff) + " " + str(offset))
-                            self.code.newline("out " + idType)   
-                            offset += 1    
-                        argsIndex += 1                     
                     else:
-                        self.code.newline("lod " + idType + str(nestingDiff) + " " + str(offset))
+                        self.code.newline("lod " + idType + " " + str(nestingDiff) + " " + str(offset))
                         self.code.newline("out " + idType)
                         argsIndex += 1
                     printCount += 1
                     continue
-                self.code.newline("out c " + char)
-                printCount += 1
+                if index != len(stringLit)-1:
+                    self.toAscii(char, stringLit[index+1])
+                    printCount += 1
             # Put the amount of characters printed on top of the stack
             self.code.newline("ldc i " + str(printCount))
+            return
+
+        # Scanf related code generation
         if node.getID() == "scanf":
             # TODO test the scanf function thoroughly
             args = node.argumentExpressionListNode.argumentExprs
             stringLit = str(args[0].value)
+            print("Input ", stringLit)
             argsIndex = 1
             inCount = 0
             for index, char in enumerate(stringLit):
-                if index != 0 and stringLit[index-1] == "%":
-                    continue
+                print("Index:", index, " with char ", char,"|")
+                if char == '"': continue
+                if index != 0 and stringLit[index-1] == "%": continue
                 if char == "%" and index+1 < len(stringLit):
                     nextChar = stringLit[index+1]
                     if nextChar == "%":
                         self.code.newline("ldc c %")
-                        self.code.newline("out c ")
+                        self.code.newline("out c")
                         inCount += 1
                         continue
                     argExpr = args[argsIndex]
+                    print("Hello it is me",type(argExpr))
+                    idType = None
+                    # Scanf function with char array as argument
                     if type(argExpr) == IdentifierNode:
                         item = self.symbolTable.lookupSymbol(argExpr.getID())
                         idType = item.type['idType']
                         nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
                         offset = item.address
-                        if nextChar == "s" and item.arraySize > 0:
+                        if nextChar == "s" and item.type['size'] > 0:
                             # Argument is an array
-                            for i in range(item.arraySize):
+                            # TODO what if given string goes out of char array bounds?
+                            for i in range(item.type['size']):
                                 # Put the index address on top of the stack
-                                self.code.newline("ldc " + offset)
+                                self.code.newline("ldc " + str(idType) + " " + str(offset))
                                 # Store the read value
                                 self.code.newline("in " + idType)
                                 self.code.newline("str " + idType + " " + str(nestingDiff) + " " + str(offset))
-                                offset += 1             
+                                offset += 1
                                 inCount += 1
-                            argsIndex += 1     
-                            continue       
+                            argsIndex += 1
+                            continue
+
+                    # Standard scanf function with &a as argument
+                    if type(argExpr) == ReferenceExpressionNode:
+                        item = self.symbolTable.lookupSymbol(argExpr.getID())
+                        idType = item.type['idType']
+                        nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
+                        offset = item.address
+                        print(item)
+
                     # Put the address on top of the stack
                     self.visit(args[argsIndex])
                     # Store the read value
@@ -385,21 +437,28 @@ class CodeBuilder(AstVisitor):
                     inCount += 1
                     argsIndex += 1     
                     continue
-                self.code.newline("out c " + char)
-                inCount += 1
+
+                if index != len(stringLit)-1:
+                    if stringLit[index-1] == "\\" and char == "n": continue
+                    self.toAscii(char, stringLit[index+1])
+                    inCount += 1
+
             # Put the amount of characters read on top of the stack
             self.code.newline("ldc i " + str(inCount))
+            return
+
+        # Just regular function calls (Not printf and not scanf)
         item = self.symbolTable.lookupSymbol(node.getID()+"()")
         nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
         # Mark the stack
         self.code.newline("mst " + str(nestingDiff))
         # arguments
-        argLength=""
-        # Check if there are argument provided
+        argLength=0
+        # Check if there are arguments provided
         if node.argumentExpressionListNode != None:
             argLength = self.visit(node.argumentExpressionListNode)
         # Call user procedure
-        self.code.newline("cup " + str(argLength) + " " + node.getID())
+        self.code.newline("cup " + str(argLength) + " " + node.getID()+"Func")
         return item.type
 
     def visitArgumentExpressionListNode(self, node:ArgumentExpressionListNode):
@@ -469,9 +528,63 @@ class CodeBuilder(AstVisitor):
         self.code.newline("lod " + idType + " " + str(nestingDiff) + " " + str(item.address))
         return item.type
 
+    def visitForwardFunctionDeclarationNode(self, node:ForwardFunctionDeclarationNode):
+        return
+
+#====[Helper methods]====
     def getCode(self):
         return self.code.code
 
-    def visitForwardFunctionDeclarationNode(self, node:ForwardFunctionDeclarationNode):
-        return 
+    def toAscii(self, char, nextChar):
+        asciiValue = ord(char)
+        if char == "\\" and nextChar == "n":
+            asciiValue = 10
+        self.code.newline("ldc c " + str(asciiValue))
+        self.code.newline("out c")
+        return
 
+    def implicitReturn(self):
+        # Implicit return statement
+        self.code.newline("retp")
+
+    # Get the static length of the statements through recursion
+    def getStaticLength(self, node):
+        length = 0
+        if type(node) == IfStatementNode:
+            if node.ifBody:
+                for stat in node.ifBody:
+                    if type(stat) == DeclarationNode:
+                        exprList = stat.identifier.arrayExpressionList
+                        idSize = 1
+                        if len(exprList) == 1:
+                            idSize = int(exprList[0].value)
+                        length += idSize
+                    if type(stat) == IfStatementNode or type(stat) == IterationStatementNode:
+                        print("Recursion")
+                        length += self.getStaticLength(stat)
+            if node.elseBody:
+                for stat in node.elseBody:
+                    if type(stat) == DeclarationNode:
+                        exprList = stat.identifier.arrayExpressionList
+                        idSize = 1
+                        if len(exprList) == 1:
+                            idSize = int(exprList[0].value)
+                        length += idSize
+                    if type(stat) == IfStatementNode or type(stat) == IterationStatementNode:
+                        length + self.getStaticLength(stat)
+
+        # TODO integrate with iteration statement
+        return length
+
+    def endLoop(self, label1, label2):
+        self.code.newline("ujp " + label1)
+        self.code.newline(label2 + ":")
+        self.continueNodes = self.continueNodes[:-1]
+        self.breakNodes = self.breakNodes[:-1]
+
+    def endIf(self, label1, label2):
+        self.code.newline("ujp " + label2)
+        self.code.newline(label1 + ":")
+
+    def endElse(self, label1, label2):
+        self.code.newline(label2 + ":")

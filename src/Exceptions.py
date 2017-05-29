@@ -10,12 +10,13 @@ class semanticException(Exception):
     pass
 
 class wrongForloop(semanticException):
-    def __init__(self, line):
+    def __init__(self, operator, line):
+        self.operator = operator
         self.line = line
 
     def __str__(self):
         return "Semantic error occurred on line " + str(self.line) +":\n"\
-                + "Wrong use of for loop "
+                + "Update part of for must not be operator " + str(self.operator)
 class conditionException(semanticException):
     def __init__(self, currentType, line):
         self.currentType = currentType
@@ -24,6 +25,15 @@ class conditionException(semanticException):
     def __str__(self):
         return "Semantic error occurred on line " + str(self.line) +":\n"\
                 + "Condition is of type " + getType(str(self.currentType)) + " while it should be of type bool"
+
+class outsideLoopException(semanticException):
+    def __init__(self, keyword, line):
+        self.keyword = keyword
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) +":\n"\
+                + str(self.keyword) + " statement not in loop statement"
 
 # Variable has already been declared
 class declarationException(semanticException):
@@ -96,8 +106,18 @@ class wrongReturnType(semanticException):
         self.line = line
 
     def __str__(self):
-        returnValue = "Wrong return type error occurred on line " + str(self.line) + ":\n"
-        returnValue += "You returned a variable of type " + str(getType(self.returnType)) + " while it should be " + str(getType(self.correctType))
+        returnValue = "Semantic error occurred on line " + str(self.line) + ":\n"
+        returnValue += "You returned/used a variable of type " + str(getType(self.returnType)) + " while it should be " + str(getType(self.correctType))
+        return returnValue
+
+# The function is non void and has no return statement
+class noReturnStatement(semanticException):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        returnValue = "Warning occurred on line " + str(self.line) + ":\n"
+        returnValue += "Control reaches end of non-void function"
         return returnValue
 
 # Exception that will be throwed when you dereference too many times
@@ -160,6 +180,18 @@ class conflictingParameterLength(semanticException):
         return "Semantic error occurred on line " + str(self.line) + ":\nExpected " + str(self.correctLength) + " parameter(s) " \
                + "but received " + str(self.currentLength) + " parameter(s) for function " + str(self.name)
 
+class conflictingArgumentLength(semanticException):
+    def __init__(self, name, currentLength, correctLength, line):
+        self.name = name
+        self.currentLength = currentLength
+        self.correctLength = correctLength
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\nExpected " + str(
+            self.correctLength) + " argument(s) " \
+               + "but received " + str(self.currentLength) + " argument(s) for function " + str(self.name)
+
 # Array related exceptions/warnings
 class wrongArrayDimension(semanticException):
     def __init__(self, name, line):
@@ -187,6 +219,7 @@ class wrongArrayIndexType(semanticException):
         return "Semantic error occurred on line " + str(self.line) + ":\n" \
                 "Arrayindex has type " + getType(str(self.currentType)) + " while it should be integer"
 
+# All printf and scanf related exceptions
 class includeException(semanticException):
     def __init__(self, function, line):
         self.function = function
@@ -195,6 +228,67 @@ class includeException(semanticException):
     def __str__(self):
         return "Semantic error occurred on line " + str(self.line) + ":\n" \
                 "You need to include <stdio.h> in order to use " + str(self.function)
+
+class conversionWarning(semanticException):
+    def __init__(self, function, line):
+        self.function = function
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+            "More '%' conversions than data arguments for function " + str(self.function)
+
+class requiredStringConstant(semanticException):
+    def __init__(self, function, line):
+        self.function = function
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+            "String constant is required as first argument for function " + str(self.function)
+
+class wrongTypeCode(semanticException):
+    def __init__(self, currentType, formatType, line):
+        self.currentType = currentType
+        self.formatType = formatType
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+            "You used type code " + str(self.formatType) + " while it should be " + str(self.currentType)
+
+class onlyBasicTypes(semanticException):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+            + "Scanf only accepts pointers to basic type variables in the args list parameter"
+
+class printfTypes(semanticException):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+               + "Printf only accepts identifiers and constants as arguments"
+
+class stringScanError(semanticException):
+    def __init__(self, line):
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+               + "Scanf only accepts char array as argument when using the %s conversion"
+
+class builtinLibraryFunction(semanticException):
+    def __init__(self, function, line):
+        self.function = function
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+            + "Redeclaration of builtin function " + str(self.function)
 
 # All antlr related errors
 class antlrError(Exception):
