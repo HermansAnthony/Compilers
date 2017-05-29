@@ -45,7 +45,6 @@ class symbolTableLocal:
 
     # Insert a key in the symbol table
     def insertSymbol(self, key, type, arraySize, currentOffset):
-        print(key, " has address", currentOffset, " and type ", type)
         if key in self.table:
             return None
         newItem = simpleElement(type, currentOffset, self.getNestingDepth(), arraySize)
@@ -119,10 +118,11 @@ class generalSymbolTable:
             self.globalScope[key] = newItem
             return newItem
         # Local scopes
-        newItem = self.localScope[-1].insertSymbol(key, type, arraySize, currentOffset)
+        newItem = self.localScope[-1].insertSymbol(key, type, arraySize, self.currentOffset)
         self.currentOffset += 1
         if arraySize:
             self.currentOffset += (arraySize-1)
+        return newItem
 
     # Lookup a key first in the current local scope and then the surrounding scopes
     def lookupSymbol(self, key):
@@ -143,9 +143,9 @@ class generalSymbolTable:
     def resetScopeCounter(self):
         self.presentScope = -1
 
-    def getscopeName(self):
+    def getScopeName(self):
         if self.presentScope != -1:
-            return self.localScope[self.presentScope].getscopeName()     
+            return self.localScope[self.presentScope].getScopeName()
         return ""
 
 

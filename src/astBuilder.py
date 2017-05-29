@@ -131,7 +131,20 @@ class AstBuilder(CmmVisitor):
         return FloatingConstantNode(ctx.getText(), place)
 
     def visitExpression(self, ctx:CmmParser.ExpressionContext):
-        if ctx.binaryExpression(): return self.visit(ctx.binaryExpression())
+        # Place is for semantic analysis (line-column position)
+        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
+        if ctx.additiveExpression() and ctx.getChildCount() == 1: return self.visit(ctx.additiveExpression())
+        if ctx.getChildCount() == 3:
+            expr0 = self.visit(ctx.expression())
+            expr1 = self.visit(ctx.additiveExpression())
+            if ctx.OrOr(): return BinaryOperationNode(ctx.OrOr().getText(), expr0, expr1, place)
+            if ctx.AndAnd(): return BinaryOperationNode(ctx.AndAnd().getText(), expr0, expr1, place)
+            if ctx.Equal(): return BinaryOperationNode(ctx.Equal().getText(), expr0, expr1, place)
+            if ctx.NotEqual(): return BinaryOperationNode(ctx.NotEqual().getText(), expr0, expr1, place)
+            if ctx.Less(): return BinaryOperationNode(ctx.Less().getText(), expr0, expr1, place)
+            if ctx.Greater(): return BinaryOperationNode(ctx.Greater().getText(), expr0, expr1, place)
+            if ctx.LessEqual(): return BinaryOperationNode(ctx.LessEqual().getText(), expr0, expr1, place)
+            return BinaryOperationNode(ctx.GreaterEqual().getText(), expr0, expr1, place)
         return None
 
     def visitFunctionCallExpression(self, ctx:CmmParser.FunctionCallExpressionContext):
@@ -158,23 +171,6 @@ class AstBuilder(CmmVisitor):
             result.extend(self.visit(ctx.argumentExpressionList()))
             return result
         return [self.visit(ctx.expression())]
-
-    def visitBinaryExpression(self, ctx:CmmParser.BinaryExpressionContext):
-        # Place is for semantic analysis (line-column position)
-        place = str(ctx.start.line) + ", position " + str(ctx.start.column)
-        if ctx.additiveExpression() and ctx.getChildCount() == 1: return self.visit(ctx.additiveExpression())
-        if ctx.getChildCount() == 3:
-            expr0 = self.visit(ctx.binaryExpression())
-            expr1 = self.visit(ctx.additiveExpression())
-            if ctx.OrOr(): return BinaryOperationNode(ctx.OrOr().getText(), expr0, expr1, place)
-            if ctx.AndAnd(): return BinaryOperationNode(ctx.AndAnd().getText(), expr0, expr1, place)
-            if ctx.Equal(): return BinaryOperationNode(ctx.Equal().getText(), expr0, expr1, place)
-            if ctx.NotEqual(): return BinaryOperationNode(ctx.NotEqual().getText(), expr0, expr1, place)
-            if ctx.Less(): return BinaryOperationNode(ctx.Less().getText(), expr0, expr1, place)
-            if ctx.Greater(): return BinaryOperationNode(ctx.Greater().getText(), expr0, expr1, place)
-            if ctx.LessEqual(): return BinaryOperationNode(ctx.LessEqual().getText(), expr0, expr1, place)
-            return BinaryOperationNode(ctx.GreaterEqual().getText(), expr0, expr1, place)
-        return None
 
     def visitAdditiveExpression(self, ctx:CmmParser.AdditiveExpressionContext):
         # Place is for semantic analysis (line-column position)

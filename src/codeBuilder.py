@@ -119,28 +119,6 @@ class CodeBuilder(AstVisitor):
         self.code.newline("fjp " + label1)
         print([label1, label2])
         return [label1, label2]
-        # if node.ifBody:
-        #     for declStat in node.ifBody:
-        #         self.visit(declStat)
-        # self.code.newline("ujp " + label2)
-        # self.code.newline(label1 + ":")
-        # if node.elseBody:
-        #     for declStat in node.elseBody:
-        #         self.visit(declStat)
-        # self.code.newline(label2 + ":")
-
-    def visitIfBody(self, node, label1, label2):
-        if node:
-            for declStat in node:
-                self.visit(declStat)
-        self.code.newline("ujp " + label2)
-        self.code.newline(label1 + ":")
-
-    def visitElseBody(self, node, label1, label2):
-        if node:
-            for declStat in node:
-                self.visit(declStat)
-        self.code.newline(label2 + ":")
 
 
     def visitIterationStatementNode(self, node:IterationStatementNode):
@@ -154,12 +132,8 @@ class CodeBuilder(AstVisitor):
             self.code.newline(label1 + ":")
             self.visit(node.left)
             self.code.newline("fjp " + label2)
-            for declStat in node.right:
-                self.visit(declStat)
-            self.code.newline("ujp " + label1)
-            self.code.newline(label2 + ":")
-            self.continueNodes = self.continueNodes[:-1]
-            self.breakNodes = self.breakNodes[:-1]
+            return [label1, label2]
+
         if node.statementName == "For":
             # l1: e, fjp l2, body, ujp l1, l2:
             label1 = self.symbolTable.getScopeName() + str(self.currentLabelNo)
@@ -175,20 +149,11 @@ class CodeBuilder(AstVisitor):
             if node.middle1:
                 self.visit(node.middle1)
                 self.code.newline("fjp " + label2)
+            return [label1, label2]
 
-            # loop body
-            if node.right:
-                for declStat in node.right:
-                    self.visit(declStat)
 
-            # Visit updation
-            if node.middle2: self.visit(node.middle2)
-
-            # If not done => jump to start of loop, otherwise continue after loop
-            self.code.newline("ujp " + label1)
-            self.code.newline(label2 + ":")
-            self.continueNodes = self.continueNodes[:-1]
-            self.breakNodes = self.breakNodes[:-1]
+            # # Visit updation
+            # if node.middle2: self.visit(node.middle2)
 
     def visitReturnNode(self, node:ReturnNode):
         # Return a value
@@ -201,6 +166,7 @@ class CodeBuilder(AstVisitor):
             self.code.newline("retp")
 
     def visitBreakNode(self, node:BreakNode):
+        print("Got break labels:",self.breakNodes)
         label = self.breakNodes[-1]
         self.code.newline("ujp " + label)
 
@@ -610,3 +576,15 @@ class CodeBuilder(AstVisitor):
         # TODO integrate with iteration statement
         return length
 
+    def endLoop(self, label1, label2):
+        self.code.newline("ujp " + label1)
+        self.code.newline(label2 + ":")
+        self.continueNodes = self.continueNodes[:-1]
+        self.breakNodes = self.breakNodes[:-1]
+
+    def endIf(self, label1, label2):
+        self.code.newline("ujp " + label2)
+        self.code.newline(label1 + ":")
+
+    def endElse(self, label1, label2):
+        self.code.newline(label2 + ":")

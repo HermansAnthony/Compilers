@@ -90,7 +90,6 @@ class SemanticVisitor(AstVisitor):
             print("Got class:",type(declstat))
             retType = None
             if type(declstat) == IfStatementNode or type(declstat) == IterationStatementNode:
-                print("in here")
                 retType = self.visit(declstat)
 
             if type(declstat) != IfStatementNode and type(declstat) != IterationStatementNode:
@@ -159,25 +158,23 @@ class SemanticVisitor(AstVisitor):
         labels = self.codeBuilder.visit(node)
 
         # If scope
-        print("Before", self.symbolTable)
         self.symbolTable.createScope(labels[0])
         if node.ifBody != None: #Sem analysis
             for declStat in node.ifBody:
-                print(type(declStat))
                 self.visit(declStat)
-        print("After",self.symbolTable)
-        # Code generation
-        self.codeBuilder.visitIfBody(node.ifBody, labels[0], labels[1])
+                if type(declStat) == IfStatementNode or type(declStat) == IterationStatementNode: continue
+                self.codeBuilder.visit(declStat)
+            self.codeBuilder.endIf(labels[0], labels[1])
         self.symbolTable.endScope()
-        print("After last", self.symbolTable)
 
         # Else scope
         self.symbolTable.createScope(labels[1])
         if node.elseBody != None:  # Sem analysis
             for declStat in node.elseBody:
                 self.visit(declStat)
-        # Code generation
-        self.codeBuilder.visitElseBody(node.elseBody, labels[0], labels[1])
+                if type(declStat) == IfStatementNode or type(declStat) == IterationStatementNode: continue
+                self.codeBuilder.visit(declStat)
+            self.codeBuilder.endElse(labels[0], labels[1])
         self.symbolTable.endScope()
 
     def visitIterationStatementNode(self, node:IterationStatementNode):
@@ -188,9 +185,19 @@ class SemanticVisitor(AstVisitor):
             # Check if while expression is boolean
             exprType = self.visit(node.left)
             if exprType != declType: raise conditionException(exprType['idType'], node.getPosition())
+
+            # Setup code for while loop
+            labels = self.codeBuilder.visit(node)
+
             # visit function body
             for declStat in node.right:
                 self.visit(declStat)
+                if type(declStat) == IfStatementNode or type(declStat) == IterationStatementNode: continue
+                self.codeBuilder.visit(declStat)
+
+            # End the while loop
+            self.codeBuilder.endLoop(labels[0], labels[1])
+
         if node.statementName == "For":
             self.symbolTable.createScope("For_scope")
             # TODO forloop semantic checks
@@ -200,8 +207,7 @@ class SemanticVisitor(AstVisitor):
                 if node.right == []:
                     self.isInLoop = False
                     return
-                for declStat in node.right:
-                    self.visit(declStat)
+
             # Check if initialization is valid
             if node.left != None:
                 self.visit(node.left)
@@ -211,21 +217,28 @@ class SemanticVisitor(AstVisitor):
                 exprType = self.visit(node.middle1)
                 if exprType != declType: raise conditionException(exprType['idType'], node.middle1.getPosition())
 
+            # Setup code for for loop
+            labels = self.codeBuilder.visit(node)
+
             # Check if updation is valid
             if node.middle2 != None:
                 if type(node.middle2) == BinaryOperationNode:
                     if (node.middle2.getOperator() not in ["/","*","+","++","-","--","="]):
                         raise wrongForloop(node.middle2.getOperator(), node.middle2.getPosition())
-                print(type(node.middle2))
                 self.visit(node.middle2)
 
             # Execute body
             if node.right != None:
                 for declStat in node.right:
                     self.visit(declStat)
+                    if type(declStat) == IfStatementNode or type(declStat) == IterationStatementNode: continue
+                    self.codeBuilder.visit(declStat)
 
-        # Code generation
-        self.codeBuilder.visit(node)
+            # Write updation code
+            if node.middle2!=None: self.codeBuilder.visit(node.middle2)
+
+            # End the for loop
+            self.codeBuilder.endLoop(labels[0], labels[1])
 
         # End scope of loop
         self.symbolTable.endScope()
@@ -255,7 +268,6 @@ class SemanticVisitor(AstVisitor):
                 raise wrongArrayDimension(node.getID(), node.getPosition())           
         if node.expression:
             # Compare types
-            print("he")
             if isinstance(node.expression, list):
                 for elem in node.expression:
                     # Check when index is an identifier:
@@ -277,11 +289,9 @@ class SemanticVisitor(AstVisitor):
                         raise wrongType(curType['idType'], declType['idType'], expr.getPosition())
             if type(node.expression) == FunctionCallNode: self.visit(node.expression)
             self.checkType(node.expression, declType['idType'], node.getPosition())
-        print('here')
         if self.symbolTable.insertSymbol(node.getID(), declType, arraySize=arraySize) == None:
             raise declarationException(node.getID(), 
                 declType['idType'], False, node.getPosition())
-        print("HALOO",self.symbolTable)
 
     def visitBinaryOperationNode(self, node:BinaryOperationNode):
         exprTypeLeft = self.visit(node.left)
@@ -360,7 +370,6 @@ class SemanticVisitor(AstVisitor):
             if type(args[0]) != StringConstantNode:
                 raise requiredStringConstant(node.getID(), node.getPosition())
 
-            print(node.getID(),":",type(args[0]))
             # First Argument is a string literal
             argsIndex = 1
             stringLit = str(args[0].value)

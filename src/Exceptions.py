@@ -107,7 +107,7 @@ class wrongReturnType(semanticException):
 
     def __str__(self):
         returnValue = "Semantic error occurred on line " + str(self.line) + ":\n"
-        returnValue += "You returned a variable of type " + str(getType(self.returnType)) + " while it should be " + str(getType(self.correctType))
+        returnValue += "You returned/used a variable of type " + str(getType(self.returnType)) + " while it should be " + str(getType(self.correctType))
         return returnValue
 
 # The function is non void and has no return statement
