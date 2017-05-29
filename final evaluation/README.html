@@ -102,14 +102,15 @@ h3 {
 </div>
 
 <div class="content">
-  <h2>Progress</h2>
+  <h2>Verloop</h2>
     <h3>Grammatica</h3>
       <div class="note">
         <b> Zie bestand Cmm.g4 </b></br>
       </div>
       Oorspronkelijk was onze grammatica te ingewikkeld dus deze hebben we aangepast.</br>
-      Nu is de grammatica veel overzichtelijker en dus zal ook de generatie van de AST boom vlotter verlopen.</br>
-      Mits een paar kleine aanpassingen is deze voor het grootste deel klaar.</br>
+      Nu is de grammatica veel overzichtelijker.</br>
+      In vergelijking met fase 1 zijn nu wel alle mandatory features aanwezig mits zelf enkele optionele zoals de for loop.</br>
+
     <h3>AST</h3>
       De AST heeft ongeveer dezelfde structuur als de ParserRuleContext uit antlr met custom AST nodes en de ProgramNode als root.
       We kunnen de boom overlopen met de AstVisitor. Meerdere subklassen van deze visitor laten ons toe om de verschillende passes te implementeren.</br></br>
@@ -120,30 +121,27 @@ h3 {
 
     <h3>Symbol table</h3>
       <!-- Scopes -->
-      Onze symbol table bevat een dictionary voor de globale scope. Voor de lokale scopes hebben we gebruikt gemaakt
+      Onze symbol table bevat een dictionary voor de globale scope. Voor de lokale scopes hebben we gebruik gemaakt
       van een lijst methode. Als we een lokale scope tegenkomen, creeren we een symbolTableLocal en voegen we deze toe aan de lijst.
       Als we deze scope verlaten, poppen we deze van de lijst.</br></br>
-      <!-- Opzoeken -->
-      Voor het opzoeken van een bepaalde key gaan we eerst in de recentste local scope kijken. Indien deze hier niet aanwezig is, wordt de lijst afgegaan om
-      uiteindelijk in de globale scope te zoeken. Als deze dan nog niet is gevonden, vindt er een exception plaats.
 
-    <h3>Basic error listener</h3>
-      De basic error listener zorgt er op dit moment voor dat het compilatie proces tijdig stopt bij een parse error.</br>
+      <!-- Opzoeken -->
+      Voor het opzoeken van een bepaalde key gaan we eerst in de recentste local scope kijken. Indien deze hier niet aanwezig is, wordt de lijst afgegaan van achter naar voor (vergelijkbaar met een stack)
+      om uiteindelijk in de globale scope te zoeken. Als deze dan nog niet is gevonden, vindt er een exception plaats.
+
+    <h3>Error handling</h3>
+      <!-- Syntax errors -->
+      De basic error listener zorgt er op dit moment voor dat het compilatie proces tijdig stopt bij een parse error (syntax error).</br>
       We gebruiken hiervoor de error messages van antlr zelf.</br>
 
+      <!-- Semantic errors -->
+      Voor de semantische analyse hebben we zelf een aantal exceptions geschreven (zie Exceptions.py) die optreden wanneer er semantische fouten gebeuren. </br>
+
     <h3> Testbestanden </h3>
-    De C bestanden voor het testen van de compiler bevinden zich in de submap testfiles.</br>
+    De C bestanden voor het testen van de compiler bevinden zich in de submap TODO testfiles.</br>
     De naam van het bestand legt uit wat er juist getest wordt en er is ook documentatie in het bestand zelf voorzien.</br>
     <ul>
-    <li><b>char.c</b></br>
-    <li><b>ifelse.c</b></br>
-    <li><b>faultyassignment.c</b></br>
-    <li><b>forloop.c</b></br>
-    <li><b>pointer.c</b></br>
-    <li><b>forloop_alreadydeclarediterator.c</b></br>
-    <li><b>simple.c</b></br>
-    <li><b>function.c</b></br>
-    <li><b>while.c</b></br>
+    <li><b>TODO</b></br>
     </li>
     </ul>
 
@@ -152,7 +150,7 @@ h3 {
 <div class="content">
   <h2>Optionele features</h2>
   <ul>
-  <li><b>Import</b></br>
+  <li><b>Import: printf en scanf</b></br>
     <ul>
     <li>Ondersteuning van %f</br>
     <li>Ondersteuning van \n</br>
