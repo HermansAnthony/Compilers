@@ -1,9 +1,7 @@
 //  ********************************************
 //  Authors: Jeroen Verstraelen - Anthony Hermans
-//  Description: This testfile tests for unknown types
-//  Double is not supported by our grammar
+//  Description: This testfile tests the presence of a main function
 //  ********************************************
-int main(){
-  double c = 1.25;
-  return 1;
+int f(){
+  return 0;
 }

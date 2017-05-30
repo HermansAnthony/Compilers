@@ -143,8 +143,11 @@ class SemanticVisitor(AstVisitor):
         if item == None: raise unknownVariable(node.getID(), node.getPosition())
         arrExprList = node.identifier.arrayExpressionList
         if item.arraySize:
-            if len(arrExprList) == 0:
-                raise wrongArrayDefinition(node.getPosition())
+            # TODO not necessary?
+            # print(item.arraySize)
+            # if len(arrExprList) == 0:
+            #     print("test")
+            #     raise wrongArrayDefinition(node.getPosition())
             if len(arrExprList) > 1:
                 raise wrongArrayDimension(node.getID(), node.getPosition())
 
@@ -439,8 +442,11 @@ class SemanticVisitor(AstVisitor):
                  raise parameterTypeError(node.getID(), argType['idType'], paramType['idType'], node.getPosition())
 
             # Type is an array while the parameter is not
-            if len(item.parameters[i].declarator.arrayExpressionList) == 0:
-                raise parameterTypeError(node.getID(), "array", argType['idType'], node.getPosition())
+            if len(item.parameters[i].declarator.arrayExpressionList) == 0: continue
+                # TODO check if necessary
+                # raise parameterTypeError(node.getID(), "array", argType['idType'], node.getPosition())
+
+            # Parameter is an array
             paramArraySize = int(item.parameters[i].declarator.arrayExpressionList[0].value)
             argItem = None
             if type(args[i]) == IdentifierNode:
@@ -450,7 +456,8 @@ class SemanticVisitor(AstVisitor):
                     raise parameterTypeError(node.getID(), args[i].getType(), "array", node.getPosition())
             if argItem and paramArraySize != argItem.arraySize:
                 raise wrongArrayArgument(node.getID(), argItem.arraySize, paramArraySize, node.getPosition())
-        return item.type    
+
+        return item.type
 
     def visitIntegerConstantNode(self, node:IntegerConstantNode):
         return {'idType': "i", 'refCount': 0}

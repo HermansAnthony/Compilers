@@ -1,3 +1,8 @@
+//  ********************************************
+//  Authors: Jeroen Verstraelen - Anthony Hermans
+//  Description: This testfile tests printf calls
+//  Use of %f flag for an integer
+//  ********************************************
 #include <stdio.h>
 
 int main(){

@@ -1,9 +1,13 @@
 //  ********************************************
 //  Authors: Jeroen Verstraelen - Anthony Hermans
-//  Description: This testfile tests while loops
-//  While loop without {} is not supported by our grammar
+//  Description: This testfile tests function calls
+//  F expects an array and not an integer
 //  ********************************************
+int f(int a[5]){
+  return 1+2;
+}
+
 int main(){
-  int a = 0;
-  while(a < 6.0267)
+  f(5);
+  return 0;
 }

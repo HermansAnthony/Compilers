@@ -1,9 +1,10 @@
 //  ********************************************
 //  Authors: Jeroen Verstraelen - Anthony Hermans
-//  Description: This testfile tests while loops
-//  While loop without {} is not supported by our grammar
+//  Description: This testfile tests return types
+//  Main now returns char but must return integer
 //  ********************************************
+
 int main(){
-  int a = 0;
-  while(a < 6.0267)
+  char l = 'c';
+  return l;
 }
