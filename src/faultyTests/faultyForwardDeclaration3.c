@@ -1,8 +1,12 @@
 //  ********************************************
 //  Authors: Jeroen Verstraelen - Anthony Hermans
-//  Description: This testfile tests a forloop
-//  For loop without {} is not supported by our grammar
+//  Description: This testfile tests forward declarations
+//  f has parameter of type int and not float
 //  ********************************************
+void f(int k);
+
+void f(float k){}
+
 int main(){
-  for (int i=0; i < 10; i++)
+  return 0;
 }

@@ -49,14 +49,24 @@ class SemanticVisitor(AstVisitor):
             if not item.isForwardDecl:
                 raise declarationException(functionName, 
                     functionType, True, node.getPosition())
-            # Check if parameter types match
+            # Check if parameter lengths match
             if len(parameters) != len(item.parameters):
                 raise conflictingParameterLength(functionName, len(parameters), len(item.parameters), node.getPosition())
-            for index, param in enumerate(parameters):
-                paramType1 = param.getType()
-                paramType2 = item.getType()
-                if paramType1 != paramType2:
-                    raise parameterTypeError(functionName, paramType1, paramType2, node.getPosition())
+
+            print(item.parameters)
+            print(parameters)
+            index = 0
+            for param in item.parameters:
+                if parameters[index].getType()['idType'] != param.getType()['idType']:
+                    raise parameterTypeError(functionName, parameters[index].getType()['idType'], param.getType()['idType'], node.getPosition())
+                index+=1
+                print(parameters[index].getType())
+
+            # Check if types match
+            if item.type['idType'] != functionType['idType']:
+                curType = item.type['idType']
+                if curType == '': curType = 'void'
+                raise declarationException(functionName, curType, True, node.getPosition())
 
         # Don't allow redefinition of printf and scanf function
         if node.getID() == "printf" or node.getID() == "scanf": raise builtinLibraryFunction(node.getID(), node.getPosition())
@@ -105,7 +115,7 @@ class SemanticVisitor(AstVisitor):
                 return
 
         if functionType['idType'] != '' and hasReturnStatement == False and functionName != "main":
-            raise noReturnStatement(node.getPosition())
+            print("Warning occurred on line", node.getPosition(),":\nControl reaches end of non-void function(", node.getID(), ")")
 
         # Implicit return statement for the function
         self.codeBuilder.implicitReturn()
@@ -291,8 +301,11 @@ class SemanticVisitor(AstVisitor):
             if type(node.expression) == FunctionCallNode: self.visit(node.expression)
             self.checkType(node.expression, declType['idType'], node.getPosition())
         if self.symbolTable.insertSymbol(node.getID(), declType, arraySize=arraySize) == None:
+            item = self.symbolTable.lookupSymbol(node.getID())
+            alreadyDeclared = item.type['idType']
+            if 'isArray' in item.type: alreadyDeclared = "array of type " + item.type['idType']
             raise declarationException(node.getID(), 
-                declType['idType'], False, node.getPosition())
+                alreadyDeclared, False, node.getPosition())
 
     def visitBinaryOperationNode(self, node:BinaryOperationNode):
         exprTypeLeft = self.visit(node.left)

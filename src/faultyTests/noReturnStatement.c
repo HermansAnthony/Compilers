@@ -1,22 +1,19 @@
-#include <stdio.h>
-float f(){
-  float g = 1.5;
-  float k = 2.0;
-  return g*k;
-}
-
-int i(){
-  return 5;
-}
+//  ********************************************
+//  Authors: Jeroen Verstraelen - Anthony Hermans
+//  Description: This testfile tests if a function has a return statement
+//  If non void function has no return statement => print warning
+//  ********************************************
+float f1(){}
+char f2(){}
+int f3(){}
+void f4(){}
+float f5(){return 0.0;}
 
 int main(){
-  // int c = f();
-  // float g = f();
-  // i();
-  // printf("%i\n", g);
-  int a = 5+1*2;
-  printf("%i\n", a);
-  a = (5+1)*2;
-  printf("%i\n", a);
+  f1();
+  f2();
+  f3();
+  f4();
+  f5();
   return 0;
 }

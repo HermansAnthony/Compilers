@@ -66,7 +66,7 @@ class mainException(semanticException):
     def __str__(self):
         return "Semantic error occurred:\nMain function not declared."
 
-# Main function is not found
+# Type of main function is non integer
 class mainTypeException(semanticException):
     def __init__(self, position):
         self.position = position
@@ -110,16 +110,6 @@ class wrongReturnType(semanticException):
         returnValue += "You returned/used a variable of type " + str(getType(self.returnType)) + " while it should be " + str(getType(self.correctType))
         return returnValue
 
-# The function is non void and has no return statement
-class noReturnStatement(semanticException):
-    def __init__(self, line):
-        self.line = line
-
-    def __str__(self):
-        returnValue = "Warning occurred on line " + str(self.line) + ":\n"
-        returnValue += "Control reaches end of non-void function"
-        return returnValue
-
 # Exception that will be throwed when you dereference too many times
 class deReference(semanticException):
     def __init__(self, line):
@@ -157,8 +147,8 @@ class parameterTypeError(semanticException):
         self.line = line
 
     def __str__(self):
-        return "Semantic error occurred on line " + str(self.line) + ":\nExpected argument of type " + getType(str(self.correctType)) \
-               + " but received argument of type " + getType(str(self.currentType)) + " for function " + str(self.name)
+        return "Semantic error occurred on line " + str(self.line) + ":\nExpected type " + getType(str(self.correctType)) \
+               + " but received type " + getType(str(self.currentType)) + " for function " + str(self.name)
 
 class conflictingParameterLength(semanticException):
     def __init__(self, name, currentLength, correctLength, line):

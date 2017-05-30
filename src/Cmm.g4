@@ -163,7 +163,7 @@ ifStatement
 iterationStatement
     : While LeftParen expression RightParen compoundStatement
     | For LeftParen declaration expression? Semicolon (expression|assignment)? RightParen compoundStatement
-    | For LeftParen expression? Semicolon expression? Semicolon (expression|assignment)? RightParen compoundStatement
+    | For LeftParen assignment? Semicolon expression? Semicolon (expression|assignment)? RightParen compoundStatement
 ;
 
 jumpStatement

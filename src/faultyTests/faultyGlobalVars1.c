@@ -1,8 +1,7 @@
 //  ********************************************
 //  Authors: Jeroen Verstraelen - Anthony Hermans
-//  Description: This testfile tests a forloop
-//  For loop without {} is not supported by our grammar
+//  Description: This testfile tests global variables
+//  n is already declared as character
 //  ********************************************
-int main(){
-  for (int i=0; i < 10; i++)
-}
+char n = 'k';
+int n = 5;

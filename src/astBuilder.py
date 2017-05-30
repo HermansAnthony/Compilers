@@ -56,9 +56,7 @@ class AstBuilder(CmmVisitor):
         # Place is for semantic analysis (line-column position)
         place = str(ctx.start.line) + ", position " + str(ctx.start.column)
         declarationSpecifier = self.visit( ctx.declarationSpecifier() )
-        result = self.visit( ctx.declarator() )
-        idNode = result[-1]
-        idNode.arrayExpressionList = list(reversed(result[:-1]))
+        idNode = self.visit( ctx.declarator() )
         return ParameterDeclarationNode(declarationSpecifier, idNode, place)
 
     def visitDeclaration(self, ctx:CmmParser.DeclarationContext):
@@ -251,13 +249,11 @@ class AstBuilder(CmmVisitor):
         return self.visitChildren(ctx)
 
     def visitAssignment(self, ctx:CmmParser.AssignmentContext):
-        result = self.visit( ctx.declarator() )
-        idNode = result[-1]
-        idNode.arrayExpressionList = list(reversed(result[:-1]))
+        idNode = self.visit( ctx.declarator() )
         expression = self.visit( ctx.expression() )
         # Place is for semantic analysis (line-column position)
         place = str(ctx.start.line) + ", position " + str(ctx.start.column)
-        return AssignmentNode(len(ctx.Star()), idNode, expression, place);
+        return AssignmentNode(len(ctx.Star()), idNode, expression, place)
 
     def visitCompoundStatement(self, ctx:CmmParser.CompoundStatementContext):
         return self.visitChildren(ctx)
@@ -287,10 +283,10 @@ class AstBuilder(CmmVisitor):
             if ctx.assignment(): middle2 = self.visit(ctx.assignment())
 
         if not ctx.declaration():
-            if ctx.expression(0): left = self.visit(ctx.expression(0))
-            if ctx.expression(1): middle1 = self.visit(ctx.expression(1))
-            if ctx.expression(2): middle2 = self.visit(ctx.expression(2))
-            if ctx.assignment(): middle2 = self.visit(ctx.assignment())
+            if ctx.assignment(0): left = self.visit(ctx.assignment(0))
+            if ctx.expression(0): middle1 = self.visit(ctx.expression(0))
+            if ctx.expression(1): middle2 = self.visit(ctx.expression(1))
+            if ctx.assignment(1): middle2 = self.visit(ctx.assignment())
 
         return IterationStatementNode("For", left, middle1, middle2, right, place)
 

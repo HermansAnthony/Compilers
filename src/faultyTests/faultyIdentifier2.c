@@ -1,8 +1,9 @@
 //  ********************************************
 //  Authors: Jeroen Verstraelen - Anthony Hermans
-//  Description: This testfile tests a forloop
-//  For loop without {} is not supported by our grammar
+//  Description: This testfile tests identifiers
+//  b is of type integer
 //  ********************************************
 int main(){
-  for (int i=0; i < 10; i++)
+  int b = 1;
+  b = 'c';
 }
