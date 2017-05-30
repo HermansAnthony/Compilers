@@ -572,8 +572,16 @@ class CodeBuilder(AstVisitor):
                         length += idSize
                     if type(stat) == IfStatementNode or type(stat) == IterationStatementNode:
                         length + self.getStaticLength(stat)
-
-        # TODO integrate with iteration statement
+        if type(node) == IterationStatementNode:
+            for stat in node.right:
+                if type(stat) == DeclarationNode:
+                    exprList = stat.identifier.arrayExpressionList
+                    idSize = 1
+                    if len(exprList) == 1:
+                        idSize = int(exprList[0].value)
+                    length += idSize
+                if type(stat) == IfStatementNode or type(stat) == IterationStatementNode:
+                    length += self.getStaticLength(stat)
         return length
 
     def endLoop(self, label1, label2):
