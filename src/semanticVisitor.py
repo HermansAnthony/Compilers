@@ -213,8 +213,6 @@ class SemanticVisitor(AstVisitor):
             self.codeBuilder.endLoop(labels[0], labels[1])
 
         if node.statementName == "For":
-            self.symbolTable.createScope("For_scope")
-            # TODO forloop semantic checks
             # Check for loop
             if node.left == None and node.middle1 == None and node.middle2 == None:
                 # For loop with no statements in the body
@@ -225,6 +223,7 @@ class SemanticVisitor(AstVisitor):
             # Check if initialization is valid
             if node.left != None:
                 self.visit(node.left)
+
 
             # Check if condition is valid
             if node.middle1 != None:
@@ -241,6 +240,7 @@ class SemanticVisitor(AstVisitor):
                         raise wrongForloop(node.middle2.getOperator(), node.middle2.getPosition())
                 self.visit(node.middle2)
 
+            self.symbolTable.createScope("For_scope")
             # Execute body
             if node.right != None:
                 for declStat in node.right:

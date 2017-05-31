@@ -132,10 +132,17 @@ h3 {
     <h3>Error handling</h3>
       <!-- Syntax errors -->
       De basic error listener zorgt er op dit moment voor dat het compilatie proces tijdig stopt bij een parse error (syntax error).</br>
-      We gebruiken hiervoor de error messages van antlr zelf.</br>
+      We gebruiken hiervoor de error messages van antlr zelf.</br></br>
 
       <!-- Semantic errors -->
       Voor de semantische analyse hebben we zelf een aantal exceptions geschreven (zie Exceptions.py) die optreden wanneer er semantische fouten gebeuren. </br>
+
+    <h3> Code generatie </h3>
+    Aanvankelijk deden we eerst de volledige semantische analyse (het hele programma) en dan pas de code generatie. Dit veroorzaakte problemen met de scopes (symbolTable ging slechts 2 niveau's diep).</br>
+    Om deze problemen te verhelpen hebben we dus een groot deel van de code moeten aanpassen.
+    Nu gebeuren zowel de semantische analyse als de code generatie in 1 visit/pass.
+    Dit was veel gemakkelijker te combineren met scopes voor de verschillende blocks (if, while etc).</br>
+    Als men een nieuwe scope binnengaat, wordt eerst de symbolTable gepusht op de stack. Dan volgt de semantische analysa. Daarna gebeurt de code generatie en tenslotte wordt ook de scope weer gepopt van de stack.
 
     <h3> Testbestanden </h3>
     De C bestanden voor het testen van de compiler bevinden zich in de submappen faultyTests en happyDayTests.</br>
@@ -178,7 +185,10 @@ h3 {
     </ul>
   </li>
   </ul>
-
+</div>
+<div class="content">
+  <h2>Performantie</h2>
+  Er zijn geen optimalisaties aanwezig in de compiler.</br>
 </div>
 
 </body>

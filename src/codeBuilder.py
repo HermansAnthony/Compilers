@@ -573,6 +573,13 @@ class CodeBuilder(AstVisitor):
                     if type(stat) == IfStatementNode or type(stat) == IterationStatementNode:
                         length + self.getStaticLength(stat)
         if type(node) == IterationStatementNode:
+            if node.statementName == "For":
+                if type(node.left) == DeclarationNode:
+                    exprList = node.left.identifier.arrayExpressionList
+                    idSize = 1
+                    if len(exprList) == 1:
+                        idSize = int(exprList[0].value)
+                    length += idSize
             for stat in node.right:
                 if type(stat) == DeclarationNode:
                     exprList = stat.identifier.arrayExpressionList
