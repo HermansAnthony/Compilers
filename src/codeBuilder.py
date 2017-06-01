@@ -335,6 +335,10 @@ class CodeBuilder(AstVisitor):
                     idType = None
                     nestingDiff = None
                     offset = None
+                    if nextChar == "%":
+                        self.toAscii(char, stringLit[index + 1])
+                        printCount += 1
+                        continue
                     # Identifier related printf variables
                     if type(args[argsIndex]) == IdentifierNode:
                         item = self.symbolTable.lookupSymbol(args[argsIndex].getID())
@@ -363,13 +367,9 @@ class CodeBuilder(AstVisitor):
                         self.code.newline("out " + idType)
                         argsIndex+=1
                         continue
-                    if nextChar == "%":
-                        self.code.newline("ldc c %")
-                        self.code.newline("out c ")
-                    else:
-                        self.code.newline("lod " + idType + " " + str(nestingDiff) + " " + str(offset))
-                        self.code.newline("out " + idType)
-                        argsIndex += 1
+                    self.code.newline("lod " + idType + " " + str(nestingDiff) + " " + str(offset))
+                    self.code.newline("out " + idType)
+                    argsIndex += 1
                     printCount += 1
                     continue
                 if index != len(stringLit)-1:

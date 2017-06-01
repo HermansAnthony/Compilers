@@ -394,13 +394,13 @@ class SemanticVisitor(AstVisitor):
             presentConversions = self.countConversions(stringLit)
             for index, char in enumerate(stringLit):
                 if char == "%" and index+1 < len(stringLit):
-                    if index != 0 and stringLit[index-1] == "%":
+                    if index != 0 and stringLit[index-1] == "%": continue
+                    if stringLit[index+1] == "%" and len(args) == 1:
                         continue
-                    tempType = self.visit(args[argsIndex])
                     if len(args) - 1 != presentConversions:
                         raise conflictingArgumentLength(node.getID(), len(args)-1, presentConversions, node.getPosition())
 
-
+                    tempType = self.visit(args[argsIndex])
                     if node.getID() == "printf":
                         if type(args[argsIndex]) == IdentifierNode or \
                             type(args[argsIndex]) == StringConstantNode or \
