@@ -172,14 +172,14 @@ class SemanticVisitor(AstVisitor):
         labels = self.codeBuilder.visit(node)
 
         # If scope
+        self.symbolTable.createScope(labels[0])
         if node.ifBody != None: #Sem analysis
-            self.symbolTable.createScope(labels[0])
             for declStat in node.ifBody:
                 self.visit(declStat)
                 if type(declStat) == IfStatementNode or type(declStat) == IterationStatementNode: continue
                 self.codeBuilder.visit(declStat)
-            self.codeBuilder.endIf(labels[0], labels[1])
-            self.symbolTable.endScope()
+        self.codeBuilder.endIf(labels[0], labels[1])
+        self.symbolTable.endScope()
 
         # Else scope
         if node.elseBody != None:  # Sem analysis
@@ -188,8 +188,9 @@ class SemanticVisitor(AstVisitor):
                 self.visit(declStat)
                 if type(declStat) == IfStatementNode or type(declStat) == IterationStatementNode: continue
                 self.codeBuilder.visit(declStat)
-            self.codeBuilder.endElse(labels[0], labels[1])
             self.symbolTable.endScope()
+        self.codeBuilder.endElse(labels[0], labels[1])
+
 
     def visitIterationStatementNode(self, node:IterationStatementNode):
         self.isInLoop = True

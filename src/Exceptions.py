@@ -79,7 +79,7 @@ class mainParameterException(semanticException):
         self.position = position
 
     def __str__(self):
-        return "Semantic error occurred on line " + str(self.position) + ":\nMain function can not have parameters."
+        return 'Semantic error occurred on line ' + str(self.position) + ':\nMain function can\'t have parameters.'
 
 # The type and the expr type mismatch
 class wrongType(semanticException):

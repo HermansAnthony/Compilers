@@ -117,7 +117,7 @@ class CodeBuilder(AstVisitor):
         label2 = self.symbolTable.getScopeName() + str(self.currentLabelNo+1)
         self.currentLabelNo += 2
         self.code.newline("fjp " + label1)
-        print([label1, label2])
+        print("If labels", [label1, label2])
         return [label1, label2]
 
 
