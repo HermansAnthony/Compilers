@@ -71,11 +71,11 @@ class SemanticVisitor(AstVisitor):
         # Don't allow redefinition of printf and scanf function
         if node.getID() == "printf" or node.getID() == "scanf": raise builtinLibraryFunction(node.getID(), node.getPosition())
 
-        # Check for main function and if it has type integer
+        # Check for main function and if it has type integer and if it has parameters
         if functionName == "main":
             self.mainFunctionFound = True
-            if functionType['idType'] != 'i':
-                raise mainTypeException(node.getPosition())
+            if functionType['idType'] != 'i': raise mainTypeException(node.getPosition())
+            if len(parameters) != 0: raise mainParameterException(node.getPosition())
 
         # Visit the function body
         self.symbolTable.createScope(functionName, True)
@@ -172,24 +172,24 @@ class SemanticVisitor(AstVisitor):
         labels = self.codeBuilder.visit(node)
 
         # If scope
-        self.symbolTable.createScope(labels[0])
         if node.ifBody != None: #Sem analysis
+            self.symbolTable.createScope(labels[0])
             for declStat in node.ifBody:
                 self.visit(declStat)
                 if type(declStat) == IfStatementNode or type(declStat) == IterationStatementNode: continue
                 self.codeBuilder.visit(declStat)
             self.codeBuilder.endIf(labels[0], labels[1])
-        self.symbolTable.endScope()
+            self.symbolTable.endScope()
 
         # Else scope
-        self.symbolTable.createScope(labels[1])
         if node.elseBody != None:  # Sem analysis
+            self.symbolTable.createScope(labels[1])
             for declStat in node.elseBody:
                 self.visit(declStat)
                 if type(declStat) == IfStatementNode or type(declStat) == IterationStatementNode: continue
                 self.codeBuilder.visit(declStat)
             self.codeBuilder.endElse(labels[0], labels[1])
-        self.symbolTable.endScope()
+            self.symbolTable.endScope()
 
     def visitIterationStatementNode(self, node:IterationStatementNode):
         self.isInLoop = True

@@ -1,6 +1,6 @@
 //  ********************************************
 //  Authors: Jeroen Verstraelen - Anthony Hermans
-//  Description: This testfile tests a forloop (with if else)
+//  Description: This testfile tests a while loop (with if else)
 //  ********************************************
 #include <stdio.h>
 int main(){
