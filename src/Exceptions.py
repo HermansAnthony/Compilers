@@ -254,6 +254,8 @@ class wrongTypeCode(semanticException):
         self.line = line
 
     def __str__(self):
+        # r represents float but must be flag f in scanf and printf
+        if str(self.currentType) == "r": self.currentType = "f"
         return "Semantic error occurred on line " + str(self.line) + ":\n" \
             "You used type code " + str(self.formatType) + " while it should be " + str(self.currentType)
 

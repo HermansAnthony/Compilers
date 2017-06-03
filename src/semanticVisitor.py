@@ -53,8 +53,6 @@ class SemanticVisitor(AstVisitor):
             if len(parameters) != len(item.parameters):
                 raise conflictingParameterLength(functionName, len(parameters), len(item.parameters), node.getPosition())
 
-            print(item.parameters)
-            print(parameters)
             index = 0
             for param in item.parameters:
                 if parameters[index].getType()['idType'] != param.getType()['idType']:
@@ -191,7 +189,6 @@ class SemanticVisitor(AstVisitor):
             self.symbolTable.endScope()
         self.codeBuilder.endElse(labels[0], labels[1])
 
-
     def visitIterationStatementNode(self, node:IterationStatementNode):
         self.isInLoop = True
         declType = {'idType': "b", 'refCount': 0}
@@ -237,7 +234,7 @@ class SemanticVisitor(AstVisitor):
             # Check if updation is valid
             if node.middle2 != None:
                 if type(node.middle2) == BinaryOperationNode:
-                    if (node.middle2.getOperator() not in ["/","*","+","++","-","--","="]):
+                    if (node.middle2.getOperator() not in ["++","--","="]):
                         raise wrongForloop(node.middle2.getOperator(), node.middle2.getPosition())
                 self.visit(node.middle2)
 
@@ -250,7 +247,7 @@ class SemanticVisitor(AstVisitor):
                     self.codeBuilder.visit(declStat)
 
             # Write updation code
-            if node.middle2!=None: self.codeBuilder.visit(node.middle2)
+            self.codeBuilder.visitUpdation(node.middle2, labels[2])
 
             # End the for loop
             self.codeBuilder.endLoop(labels[0], labels[1])
@@ -283,18 +280,23 @@ class SemanticVisitor(AstVisitor):
                 raise wrongArrayDimension(node.getID(), node.getPosition())           
         if node.expression:
             # Compare types
-            if isinstance(node.expression, list):
-                for elem in node.expression:
-                    # Check when index is an identifier:
-                    # No reference to an existing variable => Throw unknownVariable exception
-                    # Identifier has other type than integer => Throw wrongArrayIndexType exception
-                    if type(elem) == IdentifierNode and node.expression.index(elem) != len(node.expression)-1:
-                        if self.symbolTable.lookupSymbol(elem.getID()) == None:
-                            raise unknownVariable(elem.getID(), elem.getPosition())
-                        if self.symbolTable.lookupSymbol(elem.getID()).type['idType'] != 'i':
-                            raise wrongArrayIndexType(self.symbolTable.lookupSymbol(elem.getID()).type['idType'], elem.getPosition())
-                    if type(elem) == FloatingConstantNode or type(elem) == CharacterConstantNode or type(elem) == StringConstantNode:
-                        raise wrongArrayIndexType(elem.getType(), elem.getPosition())
+            if type(node.expression) == IdentifierNode:
+                if isinstance(node.expression.arrayExpressionList, list):
+                    for elem in node.expression.arrayExpressionList:
+                        # TODO @jerre check of dit nog nodig is
+                        # Check when index is an identifier:
+                        # No reference to an existing variable => Throw unknownVariable exception
+                        # Identifier has other type than integer => Throw wrongArrayIndexType exception
+                        # if type(elem) == IdentifierNode and node.expression.index(elem) != len(node.expression)-1:
+                        #     if self.symbolTable.lookupSymbol(elem.getID()) == None:
+                        #         raise unknownVariable(elem.getID(), elem.getPosition())
+                        #     if self.symbolTable.lookupSymbol(elem.getID()).type['idType'] != 'i':
+                        #         raise wrongArrayIndexType(self.symbolTable.lookupSymbol(elem.getID()).type['idType'], elem.getPosition())
+                        # if type(elem) == FloatingConstantNode or type(elem) == CharacterConstantNode or type(elem) == StringConstantNode:
+                        #     raise wrongArrayIndexType(elem.getType(), elem.getPosition())
+
+                        # Check if index is of type integer (for example int b = a[c] where c must be an integer)
+                        self.checkType(elem, 'i', node.getPosition())
             if type(node.expression) == InitializerListNode:
                 exprs = node.expression.expressions
                 # Check if all elements in the initializer list are the same type as the declType

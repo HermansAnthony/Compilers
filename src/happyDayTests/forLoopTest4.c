@@ -8,7 +8,7 @@ int main(){
   for (int iterator = 0; iterator < upperBound; iterator++){
     printf("This for loop is now at iteration %i\n", iterator);
     if (iterator == 5){
-      printf("Loop ends at the iteration%d\n",iterator);
+      printf("Loop ends at the iteration %d\n",iterator);
       break;
     }else{
       continue;

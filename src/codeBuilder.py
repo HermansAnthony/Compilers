@@ -138,9 +138,10 @@ class CodeBuilder(AstVisitor):
             # l1: e, fjp l2, body, ujp l1, l2:
             label1 = self.symbolTable.getScopeName() + str(self.currentLabelNo)
             label2 = self.symbolTable.getScopeName() + str(self.currentLabelNo+1)
-            self.continueNodes.append(label1)
+            label3 = self.symbolTable.getScopeName() + str(self.currentLabelNo+2)
+            self.continueNodes.append(label3)
             self.breakNodes.append(label2)
-            self.currentLabelNo += 2
+            self.currentLabelNo += 3
             # Visit initialization
             if node.left: self.visit(node.left)
 
@@ -149,7 +150,7 @@ class CodeBuilder(AstVisitor):
             if node.middle1:
                 self.visit(node.middle1)
                 self.code.newline("fjp " + label2)
-            return [label1, label2]
+            return [label1, label2, label3]
 
 
             # # Visit updation
@@ -590,6 +591,10 @@ class CodeBuilder(AstVisitor):
                 if type(stat) == IfStatementNode or type(stat) == IterationStatementNode:
                     length += self.getStaticLength(stat)
         return length
+
+    def visitUpdation(self, node, label3):
+        self.code.newline(label3 + ":")
+        if node!=None: self.visit(node)
 
     def endLoop(self, label1, label2):
         self.code.newline("ujp " + label1)
