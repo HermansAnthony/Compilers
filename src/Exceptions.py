@@ -106,6 +106,19 @@ class wrongReturnExpression(semanticException):
                        + " while it should be " + str(getType(self.correctType))
         return returnValue
 
+        # The type and the expr type mismatch
+
+class emptyReturnExpression(semanticException):
+    def __init__(self, name, line):
+        self.name = name
+        self.line = line
+
+    def __str__(self):
+        returnValue = "Semantic error occurred on line " + str(self.line) + ":\n"
+        returnValue += "Non-void function \'" + str(self.name) \
+                       + "\' should return a value"
+        return returnValue
+
 # The return type and the type of the function don'tmatch
 class wrongReturnType(semanticException):
     def __init__(self, returnType, correctType, line):

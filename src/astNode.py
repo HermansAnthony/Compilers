@@ -305,11 +305,15 @@ class IterationStatementNode(ASTNode):
         return returnValue
 
 class ReturnNode(ASTNode):
-    def __init__(self, expressionNode):
+    def __init__(self, expressionNode, position):
         self.expressionNode = expressionNode
+        self.position = position
 
     def accept(self, visitor):
         return visitor.visitReturnNode(self)
+
+    def getPosition(self):
+        return str(self.position)
 
     def __str__(self):
         currentNode = counter()

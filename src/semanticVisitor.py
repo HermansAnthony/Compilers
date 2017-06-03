@@ -93,8 +93,11 @@ class SemanticVisitor(AstVisitor):
         for declstat in node.functionBody:
             # Check if the return expression matches the returntype of the function
             if type(declstat) == ReturnNode:
-                self.checkType(declstat.expressionNode, functionType['idType'], node.getPosition())
+                self.checkType(declstat.expressionNode, functionType['idType'], declstat.getPosition())
                 hasReturnStatement = True
+                print(functionType)
+                if declstat.expressionNode == None and functionType['idType'] != '' and functionType != "void":
+                    raise emptyReturnExpression(functionName, declstat.getPosition())
 
             print("Got class:",type(declstat))
             retType = None

@@ -300,6 +300,6 @@ class AstBuilder(CmmVisitor):
         if ctx.Break():
             return BreakNode(place)
         if ctx.expression():
-            return ReturnNode(self.visit(ctx.expression()))    
-        return ReturnNode(None)
+            return ReturnNode(self.visit(ctx.expression()), place)
+        return ReturnNode(None, place)
 
