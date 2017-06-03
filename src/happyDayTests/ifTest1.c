@@ -1,6 +1,6 @@
 //  ********************************************
 //  Authors: Jeroen Verstraelen - Anthony Hermans
-//  Description: This testfile tests if statement/condition
+//  Description: This testfile tests if-else
 //  ********************************************
 #include <stdio.h>
 int main(){

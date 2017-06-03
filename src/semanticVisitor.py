@@ -516,8 +516,9 @@ class SemanticVisitor(AstVisitor):
                 raise wrongReturnType(retType, correctType, position)
 
         # If statement is an expression
-        elif type(declStat) == ExpressionNode and declStat.getType() != correctType:
-            raise wrongReturnType(declStat.getType(), correctType, position)
+        # TODO check if this may be deleted
+        # elif type(declStat) == ExpressionNode and declStat.getType() != correctType:
+        #     raise wrongReturnType(declStat.getType(), correctType, position)
 
         # If statement is a constant
         elif type(declStat) == CharacterConstantNode or type(declStat) == FloatingConstantNode or type(declStat) == IntegerConstantNode:
