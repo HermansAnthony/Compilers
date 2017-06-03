@@ -42,7 +42,8 @@ class StdioNode(ASTNode):
 
     def __str__(self):
         currentNode = counter()
-        returnValue = currentNode + ' [label="Include Stdio.h"];\n'
+        returnValue = currentNode + ';\n'
+        returnValue += currentNode + '[label="Include Stdio.h"];\n'
         return returnValue
 
 class FunctionDefinitionNode(ASTNode):
