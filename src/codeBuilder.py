@@ -22,6 +22,8 @@ class CodeBuilder(AstVisitor):
         self.continueNodes = list()
 
     def visitProgramNode(self, node:ProgramNode):
+        # Address 0 is used for popping 
+        self.code.newline("ldc i 0")
         # All global variable declarations first
         for child in node.children:
             if type(child) == DeclarationNode:
@@ -32,11 +34,6 @@ class CodeBuilder(AstVisitor):
         self.code.newline("cup 0 mainFunc")
         # Halt the machine after executing main
         self.code.newline("hlt")
-
-        # Generate function definitions
-        # for child in node.children:
-        #     if type(child) != DeclarationNode:
-        #         self.visit(child)
 
     def visitFunctionDefinitionNode(self, node:FunctionDefinitionNode):
         self.currentLabelNo = 0
@@ -60,13 +57,6 @@ class CodeBuilder(AstVisitor):
         # self.code.newline("ent " + str(self.symbolTable.getMaxEP()) + " " + str(staticLength))
         self.code.newline("ssp " + str(staticLength))
 
-        # Generate function body code
-        # TODO
-        # for declStat in node.functionBody:
-        #     self.visit(declStat)
-        # # Implicit return statement
-        # self.code.newline("retp")
-
     def visitParameterListNode(self, node:ParameterListNode):
         paramDataSize = 0
         for paramDecl in node.paramDecls:
@@ -83,6 +73,16 @@ class CodeBuilder(AstVisitor):
         return 1
 
     def visitAssignmentNode(self, node:AssignmentNode):
+        if node.pop:
+            # Mock assignment node, pops the stack.
+            exprType = self.visit(node.expression)
+            idType = exprType['idType']
+            if exprType['refCount'] > 0:
+                idType = "a"
+            # Pop the stack
+            nestingDiff = self.symbolTable.getCurrentNestingDepth()
+            self.code.newline("sro " + idType + " 0")
+            return
         # Store the new value
         item = self.symbolTable.lookupSymbol(node.getID())
         nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
@@ -388,7 +388,7 @@ class CodeBuilder(AstVisitor):
                     printCount += 1
             # Put the amount of characters printed on top of the stack
             self.code.newline("ldc i " + str(printCount))
-            return
+            return {'idType': "i", 'refCount': 0}
 
         # Scanf related code generation
         if node.getID() == "scanf":
@@ -456,7 +456,7 @@ class CodeBuilder(AstVisitor):
 
             # Put the amount of characters read on top of the stack
             self.code.newline("ldc i " + str(inCount))
-            return
+            return {'idType': "i", 'refCount': 0}
 
         # Just regular function calls (Not printf and not scanf)
         item = self.symbolTable.lookupSymbol(node.getID()+"()")
@@ -464,7 +464,7 @@ class CodeBuilder(AstVisitor):
         # Mark the stack
         self.code.newline("mst " + str(nestingDiff))
         # arguments
-        argLength=0
+        argLength = 0
         # Check if there are arguments provided
         if node.argumentExpressionListNode != None:
             argLength = self.visit(node.argumentExpressionListNode)

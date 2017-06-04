@@ -76,8 +76,7 @@ class generalSymbolTable:
         self.globalScope = dict()
         self.localScope = list()
         self.presentScope = -1
-        # Offset starts at 5 because of organizational cells
-        self.currentOffset = 0
+        self.currentOffset = 1
 
     # Print the symbol table
     def __repr__(self):

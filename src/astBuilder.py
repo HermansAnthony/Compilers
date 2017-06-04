@@ -240,6 +240,9 @@ class AstBuilder(CmmVisitor):
         if ctx.Identifier():
             return ExpressionNode(ctx.getChild(1).getText(), 
                 True, self.visitIdentifier(ctx.Identifier()), place)
+        if ctx.functionCallExpression():
+            expression = self.visit( ctx.functionCallExpression() )
+            return AssignmentNode(0, None, expression, place, pop=True)
         if ctx.arrayExpression():
             result = self.visit( ctx.arrayExpression() )
             idNode = result[-1]

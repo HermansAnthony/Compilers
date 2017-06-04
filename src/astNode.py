@@ -180,16 +180,19 @@ class DeclarationNode(ASTNode):
         return returnValue
 
 class AssignmentNode(ASTNode):
-    def __init__(self, dereferenceCount, identifier, expression, position):
+    def __init__(self, dereferenceCount, identifier, expression, position, pop=False):
         self.dereferenceCount = dereferenceCount
         self.identifier = identifier
         self.expression = expression
         self.position = position
+        self.pop = pop
 
     def accept(self, visitor):
         return visitor.visitAssignmentNode(self)
 
     def getID(self):
+        if self.pop:
+            return "Mock AssignmentNode"
         return self.identifier.getID()
 
     def getPosition(self):
@@ -199,6 +202,10 @@ class AssignmentNode(ASTNode):
         currentNode = counter()
         returnValue = currentNode + ';\n'
         label = 'Assignment:\n'
+        if self.pop:
+            if self.expression:
+                return str(self.expression)
+            return ""
         if self.dereferenceCount != 0: 
             label += str(self.dereferenceCount) + ' Dereferences'
         returnValue += currentNode + ' [label = "' + label + '"];\n'

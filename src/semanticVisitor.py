@@ -139,6 +139,10 @@ class SemanticVisitor(AstVisitor):
                     node.getType(), False, node.getPosition())
 
     def visitAssignmentNode(self, node:AssignmentNode):
+        if node.pop:
+            # Mock assignment node, pops the stack.
+            self.visit(node.expression)
+            return
         # Compare types
         item = self.symbolTable.lookupSymbol(node.getID())
         if item == None: raise unknownVariable(node.getID(), node.getPosition())
@@ -150,9 +154,7 @@ class SemanticVisitor(AstVisitor):
                 if type(i) == IntegerConstantNode:
                     if int(i.value) >= item.arraySize:
                         raise wrongArrayIndex(i.value, item.arraySize, node.getPosition())
-
         exprType = self.visit(node.expression)
-
         # *b = 5
         declType = copy.deepcopy(item.type)
         if node.dereferenceCount > 0:
