@@ -101,7 +101,7 @@ functionCallExpression
 ;
 
 arrayExpression
-    : Identifier LeftBracket (expression|Identifier) RightBracket
+    : Identifier LeftBracket expression RightBracket
 ;
 
 binaryOperator
@@ -148,7 +148,7 @@ statement
 ;
 
 assignment
-    : Star* declarator Assign expression
+    : Star* (declarator|arrayExpression) Assign expression
 ;
 
 compoundStatement

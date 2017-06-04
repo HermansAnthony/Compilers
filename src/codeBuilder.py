@@ -342,11 +342,10 @@ class CodeBuilder(AstVisitor):
                         continue
                     # Identifier related printf variables
                     if type(args[argsIndex]) == IdentifierNode:
+                        self.visit(args[argsIndex])
                         item = self.symbolTable.lookupSymbol(args[argsIndex].getID())
                         idType = item.type['idType']
-                        print(idType)
-                        nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
-                        offset = item.address
+                        self.code.newline("out " + idType)
                     if type(args[argsIndex]) == StringConstantNode:
                         tempIndex = 0
                         prevChar = None
@@ -368,8 +367,6 @@ class CodeBuilder(AstVisitor):
                         self.code.newline("out " + idType)
                         argsIndex+=1
                         continue
-                    self.code.newline("lod " + idType + " " + str(nestingDiff) + " " + str(offset))
-                    self.code.newline("out " + idType)
                     argsIndex += 1
                     printCount += 1
                     continue
