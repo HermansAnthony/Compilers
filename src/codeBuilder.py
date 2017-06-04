@@ -90,7 +90,6 @@ class CodeBuilder(AstVisitor):
         idType = declType['idType']
         offset = item.address
         if node.dereferenceCount > 0:
-            # **c = 5
             if declType['refCount'] > node.dereferenceCount:
                 idType = "a"
             # Put the identifier on top of the stack
@@ -103,13 +102,27 @@ class CodeBuilder(AstVisitor):
             # Store the value at the top of the stack at the address that's on SP-1       
             self.code.newline("sto " + idType)
         else:
-            # c = 5
-            # Generate expression
-            self.visit(node.expression) 
-            # Store the expression
             if declType['refCount'] != 0:
                 idType = "a"
-            self.code.newline("str " + idType + " " + str(nestingDiff) + " " + str(offset))        
+            if item.arraySize == 0:
+                # Generate expression
+                self.visit(node.expression) 
+                self.code.newline("str " + idType + " " + str(nestingDiff) + " " + str(offset))    
+                return
+            arrayExpr = node.identifier.arrayExpressionList
+            nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
+            # Put the global address on the top of the stack
+            self.code.newline("lda " + str(nestingDiff) + " " + str(offset))
+            # Put index on the top of the stack            
+            self.visit(arrayExpr[0])
+            # Check if the expr is within bounds
+            self.code.newline("chk 0 " + str(item.arraySize))
+            # Calculate the global indexed address
+            self.code.newline("ixa 1")   
+            # Generate expression
+            self.visit(node.expression) 
+            # Store the value at the top of the stack at the global index address      
+            self.code.newline("sto " + idType) 
 
     def visitIfStatementNode(self, node:IfStatementNode):
         self.visit(node.condition)

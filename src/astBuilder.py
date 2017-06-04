@@ -153,10 +153,9 @@ class AstBuilder(CmmVisitor):
         return FunctionCallNode(identifier, argExprNode, place)
       
     def visitArrayExpression(self, ctx:CmmParser.ArrayExpressionContext):
-        idNode = self.visitIdentifier(ctx.Identifier(0))
+        idNode = self.visitIdentifier(ctx.Identifier())
         if ctx.getChildCount() == 4:
             if ctx.expression(): idNode.arrayExpressionList = [self.visit(ctx.expression())]
-            if ctx.Identifier(1): idNode.arrayExpressionList = [self.visit(ctx.Identifier(1))]
         return idNode
 
     def visitArgumentExpressionList(self, ctx:CmmParser.ArgumentExpressionListContext):
@@ -250,7 +249,11 @@ class AstBuilder(CmmVisitor):
         return self.visitChildren(ctx)
 
     def visitAssignment(self, ctx:CmmParser.AssignmentContext):
-        idNode = self.visit( ctx.declarator() )
+        idNode = None        
+        if ctx.declarator():
+            idNode = self.visit( ctx.declarator() )
+        else:
+            idNode = self.visit( ctx.arrayExpression() )
         expression = self.visit( ctx.expression() )
         # Place is for semantic analysis (line-column position)
         place = str(ctx.start.line) + ", position " + str(ctx.start.column)
