@@ -153,9 +153,10 @@ class AstBuilder(CmmVisitor):
         return FunctionCallNode(identifier, argExprNode, place)
       
     def visitArrayExpression(self, ctx:CmmParser.ArrayExpressionContext):
-        idNode = self.visitIdentifier(ctx.Identifier())
+        idNode = self.visitIdentifier(ctx.Identifier(0))
         if ctx.getChildCount() == 4:
-            idNode.arrayExpressionList = [self.visit(ctx.expression())]
+            if ctx.expression(): idNode.arrayExpressionList = [self.visit(ctx.expression())]
+            if ctx.Identifier(1): idNode.arrayExpressionList = [self.visit(ctx.Identifier(1))]
         return idNode
 
     def visitArgumentExpressionList(self, ctx:CmmParser.ArgumentExpressionListContext):

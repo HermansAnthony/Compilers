@@ -101,7 +101,7 @@ functionCallExpression
 ;
 
 arrayExpression
-    : Identifier LeftBracket expression RightBracket
+    : Identifier LeftBracket (expression|Identifier) RightBracket
 ;
 
 binaryOperator

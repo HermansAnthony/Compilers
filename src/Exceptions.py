@@ -212,6 +212,16 @@ class wrongArrayDefinition(semanticException):
         return "Semantic error occurred on line " + str(self.line) + ":\n" \
                 "Definition of variable with array type needs an explicit size or an initializer"
 
+class wrongArrayIndex(semanticException):
+    def __init__(self, currentIndex, size, line):
+        self.currentIndex = currentIndex
+        self.arraySize = size
+        self.line = line
+
+    def __str__(self):
+        return "Semantic error occurred on line " + str(self.line) + ":\n" \
+                "Array index "+ str(self.currentIndex) + " is  past the end of the array (which contains " + str(self.arraySize) + " elements)"
+
 class wrongArrayIndexType(semanticException):
     def __init__(self, currentType, line):
         self.currentType = currentType

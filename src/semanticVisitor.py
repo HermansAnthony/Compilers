@@ -144,13 +144,12 @@ class SemanticVisitor(AstVisitor):
         if item == None: raise unknownVariable(node.getID(), node.getPosition())
         arrExprList = node.identifier.arrayExpressionList
         if item.arraySize:
-            # TODO not necessary?
-            # print(item.arraySize)
-            # if len(arrExprList) == 0:
-            #     print("test")
-            #     raise wrongArrayDefinition(node.getPosition())
-            if len(arrExprList) > 1:
-                raise wrongArrayDimension(node.getID(), node.getPosition())
+            if len(arrExprList) == 0: raise wrongArrayDefinition(node.getPosition())
+            if len(arrExprList) > 1: raise wrongArrayDimension(node.getID(), node.getPosition())
+            for i in arrExprList:
+                if type(i) == IntegerConstantNode:
+                    if int(i.value) >= item.arraySize:
+                        raise wrongArrayIndex(i.value, item.arraySize, node.getPosition())
 
         exprType = self.visit(node.expression)
 
@@ -483,7 +482,7 @@ class SemanticVisitor(AstVisitor):
     def visitIdentifierNode(self, node:IdentifierNode):
         item = self.symbolTable.lookupSymbol(node.getID())
         if item == None: raise unknownVariable(node.getID(), node.getPosition())
-        if len(node.arrayExpressionList) > 0:        
+        if len(node.arrayExpressionList) > 0:
             exprType = self.visit(node.arrayExpressionList[0])
             if exprType['idType'] != "i":
                 raise wrongArrayIndexType(exprType['idType'], node.getPosition())
