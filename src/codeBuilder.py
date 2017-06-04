@@ -441,23 +441,27 @@ class CodeBuilder(AstVisitor):
                             self.code.newline("ldc i -1")
                             self.code.newline("sro i 0")
                             self.code.newline("lda " + str(nestingDiff) + " " + str(offset))
+                            self.code.newline("dec a 1")
 
                             self.code.newline(startLabel + ":")
                             self.code.newline("ldo i 0")
                             self.code.newline("inc i 1")
                             self.code.newline("dpl i")
+                            self.code.newline("sro i 0")
                             self.code.newline("ldc i " + str(item.type['size']))
                             self.code.newline("les i")
                             self.code.newline("fjp " + startLabel + "f")
-                            self.code.newline("sro i 0")
-                            self.code.newline("dpl a")
                             self.code.newline("inc a 1")
+                            self.code.newline("dpl a")
+                            self.code.newline("dpl a")
                             self.code.newline("in " + idType)
                             self.code.newline("sto " + idType)
+                            self.code.newline("ind " + idType)
                             self.code.newline("ldc " + str(idType) + " 27")  # 27 is the escape character
                             self.code.newline("equ " + str(idType))  # check if given character is the escape char
                             self.code.newline("fjp " + startLabel)
                             self.code.newline(startLabel + "f:")
+                            self.code.newline("sro a 0")
                             # self.code.newline("ldc " + str(idType) + " 27") # 27 is the escape character
                             # self.code.newline("in " + idType)
                             # self.code.newline("equ " + str(idType)) # check if given character is the escape char
