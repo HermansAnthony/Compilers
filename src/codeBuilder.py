@@ -55,6 +55,7 @@ class CodeBuilder(AstVisitor):
 
         # Set the stack pointer and the EP
         # self.code.newline("ent " + str(self.symbolTable.getMaxEP()) + " " + str(staticLength))
+        print(str(staticLength))
         self.code.newline("ssp " + str(staticLength))
 
     def visitParameterListNode(self, node:ParameterListNode):
@@ -276,7 +277,7 @@ class CodeBuilder(AstVisitor):
         if node.isPostfix:
             # Put the identifier on the top of the stack 2 times
             self.visit(node.child)
-            self.visit(node.child)
+            #self.visit(node.child)
             # Get the address and nesting difference of the identifier
             item = self.symbolTable.lookupSymbol(node.child.getID())
             exprType = copy.deepcopy(item.type)
