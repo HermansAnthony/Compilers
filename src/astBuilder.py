@@ -205,9 +205,10 @@ class AstBuilder(CmmVisitor):
                 if ctx.Identifier():
                     identifier =  self.visitIdentifier(ctx.Identifier())
                     return DereferenceExpressionNode(len(ctx.Star()), identifier, place)
-                result = self.visit( ctx.arrayExpression() )
-                idNode = result[-1]
-                idNode.arrayExpressionList = list(reversed(result[:-1]))
+                # result = self.visit( ctx.arrayExpression() )
+                # idNode = result[-1]
+                # idNode.arrayExpressionList = list(reversed(result[:-1]))
+                idNode = self.visit(ctx.arrayExpression())
                 return DereferenceExpressionNode(len(ctx.Star()), idNode, place)
 
             if ctx.And():

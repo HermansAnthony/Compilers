@@ -349,7 +349,7 @@ class SemanticVisitor(AstVisitor):
         return exprType
 
     def visitDereferenceExpressionNode(self, node:DereferenceExpressionNode):
-        item = self.symbolTable.lookupSymbol(node.child.getID(), node.child)
+        item = self.symbolTable.lookupSymbol(node.child.getID())
         if item == None: raise unknownVariable(node.child.getID(), node.getPosition())
         if item.type['refCount'] < node.derefCount:
             raise deReference(node.getPosition())
@@ -408,12 +408,13 @@ class SemanticVisitor(AstVisitor):
 
                     tempType = self.visit(args[argsIndex])
                     if node.getID() == "printf":
-                        if type(args[argsIndex]) == IdentifierNode or \
-                            type(args[argsIndex]) == StringConstantNode or \
-                            type(args[argsIndex]) == FloatingConstantNode or \
-                            type(args[argsIndex]) == CharacterConstantNode or \
-                            type(args[argsIndex]) == IntegerConstantNode: continue
-                        raise printfTypes(node.getPosition())
+                        currentType = type(args[argsIndex])
+                        if currentType != IdentifierNode and \
+                           currentType != StringConstantNode and \
+                            currentType != FloatingConstantNode and \
+                            currentType != CharacterConstantNode and \
+                            currentType != IntegerConstantNode and \
+                            currentType != DereferenceExpressionNode : raise printfTypes(node.getPosition())
 
                     if type(args[argsIndex]) != IdentifierNode:
                         if node.getID() == "scanf":
@@ -425,8 +426,9 @@ class SemanticVisitor(AstVisitor):
                         nextChar == "f" and tempType['idType'] == "r" or
                         nextChar == "c" and tempType['idType'] == "c" or
                         nextChar == "s" and (tempType['idType'] == "c" and "isArray" in tempType)):
-                            if (nextChar == "s" and type(args[argsIndex]) != IdentifierNode): raise stringScanError(node.getPosition())
+                            if (nextChar == "s" and type(args[argsIndex]) != IdentifierNode and type(args[argsIndex]) != StringConstantNode) : raise stringScanError(node.getPosition())
                             argsIndex += 1
+                            # TODO ? argsIndex += 1
                             continue
                     else:
                         raise wrongTypeCode(tempType['idType'], nextChar, node.getPosition())

@@ -180,7 +180,6 @@ class CodeBuilder(AstVisitor):
             self.code.newline("retp")
 
     def visitBreakNode(self, node:BreakNode):
-        print("Got break labels:",self.breakNodes)
         label = self.breakNodes[-1]
         self.code.newline("ujp " + label)
 
@@ -359,6 +358,7 @@ class CodeBuilder(AstVisitor):
                         item = self.symbolTable.lookupSymbol(args[argsIndex].getID())
                         idType = item.type['idType']
                         self.code.newline("out " + idType)
+
                     if type(args[argsIndex]) == StringConstantNode:
                         tempIndex = 0
                         prevChar = None
@@ -372,8 +372,14 @@ class CodeBuilder(AstVisitor):
                         argsIndex+=1
                         continue
 
+                    if type(args[argsIndex]) == DereferenceExpressionNode:
+                        self.visit(args[argsIndex])
+                        item = self.symbolTable.lookupSymbol(args[argsIndex].getID())
+                        idType = item.type['idType']
+                        self.code.newline("out " + idType)
+
                     # Constant related printf variables
-                    if type(args[argsIndex]) != IdentifierNode:
+                    if type(args[argsIndex]) != IdentifierNode and type(args[argsIndex]) != DereferenceExpressionNode:
                         # TODO check if this works (aka constants in printf function)
                         idType = args[argsIndex].getType()
                         self.code.newline("ldc " + idType + " " + args[argsIndex].value)
@@ -410,7 +416,6 @@ class CodeBuilder(AstVisitor):
                         inCount += 1
                         continue
                     argExpr = args[argsIndex]
-                    print("Hello it is me",type(argExpr))
                     idType = None
                     # Scanf function with char array as argument
                     if type(argExpr) == IdentifierNode:
@@ -421,14 +426,52 @@ class CodeBuilder(AstVisitor):
                         if nextChar == "s" and item.type['size'] > 0:
                             # Argument is an array
                             # TODO what if given string goes out of char array bounds?
-                            for i in range(item.type['size']):
-                                # Put the index address on top of the stack
-                                self.code.newline("ldc " + str(idType) + " " + str(offset))
-                                # Store the read value
-                                self.code.newline("in " + idType)
-                                self.code.newline("str " + idType + " " + str(nestingDiff) + " " + str(offset))
-                                offset += 1
-                                inCount += 1
+                            # for i in range(item.type['size']):
+                            #     # Put the index address on top of the stack
+                            #     self.code.newline("ldc " + str(idType) + " " + str(offset))
+                            #     self
+                            #     # Store the read value
+                            #     self.code.newline("in " + idType)
+                            #     self.code.newline("str " + idType + " " + str(nestingDiff) + " " + str(offset))
+                            #     offset += 1
+                            #     inCount += 1
+                            startLabel = self.symbolTable.getScopeName() + str(self.currentLabelNo)
+                            self.currentLabelNo += 1
+
+                            self.code.newline("ldc i -1")
+                            self.code.newline("sro i 0")
+                            self.code.newline("lda " + str(nestingDiff) + " " + str(offset))
+
+                            self.code.newline(startLabel + ":")
+                            self.code.newline("ldo i 0")
+                            self.code.newline("inc i 1")
+                            self.code.newline("dpl i")
+                            self.code.newline("ldc i " + str(item.type['size']))
+                            self.code.newline("les i")
+                            self.code.newline("fjp " + startLabel + "f")
+                            self.code.newline("sro i 0")
+                            self.code.newline("dpl a")
+                            self.code.newline("inc a 1")
+                            self.code.newline("in " + idType)
+                            self.code.newline("sto " + idType)
+                            self.code.newline("ldc " + str(idType) + " 27")  # 27 is the escape character
+                            self.code.newline("equ " + str(idType))  # check if given character is the escape char
+                            self.code.newline("fjp " + startLabel)
+                            self.code.newline(startLabel + "f:")
+                            # self.code.newline("ldc " + str(idType) + " 27") # 27 is the escape character
+                            # self.code.newline("in " + idType)
+                            # self.code.newline("equ " + str(idType)) # check if given character is the escape char
+                            # self.code.newline("fjp " + label2)
+                            # # Put the index address on top of the stack
+                            # self.code.newline("ldc " + str(idType) + " " + str(offset))
+                            # # Store the read value
+                            # self.code.newline("in " + idType)
+                            # self.code.newline("str " + idType + " " + str(nestingDiff) + " " + str(offset))
+                            # self.code.newline("ujp " + label1)
+                            # self.code.newline(label2 + ":")
+                            # self.code.newline("ldc i 0")
+                            # offset += 1
+                            # inCount += 1
                             argsIndex += 1
                             continue
 

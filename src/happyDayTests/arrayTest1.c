@@ -1,7 +1,6 @@
 //  ********************************************
 //  Authors: Jeroen Verstraelen - Anthony Hermans
 //  Description: This testfile tests the initialization of arrays and use of array indices
-//
 //  ********************************************
 #include <stdio.h>
 int main(){

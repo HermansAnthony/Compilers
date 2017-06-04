@@ -432,6 +432,9 @@ class DereferenceExpressionNode(ASTNode):
     def accept(self, visitor):
         return visitor.visitDereferenceExpressionNode(self)
 
+    def getID(self):
+        return self.child.getID()
+
     def getPosition(self):
         return self.position
 

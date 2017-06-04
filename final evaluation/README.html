@@ -85,20 +85,21 @@ h3 {
       Het is mogelijk dat de scripts nog permissie vereisen, dit doe je aan de hand van het volgende commando:</br>
       <b> chmod +x [script file]</b>
     </div>
-    <h3>Algemeen</h3>
-      Het algemene commando is van de volgende structuur:</br>
+    <h3>Build</h3>
+      Het build commando heeft de volgende structuur:</br>
       <div class="note">
-        <b> ./build [ANTLR-file] [C program file] [P program file] </b></br>
+        <b> ./build [ANTLR file] [C program file] [P program file] </b></br>
       </div>
       Dit commando zal eerst met behulp van ANTLR en onze grammatica de benodigde listener, visitor, parser etc. genereren.</br>
-      Daarna zal het de AST boom opbouwen op basis van de gegeven C file en uitschrijven naar een AST dot bestand.
-      Later zal dan P code gegenereerd worden en uitgeschreven naar het P programma bestand.</br>
-    <h3>AST</h3>
-      Het commando om van het bekomen dot bestand een PNG bestand te maken is van de volgende structuur:
+      Dit zal de AST boom opbouwen op basis van de gegeven C file en uitschrijven naar een AST bestand (dot/png) in de map ast_output.
+      Naast het opbouwen van de AST zal ook de P code gegenereerd worden in de map p_output.</br>
+    <h3>Test</h3>
+      Het test commando heeft de volgende structuur:</br>
       <div class="note">
-        <b> ./toPNG [PNG output file] [AST dot file] </b></br>
+        <b> ./test [Pmachine executable]</b></br>
       </div>
-      Dit scriptje laat ons toe om de AST overzichtelijk en duidelijk weer te geven.
+      Het test commando zal itereren over de .p bestanden in de map p_output.</br>
+      Het zal vervolgens elk P programma bestand uitvoeren aan de hand van de meegegeven Pmachine xecutable</br>
 </div>
 
 <div class="content">
@@ -142,11 +143,13 @@ h3 {
     Om deze problemen te verhelpen hebben we dus een groot deel van de code moeten aanpassen.
     Nu gebeuren zowel de semantische analyse als de code generatie in 1 visit/pass.
     Dit was veel gemakkelijker te combineren met scopes voor de verschillende blocks (if, while etc).</br>
-    Als men een nieuwe scope binnengaat, wordt eerst de symbolTable gepusht op de stack. Dan volgt de semantische analysa. Daarna gebeurt de code generatie en tenslotte wordt ook de scope weer gepopt van de stack.
+    Als men een nieuwe scope binnengaat, wordt eerst de symbolTable (nieuwe lokale scope) gepusht op de stack. Dan volgt de semantische analyse.
+    Daarna gebeurt de code generatie en tenslotte wordt ook de scope weer gepopt van de stack.</br></br>
+    <b><u>Opmerking:</u></b> Het address 0 wordt gebruikt voor POP operaties. Bijgevolg beginnen de globale variabelen vanaf address 1.
 
     <h3> Testbestanden </h3>
     De C bestanden voor het testen van de compiler bevinden zich in de submappen faultyTests en happyDayTests.</br>
-    De map faultyTests bevat voornamelijk bestanden met semantische errors, maar er zitten ook bestanden in die runtime errors veroorzaken.</br>
+    De map faultyTests bevat voornamelijk bestanden met semantische errors, maar bevat ook bestanden in die runtime errors (bv met array indices) veroorzaken.</br>
     De map happyDayTests bevat bestanden die geen fouten bevatten en waarvan de bijhorende P code succesvol gegenereerd wordt.</br>
     De naam van het bestand legt uit wat er juist getest wordt en er is ook documentatie in het bestand zelf voorzien.</br>
     <ul>
@@ -180,7 +183,7 @@ h3 {
     </ul>
   <li><b>Functions</b></br>
     <ul>
-    <li>Check if function contains a return statement</br>
+    <li>Check if function contains a return statement (enkel het algemeen pad, niet alle paden worden geverifieerd)</br>
     </li>
     </ul>
   </li>
