@@ -1,0 +1,155 @@
+digraph G {
+0 [label="Program"];
+0 -> 1;
+1[label="Include Stdio.h"];
+0 -> 2;
+2 [label="Function"];
+ 2->3;
+3 [label = "DeclSpec:
+float"];
+2->4;
+4[label="Identifier:
+f"];
+2->5;
+5 [label="ParamList"];
+5->6;
+6 [label = "ParamDecl"];
+6->7;
+7 [label = "DeclSpec:
+float"];
+6->8;
+8[label="Identifier:
+a"];
+5->9;
+9 [label = "ParamDecl"];
+9->10;
+10 [label = "DeclSpec:
+float"];
+9->11;
+11[label="Identifier:
+b"];
+2->12;
+12[ label = "body"];
+12->13;
+13 [label="Decl" ];
+13->14;
+14 [label = "DeclSpec:
+float"];
+13->15;
+15[label="Identifier:
+c"];
+13->16;
+16 [label = "BinaryOperation:+"];
+16->17;
+17[label="Identifier:
+a"];
+16->18;
+18 [label = "BinaryOperation:*"];
+18->19;
+19[label="Identifier:
+b"];
+18->20;
+20[label="Float:
+ 1.5"];
+12->21;
+21[label="return"];
+21->23;
+23[label="Identifier:
+c"];
+0 -> 24;
+24 [label="Function"];
+ 24->25;
+25 [label = "DeclSpec:
+char"];
+24->26;
+26[label="Identifier:
+g"];
+24->27;
+27[ label = "body"];
+27->28;
+28 [label="Decl" ];
+28->29;
+29 [label = "DeclSpec:
+char"];
+28->30;
+30[label="Identifier:
+c"];
+28->31;
+31[label="Character:
+ '!'"];
+27->32;
+32[label="return"];
+32->34;
+34[label="Identifier:
+c"];
+0 -> 35;
+35 [label="Function"];
+ 35->36;
+36 [label = "DeclSpec:
+int"];
+35->37;
+37[label="Identifier:
+main"];
+35->38;
+38[ label = "body"];
+38->39;
+39 [label="Decl" ];
+39->40;
+40 [label = "DeclSpec:
+float"];
+39->41;
+41[label="Identifier:
+a"];
+39->42;
+42 [ label = "FunctionCall"];
+42->43;
+43[label="Identifier:
+f"];
+42->44;
+44 [ label = "ArgExprList"];
+44->45;
+45[label="Float:
+ 2.0"];
+44->46;
+46[label="Float:
+ 3.0"];
+38->48;
+48 [ label = "FunctionCall"];
+48->49;
+49[label="Identifier:
+printf"];
+48->50;
+50 [ label = "ArgExprList"];
+50->51;
+51[label="CString:
+ Should be 6.5: %f\n"];
+50->52;
+52[label="Identifier:
+a"];
+38->53;
+53 [label="Decl" ];
+53->54;
+54 [label = "DeclSpec:
+char"];
+53->55;
+55[label="Identifier:
+c"];
+53->56;
+56 [ label = "FunctionCall"];
+56->57;
+57[label="Identifier:
+g"];
+38->59;
+59 [ label = "FunctionCall"];
+59->60;
+60[label="Identifier:
+printf"];
+59->61;
+61 [ label = "ArgExprList"];
+61->62;
+62[label="CString:
+ Should be !: %c\n"];
+61->63;
+63[label="Identifier:
+c"];
+}

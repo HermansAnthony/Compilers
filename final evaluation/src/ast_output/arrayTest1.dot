@@ -1,0 +1,129 @@
+digraph G {
+0 [label="Program"];
+0 -> 1;
+1[label="Include Stdio.h"];
+0 -> 2;
+2 [label="Function"];
+ 2->3;
+3 [label = "DeclSpec:
+int"];
+2->4;
+4[label="Identifier:
+main"];
+2->5;
+5[ label = "body"];
+5->6;
+6 [label="Decl" ];
+6->7;
+7 [label = "DeclSpec:
+int"];
+6->8;
+8[label="Identifier:
+a"];
+8->9;
+9[label="Integer:
+ 3"];
+6->10;
+10 [label = "InitList"];
+10->11;
+11[label="Integer:
+ 1"];
+10->12;
+12[label="Integer:
+ 2"];
+10->13;
+13[label="Integer:
+ 3"];
+5->15;
+15 [ label = "FunctionCall"];
+15->16;
+16[label="Identifier:
+printf"];
+15->17;
+17 [ label = "ArgExprList"];
+17->18;
+18[label="CString:
+ Before: %i-%i-%i\n"];
+17->19;
+19[label="Identifier:
+a"];
+19->20;
+20[label="Integer:
+ 0"];
+17->21;
+21[label="Identifier:
+a"];
+21->22;
+22[label="Integer:
+ 1"];
+17->23;
+23[label="Identifier:
+a"];
+23->24;
+24[label="Integer:
+ 2"];
+5->25;
+25 [label = "Assignment:
+"];
+25->26;
+26[label="Identifier:
+a"];
+26->27;
+27[label="Integer:
+ 0"];
+25->28;
+28[label="Integer:
+ 5"];
+5->29;
+29 [label = "Assignment:
+"];
+29->30;
+30[label="Identifier:
+a"];
+30->31;
+31[label="Integer:
+ 1"];
+29->32;
+32[label="Integer:
+ 10"];
+5->33;
+33 [label = "Assignment:
+"];
+33->34;
+34[label="Identifier:
+a"];
+34->35;
+35[label="Integer:
+ 2"];
+33->36;
+36[label="Integer:
+ 15"];
+5->38;
+38 [ label = "FunctionCall"];
+38->39;
+39[label="Identifier:
+printf"];
+38->40;
+40 [ label = "ArgExprList"];
+40->41;
+41[label="CString:
+ After: %i-%i-%i\n"];
+40->42;
+42[label="Identifier:
+a"];
+42->43;
+43[label="Integer:
+ 0"];
+40->44;
+44[label="Identifier:
+a"];
+44->45;
+45[label="Integer:
+ 1"];
+40->46;
+46[label="Identifier:
+a"];
+46->47;
+47[label="Integer:
+ 2"];
+}

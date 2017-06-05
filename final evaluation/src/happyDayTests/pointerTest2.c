@@ -10,5 +10,5 @@ int main(){
   char** b = &y;
   *y = 'y';
   **b = 'b';
-  printf("After:%i %s\n", a,"(should be b)");
+  printf("After:%c %s\n", a,"(should be b)");
 }

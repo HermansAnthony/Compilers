@@ -9,6 +9,7 @@ int compareIntegers(int a, int b){
     return 0;
   }
   printf("%d is larger then %d \n", a, b);
+  return 0;
 }
 
 int main(){

@@ -9,6 +9,7 @@ int compareFloats(float a, float b){
     return 0;
   }
   printf("%f is larger then %f \n", a, b);
+  return 0;
 }
 
 int main(){

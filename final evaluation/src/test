@@ -3,15 +3,14 @@
 #####################################################################
 #  Script to execute the generated p code in folder p_output
 #  First argument is the Pmachine executable
+#  Second argument is the folder containing the p program files
 #####################################################################
 if [ $# -eq 0 ]
   then
-    echo "You need to specify the Pmachine executable as the first argument"
+    echo "You need to specify the Pmachine executable as the first argument "
+    echo "You need to specify the P program file as second argument "
     exit 1
 fi
 
-for file in "p_output/*.p"
-do
-  echo "Executing p code for file" $file
-  $1 $file
-done
+echo "Executing p code for file" $2
+$1 $2

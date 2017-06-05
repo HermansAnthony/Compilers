@@ -1,0 +1,111 @@
+digraph G {
+0 [label="Program"];
+0 -> 1;
+1[label="Include Stdio.h"];
+0 -> 2;
+2 [label="Function"];
+ 2->3;
+3 [label = "DeclSpec:
+char"];
+2->4;
+4[label="Identifier:
+f1"];
+0 -> 5;
+5 [label="Function"];
+ 5->6;
+6 [label = "DeclSpec:
+char"];
+5->7;
+7[label="Identifier:
+f2"];
+0 -> 8;
+8 [label="Function"];
+ 8->9;
+9 [label = "DeclSpec:
+char"];
+8->10;
+10[label="Identifier:
+f"];
+8->11;
+11[ label = "body"];
+11->12;
+12[label="return"];
+12->15;
+15 [ label = "FunctionCall"];
+15->16;
+16[label="Identifier:
+f1"];
+0 -> 17;
+17 [label="Function"];
+ 17->18;
+18 [label = "DeclSpec:
+char"];
+17->19;
+19[label="Identifier:
+f1"];
+17->20;
+20[ label = "body"];
+20->21;
+21[label="return"];
+21->24;
+24 [ label = "FunctionCall"];
+24->25;
+25[label="Identifier:
+f2"];
+0 -> 26;
+26 [label="Function"];
+ 26->27;
+27 [label = "DeclSpec:
+char"];
+26->28;
+28[label="Identifier:
+f2"];
+26->29;
+29[ label = "body"];
+29->30;
+30[label="return"];
+30->32;
+32[label="Character:
+ 'Y'"];
+0 -> 33;
+33 [label="Function"];
+ 33->34;
+34 [label = "DeclSpec:
+int"];
+33->35;
+35[label="Identifier:
+main"];
+33->36;
+36[ label = "body"];
+36->37;
+37 [label="Decl" ];
+37->38;
+38 [label = "DeclSpec:
+char"];
+37->39;
+39[label="Identifier:
+k"];
+37->40;
+40 [ label = "FunctionCall"];
+40->41;
+41[label="Identifier:
+f"];
+36->43;
+43 [ label = "FunctionCall"];
+43->44;
+44[label="Identifier:
+printf"];
+43->45;
+45 [ label = "ArgExprList"];
+45->46;
+46[label="CString:
+ Character: %c(should be Y)\n"];
+45->47;
+47[label="Identifier:
+k"];
+36->48;
+48[label="return"];
+48->50;
+50[label="Integer:
+ 0"];
+}

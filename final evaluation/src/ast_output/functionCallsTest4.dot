@@ -1,0 +1,85 @@
+digraph G {
+0 [label="Program"];
+0 -> 1;
+1[label="Include Stdio.h"];
+0 -> 2;
+2 [label="Function"];
+ 2->3;
+3 [label = "DeclSpec:
+char"];
+2->4;
+4[label="Identifier:
+g"];
+2->5;
+5 [label="ParamList"];
+5->6;
+6 [label = "ParamDecl"];
+6->7;
+7 [label = "DeclSpec:
+char"];
+6->8;
+8[label="Identifier:
+x"];
+2->9;
+9[ label = "body"];
+9->10;
+10 [label = "Assignment:
+"];
+10->11;
+11[label="Identifier:
+x"];
+10->12;
+12[label="Character:
+ 'k'"];
+9->13;
+13[label="return"];
+13->15;
+15[label="Identifier:
+x"];
+0 -> 16;
+16 [label="Function"];
+ 16->17;
+17 [label = "DeclSpec:
+int"];
+16->18;
+18[label="Identifier:
+main"];
+16->19;
+19[ label = "body"];
+19->20;
+20 [label="Decl" ];
+20->21;
+21 [label = "DeclSpec:
+char"];
+20->22;
+22[label="Identifier:
+c"];
+20->23;
+23 [ label = "FunctionCall"];
+23->24;
+24[label="Identifier:
+g"];
+23->25;
+25 [ label = "ArgExprList"];
+25->26;
+26[label="Character:
+ 'z'"];
+19->28;
+28 [ label = "FunctionCall"];
+28->29;
+29[label="Identifier:
+printf"];
+28->30;
+30 [ label = "ArgExprList"];
+30->31;
+31[label="CString:
+ The character: %c(should be k)\n"];
+30->32;
+32[label="Identifier:
+c"];
+19->33;
+33[label="return"];
+33->35;
+35[label="Integer:
+ 0"];
+}

@@ -11,5 +11,5 @@ int main(){
   printf("Give a second number(float):\n");
   scanf("%f", &b);
   float y = a+b;
-  printf("The addition results in value: %i \n",y);
+  printf("The addition results in value: %f \n",y);
 }

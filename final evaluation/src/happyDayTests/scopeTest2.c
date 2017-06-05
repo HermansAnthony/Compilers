@@ -16,6 +16,7 @@ int func(int glob) {
         printf("I should not be here.\n");
     }
     printf("Glob should be 1: %i\n", glob);
+    return 0;
 }
 
 int main(){

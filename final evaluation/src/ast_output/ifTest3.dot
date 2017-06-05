@@ -1,0 +1,490 @@
+digraph G {
+0 [label="Program"];
+0 -> 1;
+1[label="Include Stdio.h"];
+0 -> 2;
+2 [label="Function"];
+ 2->3;
+3 [label = "DeclSpec:
+void"];
+2->4;
+4[label="Identifier:
+compareIntegers"];
+2->5;
+5 [label="ParamList"];
+5->6;
+6 [label = "ParamDecl"];
+6->7;
+7 [label = "DeclSpec:
+int"];
+6->8;
+8[label="Identifier:
+a"];
+5->9;
+9 [label = "ParamDecl"];
+9->10;
+10 [label = "DeclSpec:
+int"];
+9->11;
+11[label="Identifier:
+b"];
+2->12;
+12[ label = "body"];
+12->13;
+13 [label = "Branch"];
+13->14;
+13->15;
+14 [label = "condition"];
+15 [label = "ifBody"];
+14->16;
+16 [label = "BinaryOperation:=="];
+16->17;
+17[label="Identifier:
+a"];
+16->18;
+18[label="Identifier:
+b"];
+15->20;
+20 [ label = "FunctionCall"];
+20->21;
+21[label="Identifier:
+printf"];
+20->22;
+22 [ label = "ArgExprList"];
+22->23;
+23[label="CString:
+ The given integers are the same\n"];
+12->24;
+24 [label = "Branch"];
+24->25;
+24->26;
+25 [label = "condition"];
+26 [label = "ifBody"];
+25->27;
+27 [label = "BinaryOperation:!="];
+27->28;
+28[label="Identifier:
+a"];
+27->29;
+29[label="Identifier:
+b"];
+26->31;
+31 [ label = "FunctionCall"];
+31->32;
+32[label="Identifier:
+printf"];
+31->33;
+33 [ label = "ArgExprList"];
+33->34;
+34[label="CString:
+ The given integers are not the same\n"];
+0 -> 35;
+35 [label="Function"];
+ 35->36;
+36 [label = "DeclSpec:
+void"];
+35->37;
+37[label="Identifier:
+compareFloats"];
+35->38;
+38 [label="ParamList"];
+38->39;
+39 [label = "ParamDecl"];
+39->40;
+40 [label = "DeclSpec:
+float"];
+39->41;
+41[label="Identifier:
+a"];
+38->42;
+42 [label = "ParamDecl"];
+42->43;
+43 [label = "DeclSpec:
+float"];
+42->44;
+44[label="Identifier:
+b"];
+35->45;
+45[ label = "body"];
+45->46;
+46 [label = "Branch"];
+46->47;
+46->48;
+47 [label = "condition"];
+48 [label = "ifBody"];
+47->49;
+49 [label = "BinaryOperation:=="];
+49->50;
+50[label="Identifier:
+a"];
+49->51;
+51[label="Identifier:
+b"];
+48->53;
+53 [ label = "FunctionCall"];
+53->54;
+54[label="Identifier:
+printf"];
+53->55;
+55 [ label = "ArgExprList"];
+55->56;
+56[label="CString:
+ The given floats are the same\n"];
+45->57;
+57 [label = "Branch"];
+57->58;
+57->59;
+58 [label = "condition"];
+59 [label = "ifBody"];
+58->60;
+60 [label = "BinaryOperation:!="];
+60->61;
+61[label="Identifier:
+a"];
+60->62;
+62[label="Identifier:
+b"];
+59->64;
+64 [ label = "FunctionCall"];
+64->65;
+65[label="Identifier:
+printf"];
+64->66;
+66 [ label = "ArgExprList"];
+66->67;
+67[label="CString:
+ The given floats are not the same\n"];
+0 -> 68;
+68 [label="Function"];
+ 68->69;
+69 [label = "DeclSpec:
+void"];
+68->70;
+70[label="Identifier:
+compareCharacters"];
+68->71;
+71 [label="ParamList"];
+71->72;
+72 [label = "ParamDecl"];
+72->73;
+73 [label = "DeclSpec:
+char"];
+72->74;
+74[label="Identifier:
+a"];
+71->75;
+75 [label = "ParamDecl"];
+75->76;
+76 [label = "DeclSpec:
+char"];
+75->77;
+77[label="Identifier:
+b"];
+68->78;
+78[ label = "body"];
+78->79;
+79 [label = "Branch"];
+79->80;
+79->81;
+80 [label = "condition"];
+81 [label = "ifBody"];
+80->82;
+82 [label = "BinaryOperation:=="];
+82->83;
+83[label="Identifier:
+a"];
+82->84;
+84[label="Identifier:
+b"];
+81->86;
+86 [ label = "FunctionCall"];
+86->87;
+87[label="Identifier:
+printf"];
+86->88;
+88 [ label = "ArgExprList"];
+88->89;
+89[label="CString:
+ The given characters are the same\n"];
+79->90;
+90 [label = "elseBody"];
+90->92;
+92 [ label = "FunctionCall"];
+92->93;
+93[label="Identifier:
+printf"];
+92->94;
+94 [ label = "ArgExprList"];
+94->95;
+95[label="CString:
+ The given characters are not the same\n"];
+0 -> 96;
+96 [label="Function"];
+ 96->97;
+97 [label = "DeclSpec:
+int"];
+96->98;
+98[label="Identifier:
+main"];
+96->99;
+99[ label = "body"];
+99->100;
+100 [label="Decl" ];
+100->101;
+101 [label = "DeclSpec:
+char"];
+100->102;
+102[label="Identifier:
+i"];
+99->104;
+104 [ label = "FunctionCall"];
+104->105;
+105[label="Identifier:
+printf"];
+104->106;
+106 [ label = "ArgExprList"];
+106->107;
+107[label="CString:
+ Press i for integer comparison, f for float comparison and c for character comparison:\n"];
+99->109;
+109 [ label = "FunctionCall"];
+109->110;
+110[label="Identifier:
+scanf"];
+109->111;
+111 [ label = "ArgExprList"];
+111->112;
+112[label="CString:
+ %c"];
+111->113;
+113 [ label = "ReferenceExpression:
+"];
+113->114;
+114[label="Identifier:
+i"];
+99->115;
+115 [label = "Branch"];
+115->116;
+115->117;
+116 [label = "condition"];
+117 [label = "ifBody"];
+116->118;
+118 [label = "BinaryOperation:=="];
+118->119;
+119[label="Identifier:
+i"];
+118->120;
+120[label="Character:
+ 'c'"];
+117->121;
+121 [label="Decl" ];
+121->122;
+122 [label = "DeclSpec:
+char"];
+121->123;
+123[label="Identifier:
+a"];
+117->124;
+124 [label="Decl" ];
+124->125;
+125 [label = "DeclSpec:
+char"];
+124->126;
+126[label="Identifier:
+b"];
+117->128;
+128 [ label = "FunctionCall"];
+128->129;
+129[label="Identifier:
+scanf"];
+128->130;
+130 [ label = "ArgExprList"];
+130->131;
+131[label="CString:
+ First character: %c"];
+130->132;
+132 [ label = "ReferenceExpression:
+"];
+132->133;
+133[label="Identifier:
+a"];
+117->135;
+135 [ label = "FunctionCall"];
+135->136;
+136[label="Identifier:
+scanf"];
+135->137;
+137 [ label = "ArgExprList"];
+137->138;
+138[label="CString:
+ Second character: %c"];
+137->139;
+139 [ label = "ReferenceExpression:
+"];
+139->140;
+140[label="Identifier:
+b"];
+117->142;
+142 [ label = "FunctionCall"];
+142->143;
+143[label="Identifier:
+compareCharacters"];
+142->144;
+144 [ label = "ArgExprList"];
+144->145;
+145[label="Identifier:
+a"];
+144->146;
+146[label="Identifier:
+b"];
+99->147;
+147 [label = "Branch"];
+147->148;
+147->149;
+148 [label = "condition"];
+149 [label = "ifBody"];
+148->150;
+150 [label = "BinaryOperation:=="];
+150->151;
+151[label="Identifier:
+i"];
+150->152;
+152[label="Character:
+ 'i'"];
+149->153;
+153 [label="Decl" ];
+153->154;
+154 [label = "DeclSpec:
+int"];
+153->155;
+155[label="Identifier:
+a"];
+149->156;
+156 [label="Decl" ];
+156->157;
+157 [label = "DeclSpec:
+int"];
+156->158;
+158[label="Identifier:
+b"];
+149->160;
+160 [ label = "FunctionCall"];
+160->161;
+161[label="Identifier:
+scanf"];
+160->162;
+162 [ label = "ArgExprList"];
+162->163;
+163[label="CString:
+ First integer: %i"];
+162->164;
+164 [ label = "ReferenceExpression:
+"];
+164->165;
+165[label="Identifier:
+a"];
+149->167;
+167 [ label = "FunctionCall"];
+167->168;
+168[label="Identifier:
+scanf"];
+167->169;
+169 [ label = "ArgExprList"];
+169->170;
+170[label="CString:
+ Second integer: %i"];
+169->171;
+171 [ label = "ReferenceExpression:
+"];
+171->172;
+172[label="Identifier:
+b"];
+149->174;
+174 [ label = "FunctionCall"];
+174->175;
+175[label="Identifier:
+compareIntegers"];
+174->176;
+176 [ label = "ArgExprList"];
+176->177;
+177[label="Identifier:
+a"];
+176->178;
+178[label="Identifier:
+b"];
+99->179;
+179 [label = "Branch"];
+179->180;
+179->181;
+180 [label = "condition"];
+181 [label = "ifBody"];
+180->182;
+182 [label = "BinaryOperation:=="];
+182->183;
+183[label="Identifier:
+i"];
+182->184;
+184[label="Character:
+ 'f'"];
+181->185;
+185 [label="Decl" ];
+185->186;
+186 [label = "DeclSpec:
+float"];
+185->187;
+187[label="Identifier:
+a"];
+181->188;
+188 [label="Decl" ];
+188->189;
+189 [label = "DeclSpec:
+float"];
+188->190;
+190[label="Identifier:
+b"];
+181->192;
+192 [ label = "FunctionCall"];
+192->193;
+193[label="Identifier:
+scanf"];
+192->194;
+194 [ label = "ArgExprList"];
+194->195;
+195[label="CString:
+ First float: %f"];
+194->196;
+196 [ label = "ReferenceExpression:
+"];
+196->197;
+197[label="Identifier:
+a"];
+181->199;
+199 [ label = "FunctionCall"];
+199->200;
+200[label="Identifier:
+scanf"];
+199->201;
+201 [ label = "ArgExprList"];
+201->202;
+202[label="CString:
+ Second float: %f"];
+201->203;
+203 [ label = "ReferenceExpression:
+"];
+203->204;
+204[label="Identifier:
+b"];
+181->206;
+206 [ label = "FunctionCall"];
+206->207;
+207[label="Identifier:
+compareFloats"];
+206->208;
+208 [ label = "ArgExprList"];
+208->209;
+209[label="Identifier:
+a"];
+208->210;
+210[label="Identifier:
+b"];
+}

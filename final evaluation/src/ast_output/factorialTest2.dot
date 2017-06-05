@@ -1,0 +1,155 @@
+digraph G {
+0 [label="Program"];
+0 -> 1;
+1[label="Include Stdio.h"];
+0 -> 2;
+2 [label="Function"];
+ 2->3;
+3 [label = "DeclSpec:
+int"];
+2->4;
+4[label="Identifier:
+main"];
+2->5;
+5[ label = "body"];
+5->6;
+6 [label="Decl" ];
+6->7;
+7 [label = "DeclSpec:
+int"];
+6->8;
+8[label="Identifier:
+n"];
+5->9;
+9 [label="Decl" ];
+9->10;
+10 [label = "DeclSpec:
+int"];
+9->11;
+11[label="Identifier:
+i"];
+5->12;
+12 [label="Decl" ];
+12->13;
+13 [label = "DeclSpec:
+int"];
+12->14;
+14[label="Identifier:
+factorial"];
+12->15;
+15[label="Integer:
+ 1"];
+5->17;
+17 [ label = "FunctionCall"];
+17->18;
+18[label="Identifier:
+printf"];
+17->19;
+19 [ label = "ArgExprList"];
+19->20;
+20[label="CString:
+ Enter an integer: "];
+5->22;
+22 [ label = "FunctionCall"];
+22->23;
+23[label="Identifier:
+scanf"];
+22->24;
+24 [ label = "ArgExprList"];
+24->25;
+25[label="CString:
+ %d"];
+24->26;
+26 [ label = "ReferenceExpression:
+"];
+26->27;
+27[label="Identifier:
+n"];
+5->28;
+28 [label = "Branch"];
+28->29;
+28->30;
+29 [label = "condition"];
+30 [label = "ifBody"];
+29->31;
+31 [label = "BinaryOperation:<"];
+31->32;
+32[label="Identifier:
+n"];
+31->33;
+33[label="Integer:
+ 0"];
+30->35;
+35 [ label = "FunctionCall"];
+35->36;
+36[label="Identifier:
+printf"];
+35->37;
+37 [ label = "ArgExprList"];
+37->38;
+38[label="CString:
+ Factorial of negative number doesn't exist\n"];
+30->39;
+39[label="return"];
+5->40;
+40[ label = "For"];
+40->41;
+41 [label = "Assignment:
+"];
+41->42;
+42[label="Identifier:
+i"];
+41->43;
+43[label="Integer:
+ 1"];
+40->44;
+44 [label = "BinaryOperation:<="];
+44->45;
+45[label="Identifier:
+i"];
+44->46;
+46[label="Identifier:
+n"];
+40->47;
+47 [ label = "Expression:++"];
+47->48;
+48[label="Identifier:
+i"];
+40->49;
+49[ label = "body"];
+49->50;
+50 [label = "Assignment:
+"];
+50->51;
+51[label="Identifier:
+factorial"];
+50->52;
+52 [label = "BinaryOperation:*"];
+52->53;
+53[label="Identifier:
+factorial"];
+52->54;
+54[label="Identifier:
+i"];
+5->56;
+56 [ label = "FunctionCall"];
+56->57;
+57[label="Identifier:
+printf"];
+56->58;
+58 [ label = "ArgExprList"];
+58->59;
+59[label="CString:
+ Factorial of %d = %d"];
+58->60;
+60[label="Identifier:
+n"];
+58->61;
+61[label="Identifier:
+factorial"];
+5->62;
+62[label="return"];
+62->64;
+64[label="Integer:
+ 0"];
+}

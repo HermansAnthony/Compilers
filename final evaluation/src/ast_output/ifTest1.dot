@@ -1,0 +1,83 @@
+digraph G {
+0 [label="Program"];
+0 -> 1;
+1[label="Include Stdio.h"];
+0 -> 2;
+2 [label="Function"];
+ 2->3;
+3 [label = "DeclSpec:
+int"];
+2->4;
+4[label="Identifier:
+main"];
+2->5;
+5[ label = "body"];
+5->6;
+6 [label="Decl" ];
+6->7;
+7 [label = "DeclSpec:
+int"];
+6->8;
+8[label="Identifier:
+a"];
+6->9;
+9[label="Integer:
+ 1"];
+5->10;
+10 [label="Decl" ];
+10->11;
+11 [label = "DeclSpec:
+int"];
+10->12;
+12[label="Identifier:
+b"];
+10->13;
+13[label="Integer:
+ 2"];
+5->14;
+14 [label = "Branch"];
+14->15;
+14->16;
+15 [label = "condition"];
+16 [label = "ifBody"];
+15->17;
+17 [label = "BinaryOperation:=="];
+17->18;
+18[label="Identifier:
+a"];
+17->19;
+19[label="Identifier:
+b"];
+16->21;
+21 [ label = "FunctionCall"];
+21->22;
+22[label="Identifier:
+printf"];
+21->23;
+23 [ label = "ArgExprList"];
+23->24;
+24[label="CString:
+ I should not be in this statement\n"];
+16->25;
+25[label="return"];
+25->27;
+27[label="Integer:
+ 0"];
+14->28;
+28 [label = "elseBody"];
+28->30;
+30 [ label = "FunctionCall"];
+30->31;
+31[label="Identifier:
+printf"];
+30->32;
+32 [ label = "ArgExprList"];
+32->33;
+33[label="CString:
+ If condition is false.\n"];
+28->34;
+34[label="return"];
+34->36;
+36[label="Integer:
+ -1"];
+}

@@ -1,0 +1,98 @@
+digraph G {
+0 [label="Program"];
+0 -> 1;
+1[label="Include Stdio.h"];
+0 -> 2;
+2 [label="Function"];
+ 2->3;
+3 [label = "DeclSpec:
+int"];
+2->4;
+4[label="Identifier:
+main"];
+2->5;
+5[ label = "body"];
+5->6;
+6 [label="Decl" ];
+6->7;
+7 [label = "DeclSpec:
+float"];
+6->8;
+8[label="Identifier:
+a"];
+8->9;
+9[label="Integer:
+ 5"];
+6->10;
+10 [label = "InitList"];
+10->11;
+11[label="Float:
+ 1.5"];
+10->12;
+12[label="Float:
+ 2.4"];
+10->13;
+13[label="Float:
+ 3.0"];
+10->14;
+14[label="Float:
+ 4.5"];
+10->15;
+15[label="Float:
+ 5.89"];
+5->16;
+16 [label="Decl" ];
+16->17;
+17 [label = "DeclSpec:
+int"];
+16->18;
+18[label="Identifier:
+middleElement"];
+16->19;
+19[label="Integer:
+ 2"];
+5->20;
+20 [label = "Assignment:
+"];
+20->21;
+21[label="Identifier:
+a"];
+21->22;
+22[label="Identifier:
+middleElement"];
+20->23;
+23 [label = "BinaryOperation:-"];
+23->24;
+24[label="Identifier:
+a"];
+24->25;
+25[label="Integer:
+ 4"];
+23->26;
+26[label="Identifier:
+a"];
+26->27;
+27[label="Integer:
+ 0"];
+5->29;
+29 [ label = "FunctionCall"];
+29->30;
+30[label="Identifier:
+printf"];
+29->31;
+31 [ label = "ArgExprList"];
+31->32;
+32[label="CString:
+ %f\n"];
+31->33;
+33[label="Identifier:
+a"];
+33->34;
+34[label="Identifier:
+middleElement"];
+5->35;
+35[label="return"];
+35->37;
+37[label="Integer:
+ 1"];
+}

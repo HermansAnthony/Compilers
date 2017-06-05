@@ -1,0 +1,56 @@
+digraph G {
+0 [label="Program"];
+0 -> 1;
+1[label="Include Stdio.h"];
+0 -> 2;
+2 [label="Function"];
+ 2->3;
+3 [label = "DeclSpec:
+int"];
+2->4;
+4[label="Identifier:
+main"];
+2->5;
+5[ label = "body"];
+5->6;
+6[ label = "For"];
+6->7;
+7 [label="Decl" ];
+7->8;
+8 [label = "DeclSpec:
+int"];
+7->9;
+9[label="Identifier:
+iterator"];
+7->10;
+10[label="Integer:
+ 10"];
+6->11;
+11 [label = "BinaryOperation:!="];
+11->12;
+12[label="Identifier:
+iterator"];
+11->13;
+13[label="Integer:
+ -1"];
+6->14;
+14 [ label = "Expression:--"];
+14->15;
+15[label="Identifier:
+iterator"];
+6->16;
+16[ label = "body"];
+16->18;
+18 [ label = "FunctionCall"];
+18->19;
+19[label="Identifier:
+printf"];
+18->20;
+20 [ label = "ArgExprList"];
+20->21;
+21[label="CString:
+ This for loop is now at iteration %i\n"];
+20->22;
+22[label="Identifier:
+iterator"];
+}

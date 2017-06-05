@@ -11,5 +11,5 @@ int main(){
   printf("Give a second number(float):\n");
   scanf("%f", &b);
   float y = a*b;
-  printf("The multiplication results in value: %i \n",y);
+  printf("The multiplication results in value: %f \n",y);
 }
