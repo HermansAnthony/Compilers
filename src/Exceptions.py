@@ -152,6 +152,17 @@ class wrongOperation(semanticException):
         if self.secondOperand != "": returnValue += " and " + str(getType(self.secondOperand))
         return returnValue
 
+class wrongOperandTypes(semanticException):
+    def __init__(self, operandType1, operandType2, line):
+        self.operand1 = operandType1
+        self.operand2 = operandType2
+        self.line = line
+
+    def __str__(self):
+        returnValue = "Semantic error occurred on line " + str(self.line) + ":\n"
+        returnValue += "First operand has type " + str(getType(self.operand1)) + " and second operand has type " + str(getType(self.operand2))
+        return returnValue
+
 class incrementError(semanticException):
     def __init__(self, operand, line):
         self.operand = operand

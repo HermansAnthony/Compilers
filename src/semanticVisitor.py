@@ -321,6 +321,8 @@ class SemanticVisitor(AstVisitor):
             raise wrongOperation("add/subtract/mul or div", "an address", node.getPosition())
         typeLeft = exprTypeLeft['idType']
         typeRight = exprTypeRight['idType']
+        if typeLeft != typeRight:
+            raise wrongOperandTypes(typeLeft, typeRight, node.getPosition())
         if (node.operator == "&&" or node.operator == "||"):
             if (typeLeft != {'idType': "b", 'refCount': 0} or 
                 typeRight != {'idType': "b", 'refCount': 0}):
