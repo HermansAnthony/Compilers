@@ -17,6 +17,7 @@ class wrongForloop(semanticException):
     def __str__(self):
         return "Semantic error occurred on line " + str(self.line) +":\n"\
                 + "Update part of for must not be operator " + str(self.operator)
+
 class conditionException(semanticException):
     def __init__(self, currentType, line):
         self.currentType = currentType
@@ -106,8 +107,8 @@ class wrongReturnExpression(semanticException):
                        + " while it should be " + str(getType(self.correctType))
         return returnValue
 
-        # The type and the expr type mismatch
 
+# Function is non void and has no return statement
 class emptyReturnExpression(semanticException):
     def __init__(self, name, line):
         self.name = name
@@ -115,8 +116,7 @@ class emptyReturnExpression(semanticException):
 
     def __str__(self):
         returnValue = "Semantic error occurred on line " + str(self.line) + ":\n"
-        returnValue += "Non-void function \'" + str(self.name) \
-                       + "\' should return a value"
+        returnValue += "Non-void function \'" + str(self.name) + "\' should return a value"
         return returnValue
 
 # The return type and the type of the function don'tmatch
@@ -139,6 +139,7 @@ class deReference(semanticException):
     def __str__(self):
         return "Dereference error occurred on line " + str(self.line) + ":\nToo many dereferences in assignment"
 
+# Wrong operation applied to operands
 class wrongOperation(semanticException):
     def __init__(self, operations, operand, line, secondOperand=""):
         self.operations = operations

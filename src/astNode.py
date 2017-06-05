@@ -264,18 +264,18 @@ class IfStatementNode(ASTNode):
         returnValue += currentNode + ' [label = "Branch"];\n'
         conditionNode = counter()
         ifNode = counter()
-        elseNode = counter()
         returnValue += currentNode + '->' + conditionNode + ';\n'
         returnValue += currentNode + '->' + ifNode + ';\n'
-        returnValue += currentNode + '->' + elseNode + ';\n'
         returnValue += conditionNode + ' [label = "condition"];\n'
         returnValue += ifNode + ' [label = "ifBody"];\n'
-        returnValue += elseNode + ' [label = "elseBody"];\n'
         returnValue += conditionNode + '->' + str(self.condition)
         if self.ifBody:
             for stat in self.ifBody:
                 returnValue += ifNode + '->' + str(stat)
         if self.elseBody:
+            elseNode = counter()
+            returnValue += currentNode + '->' + elseNode + ';\n'
+            returnValue += elseNode + ' [label = "elseBody"];\n'
             for stat in self.elseBody:
                 returnValue += elseNode + '->' + str(stat)
         return returnValue

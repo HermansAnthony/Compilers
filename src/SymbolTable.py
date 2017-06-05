@@ -1,5 +1,4 @@
-# Symbol table for the compiler
-# Based on http://www.newagepublishers.com/samplechapter/001679.pdf
+# Simple element represents a variable
 class simpleElement:
     def __init__(self, type, address, nestingDepth, arraySize):
         self.type = type
@@ -15,6 +14,7 @@ class simpleElement:
         if self.address != None: returnValue += "[address:" + str(self.address) + "]"
         return returnValue
 
+# Simple element represents a function
 class functionElement:
     def __init__(self, type, paramlist, nestingDepth, isForwardDecl):
         self.type = type
@@ -59,13 +59,7 @@ class symbolTableLocal:
 
     # Get the nesting depth
     def getNestingDepth(self):
-        return 1 
-
-    def setCurrentOffset(offset):
-        self.currentOffset = offset
-    
-    def getCurrentOffset(offset):
-        return self.currentOffset
+        return 1
 
     def getScopeName(self):
         return self.scopeName

@@ -1,0 +1,29 @@
+#!/bin/bash
+
+#####################################################################
+#  Script to build the lexer, parser, visitor and listener with ANTLR
+#  First argument is the ANTLR.jar file
+#  Second argument is the input C program file
+#  Third argument is the resulting P program file
+#####################################################################
+
+echo "Generating the lexer, parser, visitor and listener with ANTLR"
+java -jar $1 -Dlanguage=Python3 Cmm.g4 -visitor
+
+mkdir -p ast_output
+mkdir -p p_output
+folder1="ast_output/"
+folder2="p_output/"
+dot=".dot"
+
+temp=$(basename $2)
+filename=$(echo $temp| cut -d'.' -f 1)
+outputPNG=$folder1$filename".png"
+outputPCode=$folder2$3
+
+inputDotFile=$folder1$filename$dot
+
+echo "Compiling"
+python3 c2p.py $2 $outputPCode
+
+dot -Tpng -o $outputPNG $inputDotFile

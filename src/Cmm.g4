@@ -63,7 +63,6 @@ initializerList
 primaryExpression
     : Identifier
     | constant
-//    | LeftParen expression RightParen
 ;
 
 // Constant part of the grammar

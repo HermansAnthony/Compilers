@@ -36,11 +36,6 @@ def main(argv):
         codeBuilder = CodeBuilder(symbolTable)
         semanticVisitor = SemanticVisitor(symbolTable, codeBuilder)
         semanticVisitor.visit(ast)
-
-        print(symbolTable)
-        # Code generation
-        # codeBuilder = CodeBuilder(symbolTable)
-        # codeBuilder.visit(ast)
         
         # Write the code to the output file
         f = open(argv[2]+".p", 'w')
@@ -63,7 +58,7 @@ def main(argv):
     # Catch the standard exceptions
     #except Exception as err:
     #    exc_traceback = sys.exc_info()[2]
-    #    traceback.print_tb(exc_traceback, limit=200, file=sys.stdout)
+    #    traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
     #    print(err)
 
     # Catch all errors in a clean way

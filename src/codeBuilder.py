@@ -53,9 +53,7 @@ class CodeBuilder(AstVisitor):
             if type(declStat) == IfStatementNode or type(declStat) == IterationStatementNode:
                 staticLength += self.getStaticLength(declStat)
 
-        # Set the stack pointer and the EP
-        # self.code.newline("ent " + str(self.symbolTable.getMaxEP()) + " " + str(staticLength))
-        print(str(staticLength))
+        # Set the stack pointer
         self.code.newline("ssp " + str(staticLength))
 
     def visitParameterListNode(self, node:ParameterListNode):
@@ -131,7 +129,6 @@ class CodeBuilder(AstVisitor):
         label2 = self.symbolTable.getScopeName() + str(self.currentLabelNo+1)
         self.currentLabelNo += 2
         self.code.newline("fjp " + label1)
-        print("If labels", [label1, label2])
         return [label1, label2]
 
 
@@ -149,7 +146,7 @@ class CodeBuilder(AstVisitor):
             return [label1, label2]
 
         if node.statementName == "For":
-            # l1: e, fjp l2, body, ujp l1, l2:
+            # same layout as while loop, but label3 was necessary for continue nodes (visit updation before going to next iteration)
             label1 = self.symbolTable.getScopeName() + str(self.currentLabelNo)
             label2 = self.symbolTable.getScopeName() + str(self.currentLabelNo+1)
             label3 = self.symbolTable.getScopeName() + str(self.currentLabelNo+2)
@@ -165,10 +162,6 @@ class CodeBuilder(AstVisitor):
                 self.visit(node.middle1)
                 self.code.newline("fjp " + label2)
             return [label1, label2, label3]
-
-
-            # # Visit updation
-            # if node.middle2: self.visit(node.middle2)
 
     def visitReturnNode(self, node:ReturnNode):
         # Return a value
@@ -328,7 +321,6 @@ class CodeBuilder(AstVisitor):
         return exprType  
 
     # The scanf and printf are generated at the function call node
-
     def visitStdioNode(self, node:StdioNode):
         pass
 
@@ -340,6 +332,7 @@ class CodeBuilder(AstVisitor):
             argsIndex = 1
             printCount = 0
             for index, char in enumerate(stringLit):
+                if argsIndex == len(args): continue
                 if index != 0 and stringLit[index-1] == "%": continue
                 if index != 0 and stringLit[index-1] == "\\" and char == "n": continue # Newline related if statement
                 if index == 0 or index == len(stringLit)-2: continue
@@ -353,6 +346,11 @@ class CodeBuilder(AstVisitor):
                         self.toAscii(char, stringLit[index + 1])
                         printCount += 1
                         continue
+                    if nextChar not in ['d','i','s','f','c']:
+                        self.toAscii(char, nextChar)
+                        printCount += 1
+                        continue
+
                     # Identifier related printf variables
                     if type(args[argsIndex]) == IdentifierNode:
                         self.visit(args[argsIndex])
@@ -381,7 +379,6 @@ class CodeBuilder(AstVisitor):
 
                     # Constant related printf variables
                     if type(args[argsIndex]) != IdentifierNode and type(args[argsIndex]) != DereferenceExpressionNode:
-                        # TODO check if this works (aka constants in printf function)
                         idType = args[argsIndex].getType()
                         self.code.newline("ldc " + idType + " " + args[argsIndex].value)
                         self.code.newline("out " + idType)
@@ -399,14 +396,11 @@ class CodeBuilder(AstVisitor):
 
         # Scanf related code generation
         if node.getID() == "scanf":
-            # TODO test the scanf function thoroughly
             args = node.argumentExpressionListNode.argumentExprs
             stringLit = str(args[0].value)
-            print("Input ", stringLit)
             argsIndex = 1
             inCount = 0
             for index, char in enumerate(stringLit):
-                print("Index:", index, " with char ", char,"|")
                 if char == '"': continue
                 if index != 0 and stringLit[index-1] == "%": continue
                 if char == "%" and index+1 < len(stringLit):
@@ -414,6 +408,10 @@ class CodeBuilder(AstVisitor):
                     if nextChar == "%":
                         self.code.newline("ldc c %")
                         self.code.newline("out c")
+                        inCount += 1
+                        continue
+                    if nextChar not in ['d','i','s','f','c']:
+                        self.toAscii(char, nextChar)
                         inCount += 1
                         continue
                     argExpr = args[argsIndex]
@@ -426,16 +424,6 @@ class CodeBuilder(AstVisitor):
                         offset = item.address
                         if nextChar == "s" and item.type['size'] > 0:
                             # Argument is an array
-                            # TODO what if given string goes out of char array bounds?
-                            # for i in range(item.type['size']):
-                            #     # Put the index address on top of the stack
-                            #     self.code.newline("ldc " + str(idType) + " " + str(offset))
-                            #     self
-                            #     # Store the read value
-                            #     self.code.newline("in " + idType)
-                            #     self.code.newline("str " + idType + " " + str(nestingDiff) + " " + str(offset))
-                            #     offset += 1
-                            #     inCount += 1
                             startLabel = self.symbolTable.getScopeName() + str(self.currentLabelNo)
                             self.currentLabelNo += 1
 
@@ -463,20 +451,6 @@ class CodeBuilder(AstVisitor):
                             self.code.newline("fjp " + startLabel)
                             self.code.newline(startLabel + "f:")
                             self.code.newline("sro a 0")
-                            # self.code.newline("ldc " + str(idType) + " 27") # 27 is the escape character
-                            # self.code.newline("in " + idType)
-                            # self.code.newline("equ " + str(idType)) # check if given character is the escape char
-                            # self.code.newline("fjp " + label2)
-                            # # Put the index address on top of the stack
-                            # self.code.newline("ldc " + str(idType) + " " + str(offset))
-                            # # Store the read value
-                            # self.code.newline("in " + idType)
-                            # self.code.newline("str " + idType + " " + str(nestingDiff) + " " + str(offset))
-                            # self.code.newline("ujp " + label1)
-                            # self.code.newline(label2 + ":")
-                            # self.code.newline("ldc i 0")
-                            # offset += 1
-                            # inCount += 1
                             argsIndex += 1
                             continue
 
@@ -486,7 +460,6 @@ class CodeBuilder(AstVisitor):
                         idType = item.type['idType']
                         nestingDiff = self.symbolTable.getCurrentNestingDepth() - item.nestingDepth
                         offset = item.address
-                        print(item)
 
                     # Put the address on top of the stack
                     self.visit(args[argsIndex])
@@ -619,7 +592,6 @@ class CodeBuilder(AstVisitor):
                             idSize = int(exprList[0].value)
                         length += idSize
                     if type(stat) == IfStatementNode or type(stat) == IterationStatementNode:
-                        print("Recursion")
                         length += self.getStaticLength(stat)
             if node.elseBody:
                 for stat in node.elseBody:

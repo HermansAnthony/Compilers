@@ -58,7 +58,6 @@ class SemanticVisitor(AstVisitor):
                 if parameters[index].getType()['idType'] != param.getType()['idType']:
                     raise parameterTypeError(functionName, parameters[index].getType()['idType'], param.getType()['idType'], node.getPosition())
                 index+=1
-                print(parameters[index].getType())
 
             # Check if types match
             if item.type['idType'] != functionType['idType']:
@@ -95,11 +94,8 @@ class SemanticVisitor(AstVisitor):
             if type(declstat) == ReturnNode:
                 self.checkType(declstat.expressionNode, functionType['idType'], declstat.getPosition())
                 hasReturnStatement = True
-                print(functionType)
                 if declstat.expressionNode == None and functionType['idType'] != '' and functionType != "void":
                     raise emptyReturnExpression(functionName, declstat.getPosition())
-
-            print("Got class:",type(declstat))
             retType = None
             if type(declstat) == IfStatementNode or type(declstat) == IterationStatementNode:
                 retType = self.visit(declstat)
@@ -401,8 +397,8 @@ class SemanticVisitor(AstVisitor):
             for index, char in enumerate(stringLit):
                 if char == "%" and index+1 < len(stringLit):
                     if index != 0 and stringLit[index-1] == "%": continue
-                    if stringLit[index+1] == "%" and len(args) == 1:
-                        continue
+                    if stringLit[index+1] == "%" and len(args) == 1: continue
+                    if argsIndex == len(args): continue
                     if len(args) - 1 != presentConversions:
                         raise conflictingArgumentLength(node.getID(), len(args)-1, presentConversions, node.getPosition())
 
@@ -424,14 +420,15 @@ class SemanticVisitor(AstVisitor):
                     if (nextChar == "i" and tempType['idType'] == "i" or
                         nextChar == "d" and tempType['idType'] == "i" or
                         nextChar == "f" and tempType['idType'] == "r" or
-                        nextChar == "c" and tempType['idType'] == "c" or
+                        nextChar == "c" and (tempType['idType'] == "c" and "isArray" not in tempType) or
                         nextChar == "s" and (tempType['idType'] == "c" and "isArray" in tempType)):
                             if (nextChar == "s" and type(args[argsIndex]) != IdentifierNode and type(args[argsIndex]) != StringConstantNode) : raise stringScanError(node.getPosition())
                             argsIndex += 1
-                            # TODO ? argsIndex += 1
                             continue
                     else:
-                        raise wrongTypeCode(tempType['idType'], nextChar, node.getPosition())
+                        curType = tempType['idType']
+                        if "isArray" in tempType: curType = "s"
+                        raise wrongTypeCode(curType, nextChar, node.getPosition())
             return {'idType': "i", 'refCount': 0}
 
         params = item.parameters # List of parameterDeclNode
@@ -444,8 +441,6 @@ class SemanticVisitor(AstVisitor):
         for i in range(len(params)):
             paramType = params[i].getType()
             argType = self.visit(args[i])
-            print("1",argType)
-            print("2", paramType)
             # Check if argument and param have the same type
             if argType['idType'] != paramType['idType']:
                  raise parameterTypeError(node.getID(), argType['idType'], paramType['idType'], node.getPosition())

@@ -288,9 +288,7 @@ class AstBuilder(CmmVisitor):
             left = self.visit(ctx.declaration())
             if ctx.expression(0): middle1 = self.visit(ctx.expression(0))
             if ctx.expression(1): middle2 = self.visit(ctx.expression(1))
-            if ctx.assignment():
-                print(type(ctx.assignment()))
-                middle2 = self.visit(ctx.assignment(0))
+            if ctx.assignment(): middle2 = self.visit(ctx.assignment(0))
 
         if not ctx.declaration():
             if ctx.assignment(0): left = self.visit(ctx.assignment(0))
