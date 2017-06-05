@@ -76,6 +76,8 @@ class CodeBuilder(AstVisitor):
             # Mock assignment node, pops the stack.
             exprType = self.visit(node.expression)
             idType = exprType['idType']
+            if idType == "":
+                return
             if exprType['refCount'] > 0:
                 idType = "a"
             # Pop the stack
